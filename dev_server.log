@@ -1,0 +1,14 @@
+
+> my-project@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 906ms
+
+○ Compiling /dashboard ...
+ GET /dashboard 200 in 6.4s (next.js: 5.8s, application-code: 643ms)
+ GET /dashboard 200 in 645ms (next.js: 407ms, application-code: 237ms)
+ GET /dashboard/drafts 200 in 1076ms (next.js: 1026ms, application-code: 50ms)
+○ Compiling /dashboard/create ...

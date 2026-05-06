@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { experimental_useObject } from '@ai-sdk/react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -20,6 +21,9 @@ import { TONES, CONTENT_TYPES, THREAD_TWEET_COUNTS, type PlatformId, type ToneId
 import { toast } from 'sonner'
 
 export function CreateContent() {
+  const searchParams = useSearchParams()
+  const editId = searchParams.get('edit')
+
   // Mode: 'post' or 'thread'
   const [mode, setMode] = useState<'post' | 'thread'>('post')
 
@@ -32,6 +36,24 @@ export function CreateContent() {
   const [tone, setTone] = useState<ToneId>('casual')
   const [contentType, setContentType] = useState<ContentTypeId>('promotional')
   const [platforms, setPlatforms] = useState<PlatformId[]>(['twitter', 'instagram'])
+
+  // Pre-fill if editing
+  useEffect(() => {
+    if (editId) {
+      const stored = localStorage.getItem('postpilot_drafts')
+      if (stored) {
+        const drafts = JSON.parse(stored)
+        const draft = drafts.find((d: any) => d.id === editId)
+        if (draft) {
+          setPrompt(draft.content)
+          setTone(draft.tone)
+          setContentType(draft.contentType)
+          setPlatforms(draft.platforms)
+          setMode('post')
+        }
+      }
+    }
+  }, [editId])
 
   // Selection + clipboard state
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null)
