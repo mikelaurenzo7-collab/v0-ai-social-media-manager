@@ -3,12 +3,7 @@
 import { cn } from '@/lib/utils'
 import { PLATFORMS, type PlatformId } from '@/lib/constants/platforms'
 import { PlatformIcon } from './platform-selector'
-
-interface ContentVariation {
-  id: string
-  content: string
-  hashtags: string[]
-}
+import type { ContentVariation } from '@/lib/schemas/content'
 
 interface VariationCardsProps {
   variations: ContentVariation[]
@@ -36,9 +31,16 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
         >
           {/* Header */}
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">
-              Variation {index + 1}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                Variation {index + 1}
+              </span>
+              {variation.angle && (
+                <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                  {variation.angle}
+                </span>
+              )}
+            </div>
             {selectedId === variation.id && (
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
                 <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -75,7 +77,9 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
           {/* Character count */}
           <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
             <PlatformIcon platform={selectedPlatform} className="h-3 w-3" />
-            <span>
+            <span className={cn(
+              variation.content.length > platform.maxLength ? 'text-destructive font-medium' : ''
+            )}>
               {variation.content.length}/{platform.maxLength}
             </span>
           </div>
