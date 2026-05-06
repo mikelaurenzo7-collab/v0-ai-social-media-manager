@@ -224,7 +224,11 @@ function LinkedInPreview({ content }: { content: string }) {
 }
 
 function TikTokPreview({ content }: { content: string }) {
-  const hook = content.slice(0, 125)
+  // Use Unicode-aware slicing to avoid splitting surrogate pairs (e.g. emojis)
+  const hookChars = Array.from(content)
+  const hook = hookChars.slice(0, 125).join('')
+  const charCount = hookChars.length
+  const isOverMax = charCount > 2200
   return (
     <div className="rounded-xl border bg-card overflow-hidden">
       {/* Video area */}
@@ -285,8 +289,8 @@ function TikTokPreview({ content }: { content: string }) {
         </div>
       </div>
       <div className="px-3 py-2 flex items-center justify-between text-xs text-muted-foreground border-t">
-        <span className="font-medium">Caption preview</span>
-        <span className={cn('tabular-nums', content.length > 150 ? 'text-yellow-500' : '')}>{content.length}/150</span>
+        <span className="font-medium">Caption <span className="text-muted-foreground/60">(optimal ≤150)</span></span>
+        <span className={cn('tabular-nums', isOverMax ? 'text-destructive font-medium' : '')}>{charCount}/2200</span>
       </div>
     </div>
   )
