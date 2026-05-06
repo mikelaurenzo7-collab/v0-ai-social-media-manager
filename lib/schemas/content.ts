@@ -29,6 +29,12 @@ export const contentVariationSchema = z.object({
           .describe(
             'The hook mechanism used, e.g. "Curiosity Gap", "Bold Claim", "Relatable Pain", "Statistic"'
           ),
+        platformTip: z
+          .string()
+          .optional()
+          .describe(
+            'One platform-specific tactic that will maximize reach for this post, e.g. "Post this as a carousel for 3× swipe-through rate" or "Drop the link in the first comment, not the caption"'
+          ),
       })
     )
     .min(3)
