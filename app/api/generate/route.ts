@@ -1,56 +1,42 @@
-import { generateText, Output } from 'ai'
-import { z } from 'zod'
+import { streamObject } from 'ai'
+import { anthropic } from '@ai-sdk/anthropic'
+import { contentVariationSchema } from '@/lib/schemas/content'
 
-const contentVariationSchema = z.object({
-  variations: z.array(
-    z.object({
-      id: z.string(),
-      content: z.string().describe('The main post content, optimized for social media engagement'),
-      hashtags: z.array(z.string()).describe('Relevant hashtags without the # symbol'),
-    })
-  ).length(3),
-})
+export const runtime = 'edge'
 
 export async function POST(req: Request) {
   const { prompt, tone, contentType, platforms } = await req.json()
 
-  const platformNames = platforms.join(', ')
-  const characterLimits = platforms.includes('twitter') 
-    ? 'Keep Twitter/X posts under 280 characters.' 
+  const platformNames = (platforms as string[]).join(', ')
+  const twitterGuideline = platforms.includes('twitter')
+    ? 'For Twitter/X: keep content under 280 characters (not counting hashtags).'
     : ''
 
-  const systemPrompt = `You are an expert social media content creator. Generate engaging, platform-optimized content.
+  const systemPrompt = `You are an elite social media strategist and copywriter for top brands and influencers.
+Your job is to generate 3 distinct, high-performing social media post variations.
 
-Guidelines:
-- Create content that feels authentic and human
-- Match the requested tone precisely
-- Include relevant hashtags that will increase reach
-- ${characterLimits}
-- Optimize for ${platformNames}
-- Each variation should take a different creative angle
-- Never use generic filler content - make it specific and compelling
-- Don't use emojis unless they genuinely enhance the message
+Platform guidelines:
+- ${twitterGuideline || 'Optimize for long-form engagement.'}
+- Instagram: use conversational captions with strong hooks and a clear CTA.
+- Facebook: write for shareability, community discussion, and emotional resonance.
 
-Tone: ${tone}
-Content Type: ${contentType}
-Target Platforms: ${platformNames}`
+Content rules:
+- Each variation must take a completely different creative angle (hook style, structure, or perspective).
+- Make every word count — no filler, no clichés.
+- Match the tone precisely: ${tone}.
+- Content type is ${contentType} — reflect this in the approach.
+- Include 3–6 highly relevant, high-reach hashtags per post.
+- Do NOT use generic hashtags like #love or #instagood unless they fit perfectly.
+- Use emojis sparingly and only when they genuinely enhance the message.
 
-  try {
-    const { output } = await generateText({
-      model: 'openai/gpt-4o-mini',
-      output: Output.object({
-        schema: contentVariationSchema,
-      }),
-      system: systemPrompt,
-      prompt: `Create 3 unique social media post variations for the following idea:\n\n"${prompt}"\n\nEach variation should take a different creative angle while maintaining the same core message.`,
-    })
+Target platforms: ${platformNames}`
 
-    return Response.json({ variations: output?.variations || [] })
-  } catch (error) {
-    console.error('AI generation error:', error)
-    return Response.json(
-      { error: 'Failed to generate content' },
-      { status: 500 }
-    )
-  }
+  const result = streamObject({
+    model: anthropic('claude-3-5-haiku-20241022'),
+    schema: contentVariationSchema,
+    system: systemPrompt,
+    prompt: `Create 3 unique social media post variations for this idea:\n\n"${prompt}"\n\nMake each one feel like it was written by a different expert with a distinct voice and angle.`,
+  })
+
+  return result.toTextStreamResponse()
 }
