@@ -11,41 +11,7 @@ import { VariationCards } from '@/components/create/variation-cards'
 import { PlatformPreview } from '@/components/create/platform-preview'
 import { TONES, CONTENT_TYPES, type PlatformId, type ToneId, type ContentTypeId } from '@/lib/constants/platforms'
 import { Spinner } from '@/components/ui/spinner'
-
-// Mock AI response generator
-const generateMockContent = (prompt: string, tone: ToneId, contentType: ContentTypeId, platforms: PlatformId[]) => {
-  // Simulated AI-generated variations based on input
-  const toneAdjectives: Record<ToneId, string[]> = {
-    professional: ['strategic', 'impactful', 'results-driven'],
-    casual: ['awesome', 'amazing', 'exciting'],
-    witty: ['game-changing', 'mind-blowing', 'legendary'],
-    inspirational: ['transformative', 'empowering', 'life-changing'],
-    educational: ['valuable', 'insightful', 'essential'],
-  }
-
-  const adj = toneAdjectives[tone] || toneAdjectives.casual
-  const basePrompt = prompt || 'your product'
-
-  const variations = [
-    {
-      id: '1',
-      content: `${adj[0].charAt(0).toUpperCase() + adj[0].slice(1)} news! We&apos;re thrilled to share ${basePrompt}. This is exactly what you&apos;ve been waiting for. Ready to take things to the next level? Let&apos;s go!`,
-      hashtags: ['Innovation', 'Growth', 'Success', 'Trending'],
-    },
-    {
-      id: '2',
-      content: `Here&apos;s something ${adj[1]}: ${basePrompt}. We&apos;ve put our hearts into making this happen, and we can&apos;t wait for you to experience it. Your feedback means everything to us!`,
-      hashtags: ['Community', 'Launch', 'Excited', 'NewBeginnings'],
-    },
-    {
-      id: '3',
-      content: `Big things are happening! ${basePrompt} is here to make your life easier. We&apos;ve been working on something ${adj[2]}, and today it&apos;s finally ready. What do you think?`,
-      hashtags: ['Announcement', 'BigNews', 'GameChanger', 'MustSee'],
-    },
-  ]
-
-  return variations
-}
+import { toast } from 'sonner'
 
 interface ContentVariation {
   id: string
@@ -75,13 +41,32 @@ export function CreateContent() {
     setVariations([])
     setSelectedVariation(null)
 
-    // Simulate AI processing time
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, tone, contentType, platforms }),
+      })
 
-    const newVariations = generateMockContent(prompt, tone, contentType, platforms)
-    setVariations(newVariations)
-    setSelectedVariation(newVariations[0].id)
-    setIsGenerating(false)
+      if (!response.ok) {
+        throw new Error('Generation failed')
+      }
+
+      const data = await response.json()
+      
+      if (data.variations && data.variations.length > 0) {
+        setVariations(data.variations)
+        setSelectedVariation(data.variations[0].id)
+        toast.success('Content generated successfully!')
+      } else {
+        throw new Error('No variations received')
+      }
+    } catch (error) {
+      console.error('Generation error:', error)
+      toast.error('Failed to generate content. Please try again.')
+    } finally {
+      setIsGenerating(false)
+    }
   }, [prompt, tone, contentType, platforms])
 
   const handleRegenerate = useCallback(() => {
@@ -99,6 +84,7 @@ export function CreateContent() {
 
     await navigator.clipboard.writeText(fullContent)
     setCopied(true)
+    toast.success('Copied to clipboard!')
     setTimeout(() => setCopied(false), 2000)
   }, [selectedContent])
 
@@ -119,9 +105,7 @@ export function CreateContent() {
     }
 
     localStorage.setItem('postpilot_drafts', JSON.stringify([newDraft, ...existingDrafts]))
-    
-    // Show feedback (you could add a toast here)
-    alert('Draft saved!')
+    toast.success('Draft saved!')
   }, [selectedContent, platforms, tone, contentType])
 
   return (
@@ -209,7 +193,7 @@ export function CreateContent() {
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                   </svg>
-                  Generate Content
+                  Generate with AI
                 </>
               )}
             </Button>
@@ -226,7 +210,7 @@ export function CreateContent() {
                     <CardTitle className="text-base">Generated Content</CardTitle>
                     <CardDescription>Choose your favorite variation</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" onClick={handleRegenerate}>
+                  <Button variant="outline" size="sm" onClick={handleRegenerate} disabled={isGenerating}>
                     <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                     </svg>
@@ -302,6 +286,21 @@ export function CreateContent() {
               <h3 className="text-lg font-semibold">Ready to create?</h3>
               <p className="mt-2 max-w-sm text-muted-foreground">
                 Enter your idea above and click Generate to let AI craft the perfect social media content for you.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Loading state */}
+        {isGenerating && (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="mb-4 relative">
+                <div className="h-16 w-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              </div>
+              <h3 className="text-lg font-semibold">Creating your content...</h3>
+              <p className="mt-2 max-w-sm text-muted-foreground">
+                Our AI is crafting 3 unique variations optimized for your selected platforms.
               </p>
             </CardContent>
           </Card>
