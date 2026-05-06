@@ -20,14 +20,14 @@ export async function POST(req: Request) {
   const platformNames = platforms.join(', ')
 
   const result = streamText({
-    model: anthropic('claude-3-5-haiku-20241022'),
+    model: anthropic('claude-3-5-sonnet-20241022'),
     system: `You are an expert social media copywriter. Improve the given post based on the user's feedback.
 Return ONLY the improved post content followed by a blank line and then the hashtags (space-separated with # prefix).
 Do not include any explanation, preamble, or commentary — just the improved content and hashtags.
 Tone: ${tone}. Platforms: ${platformNames}.`,
     prompt: `Original post:\n${content}\n\nHashtags: ${hashtagStr}\n\nUser feedback: ${feedback}\n\nRewrite the post incorporating this feedback while keeping it optimized for ${platformNames}.`,
-    maxTokens: 512,
+    maxOutputTokens: 512,
   })
 
-  return result.toDataStreamResponse()
+  return result.toTextStreamResponse()
 }

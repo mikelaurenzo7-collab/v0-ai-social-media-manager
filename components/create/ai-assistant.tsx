@@ -1,174 +1,340 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import { useChat } from '@ai-sdk/react'
-import { useRef, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { TextStreamChatTransport } from 'ai'
 import { cn } from '@/lib/utils'
 
-const STARTER_PROMPTS = [
-  'What hook styles work best on Instagram?',
-  'Help me brainstorm angles for a product launch',
-  'What makes a post go viral on X?',
-  'Suggest 5 evergreen content ideas for my niche',
+// ── Tool result renderers ──────────────────────────────────────────────────────
+
+function AnalyzePostResult({ result }: { result: Record<string, unknown> }) {
+  const metrics = [
+    { label: 'Hook', value: result.hookStrength as number },
+    { label: 'CTA', value: result.ctaClarity as number },
+    { label: 'Read', value: result.readability as number },
+    { label: 'Engage', value: result.engagementPotential as number },
+  ]
+  const overall = result.overallScore as number
+  const color = overall >= 8 ? 'text-green-500' : overall >= 6 ? 'text-yellow-500' : 'text-red-500'
+
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Post Analysis</span>
+        <span className={cn('text-lg font-bold tabular-nums', color)}>{overall}/10</span>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {metrics.map((m) => (
+          <div key={m.label} className="text-center">
+            <div className="text-base font-semibold tabular-nums">{m.value}</div>
+            <div className="text-[10px] text-muted-foreground">{m.label}</div>
+          </div>
+        ))}
+      </div>
+      {Boolean(result.hookType) && (
+        <div className="text-xs">
+          <span className="font-medium">Hook type:</span>{' '}
+          <span className="text-muted-foreground">{result.hookType as string}</span>
+        </div>
+      )}
+      {Array.isArray(result.strengths) && result.strengths.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-green-600">✓ Strengths</p>
+          {(result.strengths as string[]).map((s, i) => (
+            <p key={i} className="text-xs text-muted-foreground">• {s}</p>
+          ))}
+        </div>
+      )}
+      {Array.isArray(result.improvements) && result.improvements.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-orange-600">↑ Improve</p>
+          {(result.improvements as string[]).map((s, i) => (
+            <p key={i} className="text-xs text-muted-foreground">• {s}</p>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function HashtagResult({ result }: { result: Record<string, unknown> }) {
+  const hashtags = result.hashtags as Array<{ tag: string; category: string; estimatedReach: string; why: string }>
+  const reachColor = (r: string) =>
+    r === 'very high' ? 'text-green-500' : r === 'high' ? 'text-blue-500' : r === 'medium' ? 'text-yellow-500' : 'text-muted-foreground'
+
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Hashtag Strategy</span>
+      <div className="flex flex-wrap gap-1.5">
+        {hashtags?.map((h) => (
+          <span key={h.tag} className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+            #{h.tag}
+          </span>
+        ))}
+      </div>
+      {Boolean(result.strategy) && (
+        <p className="text-xs text-muted-foreground">{result.strategy as string}</p>
+      )}
+    </div>
+  )
+}
+
+function ThreadOutlineResult({ result }: { result: Record<string, unknown> }) {
+  const tweets = result.tweets as Array<{ number: number; content: string; type: string }>
+  const typeColor: Record<string, string> = {
+    hook: 'bg-orange-500/10 text-orange-600',
+    content: 'bg-blue-500/10 text-blue-600',
+    bridge: 'bg-purple-500/10 text-purple-600',
+    cta: 'bg-green-500/10 text-green-600',
+  }
+
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Thread Outline</span>
+        <span className="text-xs text-muted-foreground">{tweets?.length} tweets</span>
+      </div>
+      <div className="space-y-2 max-h-64 overflow-y-auto">
+        {tweets?.map((t) => (
+          <div key={t.number} className="flex gap-2">
+            <span className="shrink-0 text-xs font-semibold text-muted-foreground w-5">{t.number}.</span>
+            <div className="flex-1 min-w-0 space-y-1">
+              <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-medium', typeColor[t.type] ?? 'bg-muted text-muted-foreground')}>
+                {t.type}
+              </span>
+              <p className="text-xs leading-relaxed">{t.content}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ScheduleResult({ result }: { result: Record<string, unknown> }) {
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Optimal Schedule</span>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <p className="font-medium text-muted-foreground">Best Days</p>
+          <p>{(result.bestDays as string[])?.join(', ')}</p>
+        </div>
+        <div>
+          <p className="font-medium text-muted-foreground">Best Times</p>
+          <p>{(result.bestTimes as string[])?.join(', ')}</p>
+        </div>
+      </div>
+      {Boolean(result.notes) && (
+        <p className="text-xs text-muted-foreground italic">{result.notes as string}</p>
+      )}
+    </div>
+  )
+}
+
+function ToolResultCard({ toolName, output }: { toolName: string; output: unknown }) {
+  const result = output as Record<string, unknown>
+  if (!result) return null
+
+  if (toolName === 'analyze_post') return <AnalyzePostResult result={result} />
+  if (toolName === 'suggest_hashtags') return <HashtagResult result={result} />
+  if (toolName === 'create_thread_outline') return <ThreadOutlineResult result={result} />
+  if (toolName === 'get_posting_schedule') return <ScheduleResult result={result} />
+  return null
+}
+
+// ── Suggestion chips ──────────────────────────────────────────────────────────
+
+const SUGGESTIONS = [
+  'What makes a hook irresistible?',
+  'Analyze this post for me',
+  'Best time to post on LinkedIn?',
+  'Give me 10 hashtags for SaaS content',
+  'Thread idea: productivity hacks',
+  'How do I grow faster on Instagram?',
 ]
 
+// ── Main component ────────────────────────────────────────────────────────────
+
 export function AIAssistant() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setInput } = useChat({
-    api: '/api/chat',
+  const [inputText, setInputText] = useState('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const { messages, sendMessage, status, stop } = useChat({
+    transport: new TextStreamChatTransport({ api: '/api/chat' }),
   })
 
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const isLoading = status === 'submitted' || status === 'streaming'
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleStarterClick = (prompt: string) => {
-    setInput(prompt)
+  const handleSend = () => {
+    const text = inputText.trim()
+    if (!text || isLoading) return
+    sendMessage({ text })
+    setInputText('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
+  const handleSuggestion = (suggestion: string) => {
+    if (isLoading) return
+    sendMessage({ text: suggestion })
   }
 
   return (
     <div className="flex h-full flex-col">
       {/* Messages */}
-      <ScrollArea className="flex-1 px-4 py-3">
-        {messages.length === 0 ? (
-          <div className="flex flex-col gap-4 py-4">
-            <div className="text-center">
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <svg
-                  className="h-5 w-5 text-primary"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="1.5"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
-                  />
-                </svg>
-              </div>
-              <p className="text-sm font-medium">AI Content Strategist</p>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 && (
+          <div className="space-y-4">
+            <div className="rounded-xl border bg-primary/5 p-4">
+              <p className="text-sm font-medium">👋 Hey! I&apos;m your AI Content Strategist.</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Ask me anything about social media content
+                Ask me anything about social media strategy. I can analyze posts, suggest hashtags, build thread outlines, and more.
               </p>
             </div>
-
-            <div className="grid grid-cols-1 gap-2">
-              {STARTER_PROMPTS.map((prompt) => (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Try asking:</p>
+              {SUGGESTIONS.map((s) => (
                 <button
-                  key={prompt}
+                  key={s}
                   type="button"
-                  onClick={() => handleStarterClick(prompt)}
-                  className="rounded-lg border bg-muted/40 px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  onClick={() => handleSuggestion(s)}
+                  className="block w-full rounded-lg border px-3 py-2 text-left text-xs hover:bg-muted transition-colors"
                 >
-                  {prompt}
+                  {s}
                 </button>
               ))}
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col gap-3 py-2">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  'flex',
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                )}
-              >
-                <div
-                  className={cn(
-                    'max-w-[85%] rounded-xl px-3 py-2 text-sm leading-relaxed',
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-foreground'
-                  )}
-                >
-                  {message.content}
-                </div>
-              </div>
-            ))}
+        )}
 
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="rounded-xl bg-muted px-3 py-2">
-                  <div className="flex items-center gap-1">
-                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:0ms]" />
-                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
-                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
-                  </div>
-                </div>
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={cn(
+              'flex',
+              message.role === 'user' ? 'justify-end' : 'justify-start'
+            )}
+          >
+            {message.role === 'assistant' && (
+              <div className="mr-2 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <svg className="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
               </div>
             )}
 
-            <div ref={bottomRef} />
+            <div className={cn('max-w-[85%] space-y-2', message.role === 'user' ? 'items-end' : 'items-start')}>
+              {message.parts.map((part, i) => {
+                if (part.type === 'text') {
+                  return (
+                    <div
+                      key={i}
+                      className={cn(
+                        'rounded-xl px-3 py-2 text-sm leading-relaxed',
+                        message.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted'
+                      )}
+                    >
+                      <p className="whitespace-pre-wrap">{part.text}</p>
+                    </div>
+                  )
+                }
+
+                // Tool invocation parts
+                if (part.type.startsWith('tool-')) {
+                  const toolName = part.type.slice(5)
+                  const anyPart = part as { state?: string; output?: unknown }
+                  if (anyPart.state === 'output-available' && anyPart.output) {
+                    return <ToolResultCard key={i} toolName={toolName} output={anyPart.output} />
+                  }
+                  if (anyPart.state === 'input-streaming' || anyPart.state === 'input-available') {
+                    return (
+                      <div key={i} className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                        <svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        Running {toolName.replace(/_/g, ' ')}…
+                      </div>
+                    )
+                  }
+                }
+
+                return null
+              })}
+            </div>
+          </div>
+        ))}
+
+        {isLoading && messages[messages.length - 1]?.role === 'user' && (
+          <div className="flex justify-start">
+            <div className="mr-2 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <svg className="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+              </svg>
+            </div>
+            <div className="rounded-xl bg-muted px-3 py-2">
+              <div className="flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:0ms]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:150ms]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-bounce [animation-delay:300ms]" />
+              </div>
+            </div>
           </div>
         )}
-      </ScrollArea>
+
+        <div ref={messagesEndRef} />
+      </div>
 
       {/* Input */}
       <div className="border-t p-3">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-          <Textarea
-            value={input}
-            onChange={handleInputChange}
-            placeholder="Ask about content strategy..."
-            className="min-h-[72px] resize-none text-sm"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                handleSubmit(e as unknown as React.FormEvent)
-              }
-            }}
+        <div className="flex items-end gap-2">
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask anything about strategy, hooks, hashtags…"
+            className="flex-1 resize-none rounded-lg border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring min-h-[40px] max-h-[120px]"
+            rows={1}
+            disabled={isLoading}
           />
-          <Button type="submit" size="sm" disabled={isLoading || !input.trim()} className="self-end">
-            {isLoading ? (
-              <>
-                <svg
-                  className="mr-1.5 h-3.5 w-3.5 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-                Thinking...
-              </>
-            ) : (
-              <>
-                <svg
-                  className="mr-1.5 h-3.5 w-3.5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
-                  />
-                </svg>
-                Send
-              </>
-            )}
-          </Button>
-        </form>
+          {isLoading ? (
+            <button
+              type="button"
+              onClick={stop}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border text-muted-foreground hover:bg-muted"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9z" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={!inputText.trim()}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground disabled:opacity-40 hover:bg-primary/90"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+              </svg>
+            </button>
+          )}
+        </div>
+        <p className="mt-1.5 text-[10px] text-muted-foreground text-center">
+          Shift+Enter for new line · Enter to send
+        </p>
       </div>
     </div>
   )

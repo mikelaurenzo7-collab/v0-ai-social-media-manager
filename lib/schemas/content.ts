@@ -16,6 +16,19 @@ export const contentVariationSchema = z.object({
           .describe(
             'A short label describing the creative angle, e.g. "Storytelling", "Data-Driven", "Question Hook"'
           ),
+        score: z
+          .number()
+          .min(1)
+          .max(10)
+          .describe(
+            'Predicted engagement score from 1–10 based on hook strength, clarity, and platform fit'
+          ),
+        hookType: z
+          .string()
+          .optional()
+          .describe(
+            'The hook mechanism used, e.g. "Curiosity Gap", "Bold Claim", "Relatable Pain", "Statistic"'
+          ),
       })
     )
     .min(3)

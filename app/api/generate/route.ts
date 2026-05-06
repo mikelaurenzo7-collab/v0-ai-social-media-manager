@@ -11,31 +11,43 @@ export async function POST(req: Request) {
   const twitterGuideline = platforms.includes('twitter')
     ? 'For Twitter/X: keep content under 280 characters (not counting hashtags).'
     : ''
+  const linkedInGuideline = platforms.includes('linkedin')
+    ? 'For LinkedIn: professional tone, industry-relevant insights, thought leadership angle.'
+    : ''
 
-  const systemPrompt = `You are an elite social media strategist and copywriter for top brands and influencers.
-Your job is to generate 3 distinct, high-performing social media post variations.
+  const systemPrompt = `You are an elite social media strategist and copywriter who has grown accounts to millions of followers.
+Your job is to generate 3 distinct, high-performing social media post variations — each one could go viral on its own.
 
 Platform guidelines:
-- ${twitterGuideline || 'Optimize for long-form engagement.'}
-- Instagram: use conversational captions with strong hooks and a clear CTA.
+- ${twitterGuideline || 'Optimize for engagement and shareability.'}
+- ${linkedInGuideline || ''}
+- Instagram: hook in the first line, conversational caption, strong CTA.
 - Facebook: write for shareability, community discussion, and emotional resonance.
 
 Content rules:
-- Each variation must take a completely different creative angle (hook style, structure, or perspective).
-- Make every word count — no filler, no clichés.
+- Each variation MUST take a completely different creative angle (different hook type, structure, and perspective).
+- Assign each a score 1-10 for predicted engagement (be honest — differentiate your scores).
+- Identify the hook type for each: e.g. "Curiosity Gap", "Bold Claim", "Relatable Pain", "Statistic", "Story".
+- Make every word count — no filler, no clichés, no generic openers.
 - Match the tone precisely: ${tone}.
 - Content type is ${contentType} — reflect this in the approach.
-- Include 3–6 highly relevant, high-reach hashtags per post.
-- Do NOT use generic hashtags like #love or #instagood unless they fit perfectly.
+- Include 3–6 highly relevant, strategic hashtags per post.
 - Use emojis sparingly and only when they genuinely enhance the message.
+
+Hook types to rotate through:
+1. Curiosity Gap ("Here's what no one tells you about X...")
+2. Bold Claim or Contrarian Take  
+3. Relatable Pain Point
+4. Specific Statistic or Number
+5. Story or Personal Experience
 
 Target platforms: ${platformNames}`
 
   const result = streamObject({
-    model: anthropic('claude-3-5-haiku-20241022'),
+    model: anthropic('claude-3-5-sonnet-20241022'),
     schema: contentVariationSchema,
     system: systemPrompt,
-    prompt: `Create 3 unique social media post variations for this idea:\n\n"${prompt}"\n\nMake each one feel like it was written by a different expert with a distinct voice and angle.`,
+    prompt: `Create 3 unique, high-engagement social media post variations for this idea:\n\n"${prompt}"\n\nEach variation must feel like it was written by a different top creator with a distinct voice, hook style, and angle. Score each one honestly.`,
   })
 
   return result.toTextStreamResponse()
