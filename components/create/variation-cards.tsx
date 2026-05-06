@@ -106,6 +106,13 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
               {variation.content.length}/{platform.maxLength}
             </span>
           </div>
+
+          {/* Platform tip */}
+          {variation.platformTip && (
+            <div className="mt-2 rounded-md bg-primary/10 px-2 py-1.5">
+              <p className="text-[11px] font-medium text-primary">💡 {variation.platformTip}</p>
+            </div>
+          )}
         </button>
       ))}
     </div>

@@ -132,6 +132,152 @@ function ScheduleResult({ result }: { result: Record<string, unknown> }) {
   )
 }
 
+function RewriteForPlatformResult({ result }: { result: Record<string, unknown> }) {
+  const platform = result.targetPlatform as string
+  const charCount = result.characterCount as number
+  const keyChanges = result.keyChanges as string[]
+
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Rewritten for {platform}</span>
+        <span className="text-xs text-muted-foreground tabular-nums">{charCount} chars</span>
+      </div>
+      {Boolean(result.rewrittenContent) && (
+        <p className="text-sm leading-relaxed whitespace-pre-wrap rounded bg-background/60 px-2 py-1.5">{result.rewrittenContent as string}</p>
+      )}
+      {Array.isArray(keyChanges) && keyChanges.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">Changes made:</p>
+          {keyChanges.map((c, i) => (
+            <p key={i} className="text-xs text-muted-foreground">→ {c}</p>
+          ))}
+        </div>
+      )}
+      {Boolean(result.platformTip) && (
+        <div className="rounded bg-primary/10 px-2 py-1.5">
+          <p className="text-xs font-medium text-primary">💡 {result.platformTip as string}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ViralHooksResult({ result }: { result: Record<string, unknown> }) {
+  const hooks = result.hooks as Array<{ hook: string; formula: string; whyItWorks: string; score: number }>
+  const topPick = result.topPick as number
+  const scoreColor = (s: number) => s >= 9 ? 'text-green-500' : s >= 7 ? 'text-yellow-500' : 'text-muted-foreground'
+
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Viral Hooks</span>
+      <div className="space-y-2">
+        {hooks?.map((h, i) => (
+          <div key={i} className={cn('rounded-lg border p-2.5 space-y-1', i === topPick ? 'border-primary bg-primary/5' : 'bg-background/60')}>
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm font-medium leading-snug flex-1">&ldquo;{h.hook}&rdquo;</p>
+              <span className={cn('shrink-0 text-xs font-bold tabular-nums', scoreColor(h.score))}>{h.score}/10</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">{h.formula}</span>
+              {i === topPick && <span className="text-[10px] font-medium text-primary">⭐ Top Pick</span>}
+            </div>
+            <p className="text-xs text-muted-foreground">{h.whyItWorks}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ContentCalendarResult({ result }: { result: Record<string, unknown> }) {
+  const days = result.days as Array<{ day: string; contentType: string; topic: string; hook: string; goal: string }>
+  const typeColors: Record<string, string> = {
+    Reel: 'bg-pink-500/10 text-pink-600',
+    Carousel: 'bg-purple-500/10 text-purple-600',
+    Thread: 'bg-blue-500/10 text-blue-600',
+    Poll: 'bg-orange-500/10 text-orange-600',
+    Story: 'bg-yellow-500/10 text-yellow-600',
+    Video: 'bg-red-500/10 text-red-600',
+  }
+  const getTypeColor = (type: string) => {
+    for (const key of Object.keys(typeColors)) {
+      if (type.includes(key)) return typeColors[key]
+    }
+    return 'bg-muted text-muted-foreground'
+  }
+
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">7-Day Content Calendar</span>
+      </div>
+      {Boolean(result.weekTheme) && (
+        <p className="text-xs text-muted-foreground italic">Theme: {result.weekTheme as string}</p>
+      )}
+      <div className="space-y-2">
+        {days?.map((d, i) => (
+          <div key={i} className="flex gap-2.5 rounded-lg border bg-background/60 p-2">
+            <div className="shrink-0 w-8 text-center">
+              <p className="text-xs font-bold">{d.day.slice(0, 3)}</p>
+            </div>
+            <div className="flex-1 min-w-0 space-y-0.5">
+              <div className="flex items-center gap-1.5">
+                <span className={cn('rounded-md px-1.5 py-0.5 text-[10px] font-medium', getTypeColor(d.contentType))}>
+                  {d.contentType}
+                </span>
+              </div>
+              <p className="text-xs font-medium">{d.topic}</p>
+              <p className="text-xs text-muted-foreground line-clamp-1">&ldquo;{d.hook}&rdquo;</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      {Boolean(result.proTip) && (
+        <div className="rounded bg-primary/10 px-2 py-1.5">
+          <p className="text-xs font-medium text-primary">💡 {result.proTip as string}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function BioOptimizerResult({ result }: { result: Record<string, unknown> }) {
+  const charCount = result.characterCount as number
+  const limit = result.limit as number
+  const keyElements = result.keyElements as string[]
+
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Optimized Bio</span>
+        <span className={cn('text-xs tabular-nums', charCount > limit ? 'text-destructive font-medium' : 'text-muted-foreground')}>
+          {charCount}/{limit}
+        </span>
+      </div>
+      {Boolean(result.bio) && (
+        <p className="text-sm leading-relaxed whitespace-pre-wrap rounded bg-background/60 px-3 py-2">{result.bio as string}</p>
+      )}
+      {Array.isArray(keyElements) && keyElements.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-green-600">✓ What makes it work</p>
+          {keyElements.map((el, i) => (
+            <p key={i} className="text-xs text-muted-foreground">• {el}</p>
+          ))}
+        </div>
+      )}
+      {Boolean(result.alternativeHook) && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">Alternative first line:</p>
+          <p className="text-xs italic text-muted-foreground">&ldquo;{result.alternativeHook as string}&rdquo;</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Tool result card dispatcher ────────────────────────────────────────────────
+
 function ToolResultCard({ toolName, output }: { toolName: string; output: unknown }) {
   const result = output as Record<string, unknown>
   if (!result) return null
@@ -140,18 +286,26 @@ function ToolResultCard({ toolName, output }: { toolName: string; output: unknow
   if (toolName === 'suggest_hashtags') return <HashtagResult result={result} />
   if (toolName === 'create_thread_outline') return <ThreadOutlineResult result={result} />
   if (toolName === 'get_posting_schedule') return <ScheduleResult result={result} />
+  if (toolName === 'rewrite_for_platform') return <RewriteForPlatformResult result={result} />
+  if (toolName === 'generate_viral_hooks') return <ViralHooksResult result={result} />
+  if (toolName === 'create_content_calendar') return <ContentCalendarResult result={result} />
+  if (toolName === 'optimize_bio') return <BioOptimizerResult result={result} />
   return null
 }
 
 // ── Suggestion chips ──────────────────────────────────────────────────────────
 
 const SUGGESTIONS = [
-  'What makes a hook irresistible?',
+  'Give me 5 viral hooks for my SaaS product',
+  'Rewrite this post for LinkedIn',
+  'Build me a 7-day content calendar for Instagram',
+  'Optimize my Twitter bio',
+  'Best time to post on TikTok?',
   'Analyze this post for me',
-  'Best time to post on LinkedIn?',
-  'Give me 10 hashtags for SaaS content',
-  'Thread idea: productivity hacks',
-  'How do I grow faster on Instagram?',
+  'Give me 10 hashtags for personal finance content',
+  'Thread idea: productivity habits that changed my life',
+  'How do I grow faster on TikTok?',
+  'What content format works best on LinkedIn right now?',
 ]
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -198,7 +352,7 @@ export function AIAssistant() {
             <div className="rounded-xl border bg-primary/5 p-4">
               <p className="text-sm font-medium">👋 Hey! I&apos;m your AI Content Strategist.</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Ask me anything about social media strategy. I can analyze posts, suggest hashtags, build thread outlines, and more.
+                Ask me anything about social media strategy. I can analyze posts, generate viral hooks, rewrite content for any platform, build content calendars, optimize bios, suggest hashtags, and a lot more.
               </p>
             </div>
             <div className="space-y-2">
