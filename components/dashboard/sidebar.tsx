@@ -4,8 +4,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-
 import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/hooks/use-auth'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const navigation: {
   name: string
@@ -84,6 +85,11 @@ const navigation: {
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { user, isLoading } = useAuth()
+
+  const initials = user?.full_name
+    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : user?.email?.slice(0, 2).toUpperCase() || 'U'
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r bg-sidebar">
@@ -137,25 +143,49 @@ export function Sidebar() {
       {/* Bottom Section */}
       <div className="border-t p-4">
         {/* User */}
-        <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
-            U
+        {isLoading ? (
+          <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <div className="flex-1 space-y-1">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-16" />
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-medium">Demo User</p>
-            <p className="truncate text-xs text-muted-foreground">Free Plan</p>
+        ) : user ? (
+          <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-sm font-medium">{user.full_name || 'User'}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {user.ai_credits} credits · {user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-medium">
+              ?
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-sm font-medium">Guest</p>
+              <p className="truncate text-xs text-muted-foreground">Sign in to save</p>
+            </div>
+          </div>
+        )}
 
         {/* Upgrade CTA */}
-        <Button asChild variant="outline" className="mt-3 w-full" size="sm">
-          <Link href="/dashboard/settings">
-            <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-            </svg>
-            Upgrade to Pro
-          </Link>
-        </Button>
+        {user?.plan === 'free' && (
+          <Button asChild variant="outline" className="mt-3 w-full" size="sm">
+            <Link href="/dashboard/settings">
+              <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+              </svg>
+              Upgrade to Pro
+            </Link>
+          </Button>
+        )}
       </div>
     </aside>
   )

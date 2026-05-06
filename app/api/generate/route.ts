@@ -1,5 +1,6 @@
 import { generateText, Output } from 'ai'
 import { z } from 'zod'
+import { getSession, useAICredit } from '@/lib/auth'
 
 const contentVariationSchema = z.object({
   variations: z.array(
@@ -12,6 +13,20 @@ const contentVariationSchema = z.object({
 })
 
 export async function POST(req: Request) {
+  // Check if user is authenticated and has credits
+  const session = await getSession()
+  
+  if (session) {
+    // Deduct credit before generating
+    const hasCredits = await useAICredit(session.user.id)
+    if (!hasCredits) {
+      return Response.json(
+        { error: 'You have run out of AI credits. Please upgrade to continue.' },
+        { status: 403 }
+      )
+    }
+  }
+
   const { prompt, tone, contentType, platforms } = await req.json()
 
   const platformNames = platforms.join(', ')

@@ -12,6 +12,9 @@ import { PlatformPreview } from '@/components/create/platform-preview'
 import { TONES, CONTENT_TYPES, type PlatformId, type ToneId, type ContentTypeId } from '@/lib/constants/platforms'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
+import { useAuth } from '@/hooks/use-auth'
+import { useDrafts } from '@/hooks/use-drafts'
+import Link from 'next/link'
 
 interface ContentVariation {
   id: string
@@ -20,6 +23,9 @@ interface ContentVariation {
 }
 
 export function CreateContent() {
+  const { user, isLoading: authLoading, mutate: mutateAuth } = useAuth()
+  const { createDraft } = useDrafts()
+
   // Form state
   const [prompt, setPrompt] = useState('')
   const [tone, setTone] = useState<ToneId>('casual')
@@ -30,12 +36,19 @@ export function CreateContent() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [variations, setVariations] = useState<ContentVariation[]>([])
   const [selectedVariation, setSelectedVariation] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   // Clipboard state
   const [copied, setCopied] = useState(false)
 
   const handleGenerate = useCallback(async () => {
     if (!prompt.trim()) return
+
+    // Check credits for logged-in users
+    if (user && user.ai_credits <= 0) {
+      toast.error('You\'ve run out of AI credits. Upgrade to continue generating content.')
+      return
+    }
 
     setIsGenerating(true)
     setVariations([])
@@ -49,7 +62,8 @@ export function CreateContent() {
       })
 
       if (!response.ok) {
-        throw new Error('Generation failed')
+        const data = await response.json()
+        throw new Error(data.error || 'Generation failed')
       }
 
       const data = await response.json()
@@ -58,16 +72,20 @@ export function CreateContent() {
         setVariations(data.variations)
         setSelectedVariation(data.variations[0].id)
         toast.success('Content generated successfully!')
+        // Refresh user data to update credits
+        if (user) {
+          mutateAuth()
+        }
       } else {
         throw new Error('No variations received')
       }
     } catch (error) {
       console.error('Generation error:', error)
-      toast.error('Failed to generate content. Please try again.')
+      toast.error(error instanceof Error ? error.message : 'Failed to generate content. Please try again.')
     } finally {
       setIsGenerating(false)
     }
-  }, [prompt, tone, contentType, platforms])
+  }, [prompt, tone, contentType, platforms, user, mutateAuth])
 
   const handleRegenerate = useCallback(() => {
     handleGenerate()
@@ -88,25 +106,33 @@ export function CreateContent() {
     setTimeout(() => setCopied(false), 2000)
   }, [selectedContent])
 
-  const handleSaveDraft = useCallback(() => {
+  const handleSaveDraft = useCallback(async () => {
     if (!selectedContent) return
 
-    // Get existing drafts from localStorage
-    const existingDrafts = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
-    
-    const newDraft = {
-      id: Date.now().toString(),
-      content: selectedContent.content,
-      hashtags: selectedContent.hashtags,
-      platforms,
-      tone,
-      contentType,
-      createdAt: new Date().toISOString(),
+    // Check if user is logged in
+    if (!user) {
+      toast.error('Please sign in to save drafts')
+      return
     }
 
-    localStorage.setItem('postpilot_drafts', JSON.stringify([newDraft, ...existingDrafts]))
-    toast.success('Draft saved!')
-  }, [selectedContent, platforms, tone, contentType])
+    setIsSaving(true)
+    try {
+      await createDraft({
+        content: selectedContent.content,
+        platforms,
+        tone,
+        contentType,
+        hashtags: selectedContent.hashtags,
+        originalPrompt: prompt,
+      })
+      toast.success('Draft saved!')
+    } catch (error) {
+      console.error('Save draft error:', error)
+      toast.error('Failed to save draft')
+    } finally {
+      setIsSaving(false)
+    }
+  }, [selectedContent, platforms, tone, contentType, prompt, user, createDraft])
 
   return (
     <div className="flex flex-col">
@@ -247,12 +273,22 @@ export function CreateContent() {
 
             {/* Actions */}
             <div className="flex flex-wrap gap-3">
-              <Button onClick={handleSaveDraft} variant="outline">
-                <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-                </svg>
-                Save as Draft
-              </Button>
+              {user ? (
+                <Button onClick={handleSaveDraft} variant="outline" disabled={isSaving}>
+                  {isSaving ? (
+                    <Spinner className="mr-2 h-4 w-4" />
+                  ) : (
+                    <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                    </svg>
+                  )}
+                  Save as Draft
+                </Button>
+              ) : (
+                <Button asChild variant="outline">
+                  <Link href="/signup">Sign up to save drafts</Link>
+                </Button>
+              )}
               <Button onClick={handleCopy}>
                 {copied ? (
                   <>
