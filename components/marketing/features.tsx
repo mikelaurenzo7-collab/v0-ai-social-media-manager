@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 const features = [
   {
@@ -9,10 +10,11 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
       </svg>
     ),
+    highlight: true,
   },
   {
     title: 'Multi-Platform Support',
-    description: 'Create content for X, Instagram, and Facebook simultaneously. Each post is tailored to platform-specific best practices.',
+    description: 'Create content for X, Instagram, and Facebook simultaneously. Each post tailored to platform best practices.',
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 6.878V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0118 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 004.5 9v.878m13.5-3A2.25 2.25 0 0119.5 9v.878m0 0a2.246 2.246 0 00-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0121 12v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6c0-.98.626-1.813 1.5-2.122" />
@@ -21,7 +23,7 @@ const features = [
   },
   {
     title: 'Multiple Variations',
-    description: 'Get 3 unique content variations for every prompt. Pick your favorite or mix and match elements.',
+    description: 'Get 3 unique content variations for every prompt. Pick your favorite or mix and match.',
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -46,6 +48,7 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
+    highlight: true,
   },
   {
     title: 'Save & Organize',
@@ -58,12 +61,19 @@ const features = [
   },
 ]
 
+const platforms = [
+  { name: "X / Twitter", icon: "𝕏", color: "bg-black text-white" },
+  { name: "Instagram", icon: "📷", color: "bg-gradient-to-br from-purple-500 to-pink-500 text-white" },
+  { name: "Facebook", icon: "f", color: "bg-blue-600 text-white" },
+]
+
 export function Features() {
   return (
-    <section id="features" className="py-20 sm:py-28">
+    <section id="features" className="py-20 sm:py-28 bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
+          <Badge variant="secondary" className="mb-4">Features</Badge>
           <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">
             Everything you need to create great content
           </h2>
@@ -73,21 +83,63 @@ export function Features() {
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <Card key={feature.title} className="border-border/50 transition-colors hover:border-border">
-              <CardContent className="pt-6">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        {/* Platforms Preview */}
+        <div className="mt-12 flex justify-center gap-4">
+          {platforms.map((platform) => (
+            <div 
+              key={platform.name} 
+              className={`${platform.color} w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg`}
+            >
+              {platform.icon}
+            </div>
+          ))}
+        </div>
+        <p className="text-center text-sm text-muted-foreground mt-4">
+          Supported platforms - more coming soon
+        </p>
+
+        {/* Features Grid - Bento Style */}
+        <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature, index) => (
+            <Card 
+              key={feature.title} 
+              className={`border-border/50 transition-all hover:border-primary/30 hover:shadow-md ${
+                feature.highlight ? 'bg-gradient-to-br from-primary/5 to-transparent' : ''
+              } ${index === 0 ? 'sm:col-span-2 lg:col-span-1' : ''}`}
+            >
+              <CardContent className="pt-6 h-full flex flex-col">
+                <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl ${
+                  feature.highlight ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'
+                }`}>
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-semibold">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground flex-1">
                   {feature.description}
                 </p>
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Stats */}
+        <div className="mt-20 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+          <div>
+            <div className="text-4xl font-bold text-primary">50+</div>
+            <div className="text-sm text-muted-foreground mt-1">AI generations free</div>
+          </div>
+          <div>
+            <div className="text-4xl font-bold text-primary">3</div>
+            <div className="text-sm text-muted-foreground mt-1">Platforms supported</div>
+          </div>
+          <div>
+            <div className="text-4xl font-bold text-primary">10K+</div>
+            <div className="text-sm text-muted-foreground mt-1">Happy creators</div>
+          </div>
+          <div>
+            <div className="text-4xl font-bold text-primary">4.9</div>
+            <div className="text-sm text-muted-foreground mt-1">Average rating</div>
+          </div>
         </div>
       </div>
     </section>
