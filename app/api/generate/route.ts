@@ -1,23 +1,27 @@
 import { generateText, Output } from 'ai'
 import { z } from 'zod'
 import { getSession, useAICredit } from '@/lib/auth'
+import { buildSystemPrompt, buildUserPrompt } from '@/lib/ai/prompt-builder'
+import type { PlatformIntelligenceId } from '@/lib/ai/platform-intelligence'
+import type { PersonaId } from '@/lib/ai/persona-engine'
 
 const contentVariationSchema = z.object({
   variations: z.array(
     z.object({
-      id: z.string(),
-      content: z.string().describe('The main post content, optimized for social media engagement'),
-      hashtags: z.array(z.string()).describe('Relevant hashtags without the # symbol'),
+      id: z.string().describe('Unique ID like "v1", "v2", "v3"'),
+      content: z.string().describe('The main post content. Platform-native, scroll-stopping, ready to publish.'),
+      hashtags: z.array(z.string()).describe('5-10 relevant hashtags without the # symbol. Mix popular and niche.'),
+      hookScore: z.number().describe('Self-assessed hook strength 1-10. Be honest.'),
+      bestPlatform: z.string().describe('Which target platform this variation is most optimized for'),
+      angle: z.string().describe('Brief label for the creative angle used, like "Direct Hook" or "Story-Led"'),
     })
   ).length(3),
 })
 
 export async function POST(req: Request) {
-  // Check if user is authenticated and has credits
   const session = await getSession()
-  
+
   if (session) {
-    // Deduct credit before generating
     const hasCredits = await useAICredit(session.user.id)
     if (!hasCredits) {
       return Response.json(
@@ -27,44 +31,51 @@ export async function POST(req: Request) {
     }
   }
 
-  const { prompt, tone, contentType, platforms } = await req.json()
+  const { prompt, tone, contentType, platforms, persona = 'personal', brandContext } = await req.json()
 
-  const platformNames = platforms.join(', ')
-  const characterLimits = platforms.includes('twitter') 
-    ? 'Keep Twitter/X posts under 280 characters.' 
-    : ''
+  if (!prompt || !platforms?.length) {
+    return Response.json(
+      { error: 'Prompt and at least one platform are required.' },
+      { status: 400 }
+    )
+  }
 
-  const systemPrompt = `You are an expert social media content creator. Generate engaging, platform-optimized content.
+  const config = {
+    platforms: platforms as PlatformIntelligenceId[],
+    persona: persona as PersonaId,
+    tone: tone || 'casual',
+    contentType: contentType || 'promotional',
+    prompt,
+    brandContext,
+  }
 
-Guidelines:
-- Create content that feels authentic and human
-- Match the requested tone precisely
-- Include relevant hashtags that will increase reach
-- ${characterLimits}
-- Optimize for ${platformNames}
-- Each variation should take a different creative angle
-- Never use generic filler content - make it specific and compelling
-- Don't use emojis unless they genuinely enhance the message
-
-Tone: ${tone}
-Content Type: ${contentType}
-Target Platforms: ${platformNames}`
+  const systemPrompt = buildSystemPrompt(config)
+  const userPrompt = buildUserPrompt(config)
 
   try {
     const { output } = await generateText({
-      model: 'openai/gpt-4o-mini',
+      model: 'openai/gpt-4.1-mini',
       output: Output.object({
         schema: contentVariationSchema,
       }),
       system: systemPrompt,
-      prompt: `Create 3 unique social media post variations for the following idea:\n\n"${prompt}"\n\nEach variation should take a different creative angle while maintaining the same core message.`,
+      prompt: userPrompt,
+      maxOutputTokens: 2000,
     })
 
-    return Response.json({ variations: output?.variations || [] })
+    return Response.json({
+      variations: output?.variations || [],
+      meta: {
+        persona,
+        platforms,
+        tone,
+        contentType,
+      },
+    })
   } catch (error) {
     console.error('AI generation error:', error)
     return Response.json(
-      { error: 'Failed to generate content' },
+      { error: 'Failed to generate content. Please try again.' },
       { status: 500 }
     )
   }

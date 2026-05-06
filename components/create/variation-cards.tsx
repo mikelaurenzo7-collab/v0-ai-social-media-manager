@@ -3,11 +3,15 @@
 import { cn } from '@/lib/utils'
 import { PLATFORMS, type PlatformId } from '@/lib/constants/platforms'
 import { PlatformIcon } from './platform-selector'
+import { Badge } from '@/components/ui/badge'
 
 interface ContentVariation {
   id: string
   content: string
   hashtags: string[]
+  hookScore?: number
+  bestPlatform?: string
+  angle?: string
 }
 
 interface VariationCardsProps {
@@ -15,6 +19,29 @@ interface VariationCardsProps {
   selectedId: string | null
   onSelect: (id: string) => void
   selectedPlatform: PlatformId
+}
+
+function HookStrength({ score }: { score: number }) {
+  const level = score >= 8 ? 'High' : score >= 5 ? 'Medium' : 'Low'
+  const color = score >= 8 ? 'text-green-600' : score >= 5 ? 'text-amber-600' : 'text-red-500'
+  const bgColor = score >= 8 ? 'bg-green-500' : score >= 5 ? 'bg-amber-500' : 'bg-red-500'
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex gap-0.5">
+        {Array.from({ length: 10 }, (_, i) => (
+          <div
+            key={i}
+            className={cn(
+              'h-1.5 w-1 rounded-full',
+              i < score ? bgColor : 'bg-muted'
+            )}
+          />
+        ))}
+      </div>
+      <span className={cn('text-xs font-medium', color)}>{level}</span>
+    </div>
+  )
 }
 
 export function VariationCards({ variations, selectedId, onSelect, selectedPlatform }: VariationCardsProps) {
@@ -36,9 +63,16 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
         >
           {/* Header */}
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">
-              Variation {index + 1}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                Variation {index + 1}
+              </span>
+              {variation.angle && (
+                <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                  {variation.angle}
+                </Badge>
+              )}
+            </div>
             {selectedId === variation.id && (
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
                 <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -56,7 +90,7 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
           {/* Hashtags */}
           {variation.hashtags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1">
-              {variation.hashtags.slice(0, 3).map((tag) => (
+              {variation.hashtags.slice(0, 4).map((tag) => (
                 <span
                   key={tag}
                   className="rounded-md bg-primary/10 px-2 py-0.5 text-xs text-primary"
@@ -64,20 +98,25 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
                   #{tag}
                 </span>
               ))}
-              {variation.hashtags.length > 3 && (
+              {variation.hashtags.length > 4 && (
                 <span className="text-xs text-muted-foreground">
-                  +{variation.hashtags.length - 3} more
+                  +{variation.hashtags.length - 4} more
                 </span>
               )}
             </div>
           )}
 
-          {/* Character count */}
-          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-            <PlatformIcon platform={selectedPlatform} className="h-3 w-3" />
-            <span>
-              {variation.content.length}/{platform.maxLength}
-            </span>
+          {/* Footer metadata */}
+          <div className="mt-3 flex items-center justify-between border-t pt-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <PlatformIcon platform={selectedPlatform} className="h-3 w-3" />
+              <span>
+                {variation.content.length}/{platform.maxLength}
+              </span>
+            </div>
+            {variation.hookScore !== undefined && (
+              <HookStrength score={variation.hookScore} />
+            )}
           </div>
         </button>
       ))}

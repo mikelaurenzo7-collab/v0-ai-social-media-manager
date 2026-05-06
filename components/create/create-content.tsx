@@ -14,12 +14,18 @@ import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/use-auth'
 import { useDrafts } from '@/hooks/use-drafts'
+import { PersonaPicker } from '@/components/create/persona-picker'
+import { Badge } from '@/components/ui/badge'
+import type { PersonaId } from '@/lib/ai/persona-engine'
 import Link from 'next/link'
 
 interface ContentVariation {
   id: string
   content: string
   hashtags: string[]
+  hookScore?: number
+  bestPlatform?: string
+  angle?: string
 }
 
 export function CreateContent() {
@@ -31,6 +37,7 @@ export function CreateContent() {
   const [tone, setTone] = useState<ToneId>('casual')
   const [contentType, setContentType] = useState<ContentTypeId>('promotional')
   const [platforms, setPlatforms] = useState<PlatformId[]>(['twitter', 'instagram'])
+  const [persona, setPersona] = useState<PersonaId>('personal')
 
   // Generation state
   const [isGenerating, setIsGenerating] = useState(false)
@@ -58,7 +65,7 @@ export function CreateContent() {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, tone, contentType, platforms }),
+        body: JSON.stringify({ prompt, tone, contentType, platforms, persona }),
       })
 
       if (!response.ok) {
@@ -85,7 +92,7 @@ export function CreateContent() {
     } finally {
       setIsGenerating(false)
     }
-  }, [prompt, tone, contentType, platforms, user, mutateAuth])
+  }, [prompt, tone, contentType, platforms, persona, user, mutateAuth])
 
   const handleRegenerate = useCallback(() => {
     handleGenerate()
@@ -142,6 +149,17 @@ export function CreateContent() {
       />
       
       <div className="p-6 space-y-6">
+        {/* Persona Selection */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Who are you creating for?</CardTitle>
+            <CardDescription>This helps our AI match your voice, goals, and content strategy</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PersonaPicker selected={persona} onChange={setPersona} />
+          </CardContent>
+        </Card>
+
         {/* Platform Selection */}
         <Card>
           <CardHeader className="pb-4">
