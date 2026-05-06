@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useObject } from '@ai-sdk/react'
+import { experimental_useObject } from '@ai-sdk/react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -13,11 +13,20 @@ import { VariationCards } from '@/components/create/variation-cards'
 import { PlatformPreview } from '@/components/create/platform-preview'
 import { AIAssistant } from '@/components/create/ai-assistant'
 import { ImproveDialog } from '@/components/create/improve-dialog'
+import { ThreadView } from '@/components/create/thread-view'
 import { contentVariationSchema, type ContentVariation } from '@/lib/schemas/content'
-import { TONES, CONTENT_TYPES, type PlatformId, type ToneId, type ContentTypeId } from '@/lib/constants/platforms'
+import { threadSchema, type Thread, type ThreadTweet } from '@/lib/schemas/thread'
+import { TONES, CONTENT_TYPES, THREAD_TWEET_COUNTS, type PlatformId, type ToneId, type ContentTypeId, type ThreadTweetCount } from '@/lib/constants/platforms'
 import { toast } from 'sonner'
 
 export function CreateContent() {
+  // Mode: 'post' or 'thread'
+  const [mode, setMode] = useState<'post' | 'thread'>('post')
+
+  // Thread state
+  const [threadTweetCount, setThreadTweetCount] = useState<ThreadTweetCount>(7)
+  const [threadTone, setThreadTone] = useState('educational and engaging')
+
   // Form state
   const [prompt, setPrompt] = useState('')
   const [tone, setTone] = useState<ToneId>('casual')
@@ -30,17 +39,29 @@ export function CreateContent() {
   const [showAssistant, setShowAssistant] = useState(false)
 
   // Streaming object generation via Claude
-  const { object, submit, isLoading: isGenerating, stop } = useObject({
+  const { object, submit, isLoading: isGenerating, stop } = experimental_useObject({
     api: '/api/generate',
     schema: contentVariationSchema,
-    onFinish: ({ object: result }) => {
-      if (result?.variations?.length) {
-        setSelectedVariationId(result.variations[0].id)
+    onFinish: (event) => {
+      if (event.object?.variations?.length) {
+        setSelectedVariationId(event.object.variations[0].id ?? null)
         toast.success('Content generated successfully!')
       }
     },
     onError: () => {
       toast.error('Failed to generate content. Please try again.')
+    },
+  })
+
+  // Thread generation
+  const { object: threadObject, submit: submitThread, isLoading: isGeneratingThread, stop: stopThread } = experimental_useObject({
+    api: '/api/thread',
+    schema: threadSchema,
+    onFinish: () => {
+      toast.success('Thread generated!')
+    },
+    onError: () => {
+      toast.error('Failed to generate thread. Please try again.')
     },
   })
 
@@ -55,6 +76,11 @@ export function CreateContent() {
     setSelectedVariationId(null)
     submit({ prompt, tone, contentType, platforms })
   }, [prompt, tone, contentType, platforms, submit])
+
+  const handleGenerateThread = useCallback(() => {
+    if (!prompt.trim()) return
+    submitThread({ topic: prompt, tweetCount: threadTweetCount, tone: threadTone })
+  }, [prompt, threadTweetCount, threadTone, submitThread])
 
   const handleCopy = useCallback(async () => {
     if (!selectedContent) return
@@ -84,6 +110,19 @@ export function CreateContent() {
     toast.success('Draft saved!')
   }, [selectedContent, platforms, tone, contentType])
 
+  const handleCopyThread = useCallback(async (tweets: ThreadTweet[]) => {
+    const text = tweets.map((t, i) => `${i + 1}/ ${t.content}`).join('\n\n')
+    await navigator.clipboard.writeText(text)
+    toast.success('Thread copied to clipboard!')
+  }, [])
+
+  const handleSaveThread = useCallback((thread: Partial<Thread>) => {
+    if (!thread.tweets?.length) return
+    const existing = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
+    localStorage.setItem('postpilot_threads', JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing]))
+    toast.success('Thread saved!')
+  }, [])
+
   const handleImproved = useCallback(
     (newContent: string, newHashtags: string[]) => {
       if (!selectedContent) return
@@ -111,6 +150,7 @@ export function CreateContent() {
     : selectedContent
 
   const hasResults = variations.length > 0 || isGenerating
+  const hasThread = (threadObject?.tweets?.length ?? 0) > 0 || isGeneratingThread
 
   return (
     <div className="flex flex-col">
@@ -145,7 +185,34 @@ export function CreateContent() {
       <div className="flex flex-1 overflow-hidden">
         {/* Main Content */}
         <div className="flex-1 overflow-auto p-6 space-y-6">
-          {/* Platform Selection */}
+          {/* Mode Toggle */}
+          <div className="flex gap-2">
+            <Button
+              variant={mode === 'post' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMode('post')}
+              className="gap-1.5"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+              </svg>
+              Post
+            </Button>
+            <Button
+              variant={mode === 'thread' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMode('thread')}
+              className="gap-1.5"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+              Thread
+            </Button>
+          </div>
+
+          {/* Platform Selection (only for post mode) */}
+          {mode === 'post' && (
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="text-base">Target Platforms</CardTitle>
@@ -155,66 +222,100 @@ export function CreateContent() {
               <PlatformSelector selected={platforms} onChange={setPlatforms} />
             </CardContent>
           </Card>
+          )}
 
           {/* Prompt Input */}
           <Card>
             <CardHeader className="pb-4">
-              <CardTitle className="text-base">What would you like to post about?</CardTitle>
-              <CardDescription>Describe your idea, topic, or message</CardDescription>
+              <CardTitle className="text-base">{mode === 'thread' ? 'Thread Topic' : 'What would you like to post about?'}</CardTitle>
+              <CardDescription>{mode === 'thread' ? 'Describe the topic for your thread' : 'Describe your idea, topic, or message'}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Textarea
-                placeholder="e.g., Announcing our new product launch, sharing tips about productivity, celebrating a milestone..."
+                placeholder={mode === 'thread' ? 'e.g., 7 productivity habits I wish I knew earlier, How AI is changing marketing...' : 'e.g., Announcing our new product launch, sharing tips about productivity, celebrating a milestone...'}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="min-h-[120px] resize-none"
               />
 
               <div className="flex flex-wrap gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Tone</label>
-                  <Select value={tone} onValueChange={(v) => setTone(v as ToneId)}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TONES.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {mode === 'post' ? (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Tone</label>
+                      <Select value={tone} onValueChange={(v) => setTone(v as ToneId)}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TONES.map((t) => (
+                            <SelectItem key={t.id} value={t.id}>
+                              {t.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Content Type</label>
-                  <Select
-                    value={contentType}
-                    onValueChange={(v) => setContentType(v as ContentTypeId)}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CONTENT_TYPES.map((ct) => (
-                        <SelectItem key={ct.id} value={ct.id}>
-                          {ct.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Content Type</label>
+                      <Select
+                        value={contentType}
+                        onValueChange={(v) => setContentType(v as ContentTypeId)}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CONTENT_TYPES.map((ct) => (
+                            <SelectItem key={ct.id} value={ct.id}>
+                              {ct.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Tweets</label>
+                      <Select value={String(threadTweetCount)} onValueChange={(v) => setThreadTweetCount(Number(v) as ThreadTweetCount)}>
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {THREAD_TWEET_COUNTS.map((n) => (
+                            <SelectItem key={n} value={String(n)}>{n} tweets</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Tone</label>
+                      <Select value={threadTone} onValueChange={setThreadTone}>
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TONES.map((t) => (
+                            <SelectItem key={t.id} value={t.description}>{t.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="flex gap-2">
                 <Button
-                  onClick={handleGenerate}
-                  disabled={!prompt.trim() || isGenerating}
+                  onClick={mode === 'thread' ? handleGenerateThread : handleGenerate}
+                  disabled={!prompt.trim() || (mode === 'post' ? isGenerating : isGeneratingThread)}
                   size="lg"
                   className="sm:w-auto"
                 >
-                  {isGenerating ? (
+                  {(mode === 'post' ? isGenerating : isGeneratingThread) ? (
                     <>
                       <svg
                         className="mr-2 h-4 w-4 animate-spin"
@@ -252,13 +353,13 @@ export function CreateContent() {
                           d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
                         />
                       </svg>
-                      Generate with Claude
+                      {mode === 'thread' ? 'Build Thread' : 'Generate with Claude'}
                     </>
                   )}
                 </Button>
 
-                {isGenerating && (
-                  <Button variant="outline" size="lg" onClick={stop}>
+                {(mode === 'post' ? isGenerating : isGeneratingThread) && (
+                  <Button variant="outline" size="lg" onClick={mode === 'post' ? stop : stopThread}>
                     Stop
                   </Button>
                 )}
@@ -266,8 +367,22 @@ export function CreateContent() {
             </CardContent>
           </Card>
 
-          {/* Streaming Results */}
-          {hasResults && (
+          {/* Thread Results */}
+          {mode === 'thread' && hasThread && (
+            <Card>
+              <CardContent className="pt-6">
+                <ThreadView
+                  thread={(threadObject ?? {}) as Partial<Thread>}
+                  isGenerating={isGeneratingThread}
+                  onCopy={handleCopyThread}
+                  onSave={handleSaveThread}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Post Streaming Results */}
+          {mode === 'post' && hasResults && (
             <>
               <Card>
                 <CardHeader className="pb-4">
@@ -467,7 +582,7 @@ export function CreateContent() {
           )}
 
           {/* Empty state */}
-          {!hasResults && (
+          {mode === 'post' && !hasResults && (
             <Card className="border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
@@ -489,6 +604,21 @@ export function CreateContent() {
                 <p className="mt-2 max-w-sm text-muted-foreground">
                   Enter your idea above and click &ldquo;Generate with Claude&rdquo; to get
                   3 unique AI-crafted variations.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+          {mode === 'thread' && !hasThread && (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <svg className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold">Build a thread</h3>
+                <p className="mt-2 max-w-sm text-muted-foreground">
+                  Enter your topic above and click &ldquo;Build Thread&rdquo; to generate a viral Twitter thread.
                 </p>
               </CardContent>
             </Card>

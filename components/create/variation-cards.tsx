@@ -12,6 +12,21 @@ interface VariationCardsProps {
   selectedPlatform: PlatformId
 }
 
+function ScoreBadge({ score }: { score?: number }) {
+  if (!score) return null
+  const color =
+    score >= 8
+      ? 'bg-green-500/10 text-green-600 border-green-500/20'
+      : score >= 6
+      ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'
+      : 'bg-red-500/10 text-red-600 border-red-500/20'
+  return (
+    <span className={cn('rounded-md border px-1.5 py-0.5 text-[11px] font-semibold tabular-nums', color)}>
+      {score}/10
+    </span>
+  )
+}
+
 export function VariationCards({ variations, selectedId, onSelect, selectedPlatform }: VariationCardsProps) {
   const platform = PLATFORMS[selectedPlatform]
 
@@ -30,8 +45,8 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
           )}
         >
           {/* Header */}
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground">
                 Variation {index + 1}
               </span>
@@ -40,14 +55,22 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
                   {variation.angle}
                 </span>
               )}
+              {variation.hookType && (
+                <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                  {variation.hookType}
+                </span>
+              )}
             </div>
-            {selectedId === variation.id && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
-                <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-              </span>
-            )}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <ScoreBadge score={variation.score} />
+              {selectedId === variation.id && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
+                  <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Content */}

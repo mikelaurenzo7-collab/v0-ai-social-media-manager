@@ -63,15 +63,8 @@ export function ImproveDialog({
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
-          const chunk = decoder.decode(value, { stream: true })
-          // Parse SSE data lines from the AI SDK data stream
-          for (const line of chunk.split('\n')) {
-            if (line.startsWith('0:"')) {
-              // Extract the text token from the data stream format
-              const token = line.slice(3, -1).replace(/\\n/g, '\n').replace(/\\"/g, '"')
-              full += token
-            }
-          }
+          // toTextStreamResponse returns plain UTF-8 text chunks
+          full += decoder.decode(value, { stream: true })
         }
       }
 
