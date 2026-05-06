@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { TextStreamChatTransport } from 'ai'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 
 // ── Tool result renderers ──────────────────────────────────────────────────────
 
@@ -88,11 +90,21 @@ function ThreadOutlineResult({ result }: { result: Record<string, unknown> }) {
     cta: 'bg-green-500/10 text-green-600',
   }
 
+  const handleCopy = async () => {
+    const text = tweets.map((t, i) => `${i + 1}/ ${t.content}`).join('\n\n')
+    await navigator.clipboard.writeText(text)
+    toast.success('Thread copied to clipboard!')
+  }
+
   return (
     <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Thread Outline</span>
-        <span className="text-xs text-muted-foreground">{tweets?.length} tweets</span>
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy}>
+          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+          </svg>
+        </Button>
       </div>
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {tweets?.map((t) => (
@@ -137,11 +149,23 @@ function RewriteForPlatformResult({ result }: { result: Record<string, unknown> 
   const charCount = result.characterCount as number
   const keyChanges = result.keyChanges as string[]
 
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(result.rewrittenContent as string)
+    toast.success('Copied to clipboard!')
+  }
+
   return (
     <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Rewritten for {platform}</span>
-        <span className="text-xs text-muted-foreground tabular-nums">{charCount} chars</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground tabular-nums">{charCount} chars</span>
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy}>
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+            </svg>
+          </Button>
+        </div>
       </div>
       {Boolean(result.rewrittenContent) && (
         <p className="text-sm leading-relaxed whitespace-pre-wrap rounded bg-background/60 px-2 py-1.5">{result.rewrittenContent as string}</p>
@@ -168,6 +192,11 @@ function ViralHooksResult({ result }: { result: Record<string, unknown> }) {
   const topPick = result.topPick as number
   const scoreColor = (s: number) => s >= 9 ? 'text-green-500' : s >= 7 ? 'text-yellow-500' : 'text-muted-foreground'
 
+  const handleCopy = async (text: string) => {
+    await navigator.clipboard.writeText(text)
+    toast.success('Hook copied to clipboard!')
+  }
+
   return (
     <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
       <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Viral Hooks</span>
@@ -176,7 +205,14 @@ function ViralHooksResult({ result }: { result: Record<string, unknown> }) {
           <div key={i} className={cn('rounded-lg border p-2.5 space-y-1', i === topPick ? 'border-primary bg-primary/5' : 'bg-background/60')}>
             <div className="flex items-start justify-between gap-2">
               <p className="text-sm font-medium leading-snug flex-1">&ldquo;{h.hook}&rdquo;</p>
-              <span className={cn('shrink-0 text-xs font-bold tabular-nums', scoreColor(h.score))}>{h.score}/10</span>
+              <div className="flex flex-col items-end gap-2">
+                <span className={cn('shrink-0 text-xs font-bold tabular-nums', scoreColor(h.score))}>{h.score}/10</span>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(h.hook)}>
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+                  </svg>
+                </Button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">{h.formula}</span>
@@ -247,13 +283,25 @@ function BioOptimizerResult({ result }: { result: Record<string, unknown> }) {
   const limit = result.limit as number
   const keyElements = result.keyElements as string[]
 
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(result.bio as string)
+    toast.success('Bio copied to clipboard!')
+  }
+
   return (
     <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Optimized Bio</span>
-        <span className={cn('text-xs tabular-nums', charCount > limit ? 'text-destructive font-medium' : 'text-muted-foreground')}>
-          {charCount}/{limit}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={cn('text-xs tabular-nums', charCount > limit ? 'text-destructive font-medium' : 'text-muted-foreground')}>
+            {charCount}/{limit}
+          </span>
+          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy}>
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+            </svg>
+          </Button>
+        </div>
       </div>
       {Boolean(result.bio) && (
         <p className="text-sm leading-relaxed whitespace-pre-wrap rounded bg-background/60 px-3 py-2">{result.bio as string}</p>

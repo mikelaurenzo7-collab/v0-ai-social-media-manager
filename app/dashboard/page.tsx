@@ -1,8 +1,12 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/dashboard/header'
+import { PlatformIcon } from '@/components/create/platform-selector'
 
 const AI_TIPS = [
   'Hook your audience in the first 3 words — people scroll fast.',
@@ -15,6 +19,20 @@ const AI_TIPS = [
 const randomTip = AI_TIPS[Math.floor(Math.random() * AI_TIPS.length)]
 
 export default function DashboardPage() {
+  const [drafts, setDrafts] = useState<any[]>([])
+  const [threads, setThreads] = useState<any[]>([])
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    const storedDrafts = localStorage.getItem('postpilot_drafts')
+    const storedThreads = localStorage.getItem('postpilot_threads')
+    if (storedDrafts) setDrafts(JSON.parse(storedDrafts))
+    if (storedThreads) setThreads(JSON.parse(storedThreads))
+  }, [])
+
+  if (!mounted) return null
+
   return (
     <div className="flex flex-col">
       <Header 
@@ -51,7 +69,7 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Posts Created</CardDescription>
-              <CardTitle className="text-3xl">0</CardTitle>
+              <CardTitle className="text-3xl">{drafts.length}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-xs text-muted-foreground">This month</p>
@@ -60,7 +78,7 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Saved Drafts</CardDescription>
-              <CardTitle className="text-3xl">0</CardTitle>
+              <CardTitle className="text-3xl">{threads.length}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-xs text-muted-foreground">Ready to post</p>
@@ -94,22 +112,54 @@ export default function DashboardPage() {
           {/* Recent Drafts */}
           <div className="lg:col-span-2">
             <Card>
-              <CardHeader>
-                <CardTitle>Recent Drafts</CardTitle>
-                <CardDescription>Your saved content ready to post</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Recent Drafts</CardTitle>
+                  <CardDescription>Your saved content ready to post</CardDescription>
+                </div>
+                <Button asChild variant="ghost" size="sm">
+                  <Link href="/dashboard/drafts">View all</Link>
+                </Button>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                    <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
+                {drafts.length > 0 ? (
+                  <div className="space-y-4">
+                    {drafts.slice(0, 3).map((draft) => (
+                      <div key={draft.id} className="flex items-center justify-between gap-4 rounded-lg border p-4 hover:bg-muted/50 transition-colors">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium line-clamp-1">{draft.content}</p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="flex -space-x-1">
+                              {draft.platforms.map((p: string) => (
+                                <div key={p} className="flex h-5 w-5 items-center justify-center rounded-full bg-background border ring-1 ring-background">
+                                  <PlatformIcon platform={p as any} className="h-3 w-3" />
+                                </div>
+                              ))}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(draft.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/dashboard/drafts`}>Open</Link>
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-sm text-muted-foreground">No drafts yet</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Your saved posts will appear here
-                  </p>
-                </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                      <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-muted-foreground">No drafts yet</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Your saved posts will appear here
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
