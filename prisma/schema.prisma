@@ -138,23 +138,22 @@ model PublishedPost {
   @@index([connectionId])
 }
 
+// Existing live table — column shape preserved exactly.
 model ScheduledPost {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   userId       String
-  platform     String
-  text         String   @db.Text
-  mediaUrls    String[] @default([])
-  scheduledAt  DateTime
-  timezone     String?
-  status       String   @default("scheduled") // scheduled, published, cancelled, failed
-  agentId      String?  // which agent scheduled this
-  error        String?  @db.Text
+  content      String    @db.Text
+  platforms    String[]  @default([]) // 'twitter','instagram','linkedin','facebook','tiktok','pinterest','snapchat'
+  scheduledFor DateTime
+  status       String    @default("scheduled") // scheduled | published | cancelled | failed
+  attempts     Int       @default(0)
+  lastError    String?   @db.Text
   publishedAt  DateTime?
-  externalId   String?  // ID on the platform once published
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  metadata     Json?     // { mediaUrls?, timezone?, agentId?, draftId?, externalId? }
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
   @@index([userId])
-  @@index([scheduledAt])
+  @@index([scheduledFor])
   @@index([userId, status])
 }
 
