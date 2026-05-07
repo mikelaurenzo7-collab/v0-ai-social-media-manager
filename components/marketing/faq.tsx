@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
-const FAQ = [
+const FAQ_ITEMS = [
   {
     q: 'Do agents actually publish, or just draft?',
     a: 'Both. Agents draft inside the chat, you approve, and PostPilot publishes through real OAuth connections to X, Instagram, LinkedIn, Facebook, TikTok, Gmail, and Outlook. Tokens are encrypted at rest with AES-256-GCM and auto-refreshed.',
@@ -46,7 +46,7 @@ export function FAQ() {
         </div>
 
         <div className="mt-12 divide-y divide-border/70 rounded-3xl border border-border/70 bg-card/60 backdrop-blur">
-          {FAQ.map((item, i) => {
+          {FAQ_ITEMS.map((item, i) => {
             const isOpen = open === i
             return (
               <div key={item.q} className="px-5 sm:px-7">
