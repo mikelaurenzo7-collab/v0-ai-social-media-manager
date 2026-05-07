@@ -71,7 +71,7 @@ export default function StatusPage() {
                 All systems operational
               </span>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">Updated 30 seconds ago · refresh for the latest</p>
+            <p className="mt-3 text-xs text-muted-foreground">Refresh for the latest status</p>
           </div>
         </section>
 
@@ -106,7 +106,7 @@ export default function StatusPage() {
               ))}
             </CardContent>
           </Card>
-          <p className="mt-3 text-[11px] text-muted-foreground">90-day uptime per service. Hover bars to see daily detail (full history at /status/history).</p>
+          <p className="mt-3 text-[11px] text-muted-foreground">90-day uptime per service. Hover bars to see daily detail.</p>
         </section>
 
         {/* History */}

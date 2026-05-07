@@ -8,13 +8,20 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
-const VOICE_DIMENSIONS = [
+interface VoiceDimension {
+  id: string
+  left: string
+  right: string
+  value: number
+}
+
+const INITIAL_VOICE_DIMENSIONS: VoiceDimension[] = [
   { id: 'formality', left: 'Casual', right: 'Formal', value: 35 },
   { id: 'energy', left: 'Calm', right: 'Energetic', value: 70 },
   { id: 'confidence', left: 'Humble', right: 'Bold', value: 65 },
   { id: 'humor', left: 'Serious', right: 'Witty', value: 50 },
   { id: 'tech', left: 'Plain', right: 'Technical', value: 45 },
-] as const
+]
 
 const SAMPLE_HASHTAG_GROUPS = [
   { name: 'Launch day', tags: '#buildinpublic #shipit #productlaunch #saas #founders', count: 5 },
@@ -29,6 +36,7 @@ const SAMPLE_SNIPPETS = [
 ]
 
 export default function BrandKitPage() {
+  const [voiceDimensions, setVoiceDimensions] = useState<VoiceDimension[]>(INITIAL_VOICE_DIMENSIONS)
   const [voiceSamples, setVoiceSamples] = useState(
     'We don\'t do hype. We ship things that work, write about why we built them, and listen hard when people push back. We\'re for the makers who care about craft.',
   )
@@ -102,22 +110,26 @@ export default function BrandKitPage() {
               <CardDescription>Auto-detected from your samples. Nudge any slider to override.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {VOICE_DIMENSIONS.map((d) => (
+              {voiceDimensions.map((d) => (
                 <div key={d.id} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-medium text-muted-foreground">{d.left}</span>
                     <span className="font-medium text-muted-foreground">{d.right}</span>
                   </div>
-                  <div className="relative h-2 rounded-full bg-muted">
-                    <div
-                      className="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full ring-2 ring-background"
-                      style={{
-                        left: `${d.value}%`,
-                        transform: `translate(-50%, -50%)`,
-                        background: 'linear-gradient(135deg, #EA580C, #DB2777)',
-                      }}
-                    />
-                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={d.value}
+                    onChange={(e) => {
+                      const next = Number(e.target.value)
+                      setVoiceDimensions((prev) =>
+                        prev.map((x) => (x.id === d.id ? { ...x, value: next } : x)),
+                      )
+                    }}
+                    aria-label={`${d.left} to ${d.right}`}
+                    className="w-full accent-orange-500"
+                  />
                 </div>
               ))}
             </CardContent>

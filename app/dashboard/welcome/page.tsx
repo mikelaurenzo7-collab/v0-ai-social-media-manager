@@ -245,8 +245,10 @@ export default function WelcomePage() {
                 </p>
                 <div className="mt-6 grid gap-2 max-w-sm mx-auto text-left">
                   {[
-                    'Voice trained on your sample',
-                    `${goals.length} goals locked in`,
+                    voice.trim()
+                      ? 'Voice trained on your sample'
+                      : 'Voice: starting from best-practice defaults',
+                    `${goals.length} goal${goals.length === 1 ? '' : 's'} locked in`,
                     `${connected.length} platform${connected.length === 1 ? '' : 's'} connected`,
                     '6 specialist agents online',
                   ].map((line) => (

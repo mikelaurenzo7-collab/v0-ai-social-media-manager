@@ -31,7 +31,7 @@ const PILLARS = [
   },
   {
     icon: '🔄',
-    title: 'Backup &amp; recovery',
+    title: 'Backup & recovery',
     body: 'Encrypted point-in-time backups every 5 minutes, replicated across 3 regions. Quarterly restore drills. RPO 5 min, RTO 1 hour.',
   },
   {
@@ -102,10 +102,9 @@ export default function SecurityPage() {
                 <CardContent className="p-6">
                   <div className="text-3xl mb-3">{p.icon}</div>
                   <h3 className="font-bold text-base">{p.title}</h3>
-                  <p
-                    className="mt-2 text-sm text-muted-foreground leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: p.body }}
-                  />
+                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                    {p.body}
+                  </p>
                 </CardContent>
               </Card>
             ))}

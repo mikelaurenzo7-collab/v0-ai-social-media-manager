@@ -96,10 +96,18 @@ const TRENDS: Trend[] = [
   },
 ]
 
-const COMPETITORS = [
-  { name: '@buffer', platform: 'twitter' as Platform, lastPost: '2h ago', topPost: '"The 5 metrics every social marketer should obsess over"', engagement: '+312%' },
-  { name: '@hootsuite', platform: 'twitter' as Platform, lastPost: '6h ago', topPost: '"Agencies: stop using 7 different tools. Here\'s our consolidation playbook."', engagement: '+89%' },
-  { name: 'Sprout Social', platform: 'linkedin' as Platform, lastPost: '4h ago', topPost: '"We surveyed 1,200 marketers about AI in 2026. The findings surprised us."', engagement: '+540%' },
+interface Competitor {
+  name: string
+  platform: Platform
+  lastPost: string
+  topPost: string
+  engagement: string
+}
+
+const COMPETITORS: Competitor[] = [
+  { name: '@buffer', platform: 'twitter', lastPost: '2h ago', topPost: '"The 5 metrics every social marketer should obsess over"', engagement: '+312%' },
+  { name: '@hootsuite', platform: 'twitter', lastPost: '6h ago', topPost: '"Agencies: stop using 7 different tools. Here\'s our consolidation playbook."', engagement: '+89%' },
+  { name: 'Sprout Social', platform: 'linkedin', lastPost: '4h ago', topPost: '"We surveyed 1,200 marketers about AI in 2026. The findings surprised us."', engagement: '+540%' },
 ]
 
 export default function TrendsPage() {

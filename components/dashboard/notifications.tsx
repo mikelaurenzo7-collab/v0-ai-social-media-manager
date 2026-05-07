@@ -118,6 +118,11 @@ export function NotificationsButton() {
               <Link
                 key={n.id}
                 href={n.href ?? '#'}
+                onClick={() => {
+                  if (n.unread) {
+                    setItems((prev) => prev.map((i) => (i.id === n.id ? { ...i, unread: false } : i)))
+                  }
+                }}
                 className={cn(
                   'flex items-start gap-3 px-4 py-3 hover:bg-muted/40 transition-colors border-b border-border/30 last:border-0',
                   n.unread && 'bg-orange-50/40 dark:bg-orange-500/5',

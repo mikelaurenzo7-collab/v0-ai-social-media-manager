@@ -27,7 +27,7 @@ const COLS = [
     items: [
       { label: 'Changelog',  href: '/changelog' },
       { label: 'System status', href: '/status' },
-      { label: 'Help center', href: '/dashboard/help' },
+      { label: 'Security',   href: '/security' },
       { label: 'Contact',    href: 'mailto:hello@postpilot.app' },
     ],
   },

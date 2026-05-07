@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Header } from '@/components/dashboard/header'
 import { Card, CardContent } from '@/components/ui/card'
@@ -211,19 +211,35 @@ export default function InboxPage() {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, unread: false } : i)))
   }
 
-  function useAiSuggestion() {
-    if (selected?.aiSuggestion) {
-      setDrafting(true)
-      let i = 0
-      const text = selected.aiSuggestion
-      const tick = () => {
-        i = Math.min(text.length, i + Math.max(2, Math.floor(text.length / 60)))
-        setReply(text.slice(0, i))
-        if (i < text.length) setTimeout(tick, 18)
-        else setDrafting(false)
-      }
-      tick()
+  const typeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cancelTypingRef = useRef(false)
+
+  useEffect(() => {
+    return () => {
+      cancelTypingRef.current = true
+      if (typeTimeoutRef.current) clearTimeout(typeTimeoutRef.current)
     }
+  }, [])
+
+  function useAiSuggestion() {
+    if (!selected?.aiSuggestion) return
+    if (typeTimeoutRef.current) clearTimeout(typeTimeoutRef.current)
+    cancelTypingRef.current = false
+    setDrafting(true)
+    let i = 0
+    const text = selected.aiSuggestion
+    const tick = () => {
+      if (cancelTypingRef.current) return
+      i = Math.min(text.length, i + Math.max(2, Math.floor(text.length / 60)))
+      setReply(text.slice(0, i))
+      if (i < text.length) {
+        typeTimeoutRef.current = setTimeout(tick, 18)
+      } else {
+        typeTimeoutRef.current = null
+        setDrafting(false)
+      }
+    }
+    tick()
   }
 
   return (

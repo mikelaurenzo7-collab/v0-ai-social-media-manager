@@ -166,7 +166,7 @@ export default function HelpPage() {
           ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredCategories.map((c) => (
-              <Card key={c.title} className="hover:shadow-md transition-all cursor-pointer hover:-translate-y-0.5 group">
+              <Card key={c.title} className="hover:shadow-md transition-shadow group">
                 <CardContent className="p-5">
                   <div className="flex items-start gap-3">
                     <div
@@ -202,18 +202,18 @@ export default function HelpPage() {
                     No matching articles.
                   </p>
                 ) : filteredPopular.map((p) => (
-                  <button
+                  <div
                     key={p.q}
-                    className="w-full flex items-center justify-between gap-4 rounded-xl px-4 py-3 text-left hover:bg-muted/60 transition-colors group"
+                    className="w-full flex items-center justify-between gap-4 rounded-xl px-4 py-3 text-left"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <svg className="h-3.5 w-3.5 text-muted-foreground shrink-0 group-hover:text-orange-500 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                      <svg className="h-3.5 w-3.5 text-muted-foreground shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
                       </svg>
                       <span className="text-sm truncate">{p.q}</span>
                     </div>
                     <span className="text-[10px] text-muted-foreground shrink-0">{p.read}</span>
-                  </button>
+                  </div>
                 ))}
               </CardContent>
             </Card>
