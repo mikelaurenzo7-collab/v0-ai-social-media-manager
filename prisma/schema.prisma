@@ -17,6 +17,48 @@ model User {
   accounts      Account[]
   sessions      Session[]
   socialConnections SocialConnection[]
+  profile       UserProfile?
+}
+
+model UserProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  // Mode + identity
+  mode              String?  // 'business' | 'creator' | 'personal'
+  brandName         String?
+  brandTagline      String?  @db.Text
+  brandWebsite      String?
+  niche             String?
+  // Goals + audience
+  primaryGoal       String?  // 'growth' | 'leads' | 'sales' | 'community' | 'authority' | 'monetization' | 'personal-brand' | 'recruiting' | 'support'
+  goals             String[] @default([])
+  audience          String?  @db.Text
+  audienceLocation  String?
+  contentPillars    String[] @default([])
+  brandKeywords     String[] @default([])
+  // Voice
+  voiceDescription  String?  @db.Text
+  doWords           String[] @default([])
+  dontWords         String[] @default([])
+  tone              String?
+  emojiUsage        String?  // 'none' | 'sparing' | 'liberal'
+  // Cadence
+  postingFrequency  String?
+  timezone          String?
+  hashtagStyle      String?  // 'none' | 'minimal' | 'standard' | 'aggressive'
+  preferredFormats  String[] @default([])
+  // Per-agent platform defaults (Slack channel, Pinterest board, email signature, etc.)
+  perAgent          Json?
+  // Onboarding state
+  onboardingComplete Boolean @default(false)
+  onboardingStep    Int      @default(0)
+  // Voice-learning snapshot
+  voiceLearnedAt    DateTime?
+  voiceLearnedFrom  String[] @default([])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
 }
 
 model Account {
