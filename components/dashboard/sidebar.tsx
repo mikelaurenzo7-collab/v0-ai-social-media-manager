@@ -96,52 +96,60 @@ export function Sidebar() {
   const isCreateActive = pathname === '/dashboard/create' || pathname.startsWith('/dashboard/create/')
 
   return (
-    <aside className="flex h-screen w-60 flex-col" style={{ background: 'oklch(0.135 0.018 48)' }}>
+    <aside className="relative isolate flex h-screen w-64 flex-col overflow-hidden bg-sidebar text-sidebar-foreground">
+      {/* Ambient glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 -left-20 -z-10 h-72 w-72 rounded-full opacity-25 blur-3xl"
+        style={{ background: 'radial-gradient(closest-side, #EA580C, transparent 70%)' }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-40 -right-16 -z-10 h-72 w-72 rounded-full opacity-20 blur-3xl"
+        style={{ background: 'radial-gradient(closest-side, #DB2777, transparent 70%)' }}
+      />
 
       {/* Logo */}
-      <div className="flex h-14 items-center gap-2.5 px-5" style={{ borderBottom: '1px solid oklch(0.22 0.016 48)' }}>
-        <Link href="/dashboard" className="flex items-center gap-2.5 group">
-          <div
-            className="flex h-7 w-7 items-center justify-center rounded-lg shrink-0 transition-transform group-hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
-          >
-            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" stroke="currentColor" strokeWidth="2.5">
+      <div className="relative flex h-16 items-center gap-2.5 border-b border-sidebar-border/60 px-5">
+        <Link href="/dashboard" className="group flex items-center gap-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-[0_8px_20px_-4px_oklch(0.652_0.214_36_/_0.5)] ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-105">
+            <svg viewBox="0 0 24 24" fill="none" className="h-4.5 w-4.5 text-white" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
             </svg>
           </div>
-          <span className="text-sm font-bold text-white tracking-tight">PostPilot</span>
+          <div>
+            <p className="font-display text-lg leading-none tracking-tight text-sidebar-foreground">PostPilot</p>
+            <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-sidebar-foreground/45">
+              AI Studio
+            </p>
+          </div>
         </Link>
 
         {/* Free plan chip */}
-        <span
-          className="ml-auto text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full"
-          style={{ background: 'oklch(0.22 0.016 48)', color: 'oklch(0.55 0.012 52)' }}
-        >
+        <span className="ml-auto rounded-full border border-sidebar-border/50 bg-sidebar-accent/40 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-sidebar-foreground/55">
           Free
         </span>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+      <nav className="relative flex-1 space-y-1 overflow-y-auto p-3">
 
         {/* ── Primary CTA: Create Content ── */}
         <Link
           href="/dashboard/create"
-          className="group flex items-center gap-2.5 w-full rounded-xl px-3 py-2.5 mb-3 text-sm font-bold text-white transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
-          style={{
-            background: isCreateActive
-              ? 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)'
-              : 'linear-gradient(135deg, oklch(0.652 0.214 36 / 0.22) 0%, oklch(0.588 0.238 352 / 0.22) 100%)',
-            border: isCreateActive ? 'none' : '1px solid oklch(0.652 0.214 36 / 0.3)',
-            boxShadow: isCreateActive ? '0 4px 20px oklch(0.652 0.214 36 / 0.35)' : 'none',
-          }}
+          className={cn(
+            'group mb-3 flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold text-white transition-all duration-300 active:scale-[0.98]',
+            isCreateActive
+              ? 'btn-gradient'
+              : 'bg-gradient-to-br from-primary/15 to-accent/15 ring-1 ring-primary/25 hover:from-primary/20 hover:to-accent/20 hover:ring-primary/40',
+          )}
         >
           <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
           </svg>
-          Create Content
+          Create content
           <svg
-            className="ml-auto h-3.5 w-3.5 opacity-60 -translate-x-0.5 group-hover:translate-x-0 transition-transform"
+            className="ml-auto h-3.5 w-3.5 -translate-x-0.5 opacity-70 transition-transform duration-300 group-hover:translate-x-0 group-hover:opacity-100"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth="2.5"
@@ -152,7 +160,7 @@ export function Sidebar() {
         </Link>
 
         {/* Section label */}
-        <p className="px-3 pb-1 pt-0.5 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'oklch(0.4 0.010 52)' }}>
+        <p className="px-3 pb-1.5 pt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-sidebar-foreground/40">
           Navigate
         </p>
 
@@ -165,29 +173,26 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-150',
-                isActive ? 'text-orange-400' : 'hover:text-white/90'
-              )}
-              style={
+                'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200',
                 isActive
-                  ? { background: 'oklch(0.652 0.214 36 / 0.15)' }
-                  : { color: 'oklch(0.55 0.012 52)' }
-              }
+                  ? 'bg-sidebar-accent/70 text-sidebar-foreground shadow-[inset_0_1px_0_rgb(255_255_255_/_0.04)]'
+                  : 'text-sidebar-foreground/55 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground/95',
+              )}
             >
-              <span className={cn('shrink-0', isActive ? 'text-orange-400' : 'text-current')}>
+              {isActive && (
+                <span
+                  aria-hidden
+                  className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-primary to-accent"
+                />
+              )}
+              <span className={cn('shrink-0 transition-colors', isActive ? 'text-primary' : 'text-current')}>
                 {item.icon}
               </span>
               {item.name}
-              {item.badge && !isActive && (
-                <span
-                  className="ml-auto rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest"
-                  style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', color: '#fff' }}
-                >
+              {item.badge && (
+                <span className="btn-gradient ml-auto rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.18em] text-white">
                   {item.badge}
                 </span>
-              )}
-              {isActive && (
-                <span className="ml-auto flex h-1.5 w-1.5 rounded-full" style={{ background: '#EA580C' }} />
               )}
             </Link>
           )

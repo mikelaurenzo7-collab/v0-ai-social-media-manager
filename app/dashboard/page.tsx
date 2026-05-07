@@ -85,28 +85,35 @@ export default function DashboardPage() {
   if (!mounted) return null
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex min-h-full flex-col">
       <Header
-        title="Good morning ✦"
+        eyebrow="Today"
+        title="Good morning."
         description="Your content studio is ready. What are we creating today?"
       />
 
-      <div className="p-6 space-y-7">
+      <div className="px-6 pt-7 pb-14 md:px-10 space-y-8">
 
         {/* ── Hero: Quick Actions ─────────────────────────────────────────── */}
         <div className="grid gap-4 sm:grid-cols-3">
           {QUICK_ACTIONS.map((action) => (
-            <Link key={action.label} href={action.href} className="group block">
-              <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${action.gradient} p-5 text-white shadow-lg transition-all duration-200 group-hover:shadow-xl group-hover:-translate-y-0.5 group-active:scale-[0.99]`}>
-                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Link key={action.label} href={action.href} className="group relative block focus-visible:outline-none">
+              <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${action.gradient} p-5 text-white shadow-[0_18px_40px_-15px_rgb(0_0_0_/_0.4)] transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_24px_50px_-15px_rgb(0_0_0_/_0.5)] group-active:scale-[0.99]`}>
+                <div aria-hidden className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/0 to-white/15 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 <div className="relative flex flex-col gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/25 backdrop-blur-sm">
                     {action.icon}
                   </div>
                   <div>
-                    <p className="font-bold text-base leading-tight">{action.label}</p>
-                    <p className="text-xs text-white/75 mt-0.5">{action.desc}</p>
+                    <p className="font-display text-xl leading-tight tracking-tight">{action.label}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-white/80">{action.desc}</p>
                   </div>
+                  <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/85 transition-transform duration-300 group-hover:translate-x-0.5">
+                    Open
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </span>
                 </div>
               </div>
             </Link>
@@ -116,19 +123,63 @@ export default function DashboardPage() {
         {/* ── Stats Row ───────────────────────────────────────────────────── */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: 'Saved Drafts', value: drafts.length, sub: 'Posts ready to publish', icon: '📝' },
-            { label: 'Saved Threads', value: threads.length, sub: 'X/Twitter threads', icon: '🧵' },
-            { label: 'AI Generations', value: 25, sub: 'Remaining on free plan', icon: '⚡' },
-            { label: 'Connected', value: 0, sub: <Link href="/dashboard/accounts" className="text-orange-500 hover:underline font-medium">Connect accounts →</Link>, icon: '🔗' },
+            {
+              label: 'Saved drafts',
+              value: drafts.length,
+              sub: 'Posts ready to publish',
+              accent: 'from-orange-400/30 to-pink-400/20',
+              iconPath: 'M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10',
+            },
+            {
+              label: 'Saved threads',
+              value: threads.length,
+              sub: 'X/Twitter threads',
+              accent: 'from-violet-400/25 to-fuchsia-400/15',
+              iconPath: 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5',
+            },
+            {
+              label: 'AI generations',
+              value: 25,
+              sub: 'Remaining on free plan',
+              accent: 'from-amber-400/30 to-orange-400/20',
+              iconPath: 'M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z',
+            },
+            {
+              label: 'Connected',
+              value: 0,
+              sub: (
+                <Link href="/dashboard/accounts" className="font-semibold text-primary hover:underline">
+                  Connect accounts →
+                </Link>
+              ),
+              accent: 'from-sky-400/25 to-emerald-400/15',
+              iconPath:
+                'M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244',
+            },
           ].map((stat) => (
-            <Card key={stat.label} className="border-border/60 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="pt-5 pb-4 px-5">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</p>
-                  <span className="text-lg">{stat.icon}</span>
+            <Card
+              key={stat.label}
+              className="group relative overflow-hidden border-border/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
+            >
+              <div
+                aria-hidden
+                className={`pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-to-br ${stat.accent} opacity-50 blur-3xl transition-opacity duration-300 group-hover:opacity-80`}
+              />
+              <CardContent className="relative px-5 pt-5 pb-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    {stat.label}
+                  </p>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-border/60 bg-card text-muted-foreground/80">
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d={stat.iconPath} />
+                    </svg>
+                  </div>
                 </div>
-                <p className="text-3xl font-black text-foreground">{stat.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{stat.sub}</p>
+                <p className="font-display text-4xl leading-none tracking-tight tabular-nums text-foreground">
+                  {stat.value}
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{stat.sub}</p>
               </CardContent>
             </Card>
           ))}
