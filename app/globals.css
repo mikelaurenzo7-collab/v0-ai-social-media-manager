@@ -145,6 +145,20 @@
     background-attachment: fixed;
   }
 
+  /* Double-Pass Polish: Enhanced Focus & Accessibility */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   /* Creative Genius: Glassmorphic Cards with Cosmic Glow */
   .glass {
     background: rgba(255, 255, 255, 0.05);
@@ -156,6 +170,18 @@
   .glass:hover {
     transform: translateY(-2px) scale(1.005);
     box-shadow: 0 0 40px oklch(0.65 0.22 264 / 0.5);
+  }
+
+  /* Double-Pass Polish: Enhanced Buttons */
+  button, .btn {
+    transition: all var(--animation-cosmic);
+  }
+  button:hover, .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px oklch(0.65 0.22 264 / 0.3);
+  }
+  button:active, .btn:active {
+    transform: scale(0.985);
   }
 
   /* Platform-Specific Accents - Purposeful & Creative */
@@ -181,5 +207,16 @@
   @keyframes nebula-pulse {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
+  }
+
+  /* Double-Pass Polish: Loading States */
+  .loading-skeleton {
+    background: linear-gradient(90deg, var(--muted) 25%, var(--card) 50%, var(--muted) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+  }
+  @keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 }
