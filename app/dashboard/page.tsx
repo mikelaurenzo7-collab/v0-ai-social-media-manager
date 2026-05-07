@@ -236,7 +236,7 @@ export default function DashboardPage() {
                   { name: 'LinkedIn', tip: 'First 3 lines before "see more"', color: '#0A66C2' },
                 ].map((p) => (
                   <div key={p.name} className="flex items-start gap-3 rounded-xl p-3 bg-muted/40 border border-border/50">
-                    <div className="mt-0.5 h-2 w-2 rounded-full shrink-0 mt-1.5" style={{ background: p.color === '#000' ? '#374151' : p.color }} />
+                    <div className="mt-1.5 h-2 w-2 rounded-full shrink-0" style={{ background: p.color === '#000' ? '#374151' : p.color }} />
                     <div>
                       <p className="text-xs font-semibold text-foreground">{p.name}</p>
                       <p className="text-[11px] text-muted-foreground">{p.tip}</p>

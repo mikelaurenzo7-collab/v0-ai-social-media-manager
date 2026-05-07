@@ -85,7 +85,7 @@ export function ThreadView({ thread, isGenerating, onCopy, onSave }: ThreadViewP
       {isGenerating && tweets.length === 0 && (
         <div
           className="flex items-center gap-3 rounded-xl px-4 py-6"
-          style={{ background: 'oklch(0.97 0.01 55)', border: '1px solid oklch(0.93 0.012 55)' }}
+          style={{ background: 'var(--muted)', border: '1px solid var(--border)' }}
         >
           <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" style={{ color: '#EA580C' }}>
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -110,7 +110,7 @@ export function ThreadView({ thread, isGenerating, onCopy, onSave }: ThreadViewP
       {thread.engagementTip && !isGenerating && (
         <div
           className="rounded-xl px-4 py-3"
-          style={{ background: '#FFF3EC', border: '1px solid #FDDCCA' }}
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
         >
           <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#EA580C' }}>Pro Tip</p>
           <p className="text-sm text-muted-foreground">{thread.engagementTip}</p>

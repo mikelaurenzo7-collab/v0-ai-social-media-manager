@@ -75,7 +75,7 @@ export async function POST(req: Request) {
         }),
         prompt: `Generate 10 optimized hashtags for this content:\n${context}\n\nInclude a mix of niche (low competition), mid-tier, and broad tags. Return without the # symbol.`,
       })
-      const output = `${object.hashtags.map((h) => `#${h}`).join(' ')}\n\nStrategy: ${object.strategy}`
+      const output = `${object.hashtags.map((h) => `#${h.replace(/^#/, '')}`).join(' ')}\n\nStrategy: ${object.strategy}`
       results.push({ id: 'hashtags', name: 'Hashtag Set', output })
     }
 

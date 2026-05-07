@@ -89,8 +89,12 @@ function ThreadOutlineResult({ result }: { result: Record<string, unknown> }) {
 
   const handleCopy = async () => {
     const text = tweets.map((t, i) => `${i + 1}/ ${t.content}`).join('\n\n')
-    await navigator.clipboard.writeText(text)
-    toast.success('Thread copied to clipboard!')
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success('Thread copied to clipboard!')
+    } catch {
+      toast.error('Failed to copy to clipboard')
+    }
   }
 
   return (
@@ -147,8 +151,12 @@ function RewriteForPlatformResult({ result }: { result: Record<string, unknown> 
   const keyChanges = result.keyChanges as string[]
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(result.rewrittenContent as string)
-    toast.success('Copied to clipboard!')
+    try {
+      await navigator.clipboard.writeText(result.rewrittenContent as string)
+      toast.success('Copied to clipboard!')
+    } catch {
+      toast.error('Failed to copy to clipboard')
+    }
   }
 
   return (
@@ -190,8 +198,12 @@ function ViralHooksResult({ result }: { result: Record<string, unknown> }) {
   const scoreColor = (s: number) => s >= 9 ? 'text-emerald-500' : s >= 7 ? 'text-amber-500' : 'text-muted-foreground'
 
   const handleCopy = async (text: string) => {
-    await navigator.clipboard.writeText(text)
-    toast.success('Hook copied to clipboard!')
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success('Hook copied to clipboard!')
+    } catch {
+      toast.error('Failed to copy to clipboard')
+    }
   }
 
   return (
@@ -286,8 +298,12 @@ function BioOptimizerResult({ result }: { result: Record<string, unknown> }) {
   const keyElements = result.keyElements as string[]
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(result.bio as string)
-    toast.success('Bio copied to clipboard!')
+    try {
+      await navigator.clipboard.writeText(result.bio as string)
+      toast.success('Bio copied to clipboard!')
+    } catch {
+      toast.error('Failed to copy to clipboard')
+    }
   }
 
   return (

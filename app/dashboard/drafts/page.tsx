@@ -72,18 +72,26 @@ export default function DraftsPage() {
     const fullContent = draft.hashtags.length > 0
       ? `${draft.content}\n\n${draft.hashtags.map(t => `#${t}`).join(' ')}`
       : draft.content
-    await navigator.clipboard.writeText(fullContent)
-    setCopiedId(draft.id)
-    toast.success('Copied to clipboard!')
-    setTimeout(() => setCopiedId(null), 2000)
+    try {
+      await navigator.clipboard.writeText(fullContent)
+      setCopiedId(draft.id)
+      toast.success('Copied to clipboard!')
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch {
+      toast.error('Failed to copy to clipboard')
+    }
   }, [])
 
   const handleCopyThread = useCallback(async (thread: ThreadDraft) => {
     const text = thread.tweets.map((t, i) => `${i + 1}/ ${t.content}`).join('\n\n')
-    await navigator.clipboard.writeText(text)
-    setCopiedId(thread.id)
-    toast.success('Thread copied to clipboard!')
-    setTimeout(() => setCopiedId(null), 2000)
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedId(thread.id)
+      toast.success('Thread copied to clipboard!')
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch {
+      toast.error('Failed to copy to clipboard')
+    }
   }, [])
 
   const formatDate = (dateString: string) => {

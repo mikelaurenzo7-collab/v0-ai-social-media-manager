@@ -27,6 +27,7 @@ export function PlatformSelector({ selected, onChange }: PlatformSelectorProps) 
           <button
             key={id}
             type="button"
+            aria-pressed={isSelected}
             onClick={() => togglePlatform(id as PlatformId)}
             className={cn(
               'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',

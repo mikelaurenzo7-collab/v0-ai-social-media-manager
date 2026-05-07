@@ -61,7 +61,8 @@ export function ImproveDialog({
       }
 
       if (content) {
-        onImproved(content, hashtags ?? variation.hashtags)
+        const normalizedHashtags = (hashtags ?? variation.hashtags).map(h => h.replace(/^#/, ''))
+        onImproved(content, normalizedHashtags)
         setOpen(false)
         setFeedback('')
         toast.success('Content improved!')

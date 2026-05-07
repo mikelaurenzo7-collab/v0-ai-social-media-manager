@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -78,7 +78,13 @@ const LogoIcon = () => (
 
 export function MobileNav() {
   const pathname = usePathname()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
+
+  const handleUpgradeClick = () => {
+    setOpen(false)
+    router.push('/dashboard/settings')
+  }
 
   return (
     <div
@@ -152,6 +158,7 @@ export function MobileNav() {
               <button
                 className="w-full rounded-lg py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90"
                 style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                onClick={handleUpgradeClick}
               >
                 Upgrade Now
               </button>

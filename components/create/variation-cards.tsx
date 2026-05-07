@@ -38,6 +38,7 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
           <button
             key={variation.id}
             type="button"
+            aria-pressed={isSelected}
             onClick={() => onSelect(variation.id)}
             className={cn(
               'group relative flex flex-col rounded-xl border p-4 text-left transition-all duration-200',
