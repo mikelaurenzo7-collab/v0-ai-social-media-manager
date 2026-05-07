@@ -222,7 +222,7 @@ export default function TrendsPage() {
                   <p className="text-xs leading-relaxed text-foreground/85">{t.angle}</p>
                 </div>
 
-                <Button asChild size="sm" className="w-full" style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}>
+                <Button asChild size="sm" className="w-full" style={{ background: 'var(--brand-gradient)' }}>
                   <Link href={`/dashboard/create?topic=${encodeURIComponent(t.topic)}`}>
                     Draft a post on this →
                   </Link>

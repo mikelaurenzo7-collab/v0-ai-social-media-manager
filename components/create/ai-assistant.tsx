@@ -231,7 +231,7 @@ function ViralHooksResult({ result }: { result: Record<string, unknown> }) {
             <div className="flex items-center gap-2">
               <span
                 className="rounded-full px-2 py-0.5 text-[10px] font-medium text-white"
-                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                style={{ background: 'var(--brand-gradient)' }}
               >
                 {h.formula}
               </span>
@@ -435,7 +435,7 @@ export function AIAssistant() {
               <div className="relative flex items-start gap-3">
                 <div
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-                  style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                  style={{ background: 'var(--brand-gradient)' }}
                 >
                   <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
@@ -475,7 +475,7 @@ export function AIAssistant() {
             {message.role === 'assistant' && (
               <div
                 className="mr-2 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
-                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                style={{ background: 'var(--brand-gradient)' }}
               >
                 <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
@@ -488,7 +488,7 @@ export function AIAssistant() {
                 className={cn('rounded-xl px-3 py-2 text-sm leading-relaxed')}
                 style={
                   message.role === 'user'
-                    ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', color: 'white' }
+                    ? { background: 'var(--brand-gradient)', color: 'white' }
                     : { background: 'var(--muted)' }
                 }
               >
@@ -523,7 +523,7 @@ export function AIAssistant() {
           <div className="flex justify-start">
             <div
               className="mr-2 mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
-              style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+              style={{ background: 'var(--brand-gradient)' }}
             >
               <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
@@ -564,6 +564,7 @@ export function AIAssistant() {
             <button
               type="button"
               onClick={stop}
+              aria-label="Stop generating"
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-muted-foreground hover:bg-muted transition-colors"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -574,8 +575,8 @@ export function AIAssistant() {
             <button
               type="submit"
               disabled={!input || !input.trim()}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white disabled:opacity-40 transition-opacity"
-              style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+              aria-label="Send message"
+              className="bg-brand flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white disabled:opacity-40 transition-opacity"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />

@@ -407,7 +407,7 @@ export default function ApprovalsPage() {
                     <Button
                       size="sm"
                       className="text-xs px-4"
-                      style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                      style={{ background: 'var(--brand-gradient)' }}
                       onClick={() => decide(selected.id, 'approved')}
                     >
                       Approve &amp; queue →

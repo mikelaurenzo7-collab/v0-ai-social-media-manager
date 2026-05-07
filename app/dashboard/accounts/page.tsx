@@ -188,7 +188,7 @@ export default function AccountsPage() {
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
             <div
               className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-              style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+              style={{ background: 'var(--brand-gradient)' }}
             >
               <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
@@ -231,7 +231,7 @@ export default function AccountsPage() {
             <div className="flex items-center gap-2 mb-4">
               <div
                 className="flex h-7 w-7 items-center justify-center rounded-lg"
-                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                style={{ background: 'var(--brand-gradient)' }}
               >
                 <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
@@ -261,7 +261,7 @@ export default function AccountsPage() {
                 <div key={item.step} className="flex flex-col gap-2">
                   <span
                     className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-black text-white"
-                    style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                    style={{ background: 'var(--brand-gradient)' }}
                   >
                     {item.step}
                   </span>

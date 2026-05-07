@@ -232,14 +232,6 @@ export function Sidebar() {
           </div>
           <span className="text-sm font-bold text-white tracking-tight">PostPilot</span>
         </Link>
-
-        {/* Free plan chip */}
-        <span
-          className="ml-auto text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full"
-          style={{ background: 'oklch(0.22 0.016 48)', color: 'oklch(0.55 0.012 52)' }}
-        >
-          Free
-        </span>
       </div>
 
       {/* Navigation */}
@@ -251,7 +243,7 @@ export function Sidebar() {
           className="group flex items-center gap-2.5 w-full rounded-xl px-3 py-2.5 mb-3 text-sm font-bold text-white transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
           style={{
             background: isCreateActive
-              ? 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)'
+              ? 'var(--brand-gradient)'
               : 'linear-gradient(135deg, oklch(0.652 0.214 36 / 0.22) 0%, oklch(0.588 0.238 352 / 0.22) 100%)',
             border: isCreateActive ? 'none' : '1px solid oklch(0.652 0.214 36 / 0.3)',
             boxShadow: isCreateActive ? '0 4px 20px oklch(0.652 0.214 36 / 0.35)' : 'none',

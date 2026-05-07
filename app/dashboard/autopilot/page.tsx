@@ -367,7 +367,7 @@ function CreateAutomationModal({ onClose, onCreated }: { onClose: () => void; on
               size="sm"
               disabled={step === 1 && !selectedAgent}
               onClick={() => setStep((s) => (s + 1) as 2 | 3)}
-              style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+              style={{ background: 'var(--brand-gradient)' }}
             >
               Continue →
             </Button>
@@ -376,7 +376,7 @@ function CreateAutomationModal({ onClose, onCreated }: { onClose: () => void; on
               size="sm"
               disabled={isCreating}
               onClick={handleCreate}
-              style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+              style={{ background: 'var(--brand-gradient)' }}
             >
               {isCreating ? (
                 <>
@@ -479,7 +479,7 @@ export default function AutoPilotPage() {
             <Button
               size="sm"
               onClick={() => setShowCreateModal(true)}
-              style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+              style={{ background: 'var(--brand-gradient)' }}
             >
               + New Automation
             </Button>

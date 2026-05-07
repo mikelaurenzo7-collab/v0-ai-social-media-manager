@@ -179,7 +179,7 @@ export default function SecurityPage() {
               <a
                 href="mailto:security@postpilot.app"
                 className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold"
-                style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                style={{ background: 'var(--brand-gradient)' }}
               >
                 Report a vulnerability
               </a>

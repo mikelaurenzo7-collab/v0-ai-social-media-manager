@@ -224,7 +224,7 @@ export default function DevelopersPage() {
             <Button
               size="sm"
               onClick={generateKey}
-              style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+              style={{ background: 'var(--brand-gradient)' }}
             >
               + Generate API key
             </Button>
@@ -319,7 +319,7 @@ export default function DevelopersPage() {
                   >
                     <div
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[10px] font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                      style={{ background: 'var(--brand-gradient)' }}
                     >
                       🔑
                     </div>

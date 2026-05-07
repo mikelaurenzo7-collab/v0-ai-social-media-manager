@@ -105,7 +105,7 @@ export default function ChangelogPage() {
               <article key={i} className="relative pl-8 border-l-2 border-border/60 pb-2">
                 <span
                   className="absolute -left-[7px] top-1 h-3 w-3 rounded-full ring-4 ring-background"
-                  style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                  style={{ background: 'var(--brand-gradient)' }}
                 />
                 <div className="flex items-center gap-2 mb-2">
                   <Badge className={`text-[10px] px-2 py-0.5 ${TYPE_STYLES[e.type].cls}`}>

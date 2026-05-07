@@ -263,7 +263,7 @@ export function AgentProbe({ agent }: { agent: Agent }) {
                 }
               }}
               disabled={!canNext}
-              style={canNext ? { background: 'linear-gradient(135deg, #EA580C, #DB2777)' } : undefined}
+              style={canNext ? { background: 'var(--brand-gradient)' } : undefined}
             >
               {isLast ? 'Save calibration' : 'Continue →'}
             </Button>

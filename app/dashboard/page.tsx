@@ -88,11 +88,27 @@ export default function DashboardPage() {
   const hour = new Date().getHours()
   const timeGreeting = hour < 5 ? 'Burning the midnight oil' : hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 21 ? 'Good evening' : 'Working late'
 
+  // Light personalization based on what's actually in the workspace, so the
+  // subhead reads as observation instead of generic copy.
+  const subhead = (() => {
+    if (drafts.length === 0 && threads.length === 0) {
+      return 'Open canvas. What\'s the first idea on your mind today?'
+    }
+    if (drafts.length >= 5) {
+      return `${drafts.length} drafts ready. Want to review and queue some?`
+    }
+    if (drafts.length > 0 || threads.length > 0) {
+      const total = drafts.length + threads.length
+      return `${total} draft${total === 1 ? '' : 's'} in flight. What\'s next?`
+    }
+    return 'Your channel agents are warmed up. Ship something today.'
+  })()
+
   return (
     <div className="flex flex-col min-h-full">
       <Header
         title={`${timeGreeting} ✦`}
-        description="Your content studio is ready. What are we creating today?"
+        description={subhead}
       />
 
       <div className="p-6 space-y-7">
@@ -192,7 +208,7 @@ export default function DashboardPage() {
                     </div>
                     <p className="text-sm font-medium text-foreground">No drafts yet</p>
                     <p className="mt-1 text-xs text-muted-foreground">Generate your first post and save it here</p>
-                    <Button asChild size="sm" className="mt-4" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}>
+                    <Button asChild size="sm" className="mt-4" style={{ background: 'var(--brand-gradient)' }}>
                       <Link href="/dashboard/create">Create a post</Link>
                     </Button>
                   </div>
@@ -213,7 +229,7 @@ export default function DashboardPage() {
                 style={{ background: 'radial-gradient(circle, #EA580C, transparent)' }} />
               <div className="relative">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}>
+                  <div className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ background: 'var(--brand-gradient)' }}>
                     <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                     </svg>

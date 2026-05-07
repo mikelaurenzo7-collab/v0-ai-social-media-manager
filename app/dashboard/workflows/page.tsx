@@ -261,7 +261,7 @@ export default function WorkflowsPage() {
         action={
           <Button
             size="sm"
-            style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+            style={{ background: 'var(--brand-gradient)' }}
             onClick={() =>
               toast.message('Custom workflow builder', {
                 description: 'Visual workflow editor lands in the next release.',
@@ -460,7 +460,7 @@ export default function WorkflowsPage() {
                         <Button
                           size="sm"
                           className="w-full text-xs"
-                          style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                          style={{ background: 'var(--brand-gradient)' }}
                           onClick={() => installTemplate(tpl)}
                         >
                           Install workflow

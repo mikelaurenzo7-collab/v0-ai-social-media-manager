@@ -120,7 +120,7 @@ export default function PipelinePage() {
               <option value="gmail">Gmail</option>
               <option value="outlook">Outlook</option>
             </select>
-            <Button asChild size="sm" style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}>
+            <Button asChild size="sm" style={{ background: 'var(--brand-gradient)' }}>
               <Link href="/dashboard/create">+ New idea</Link>
             </Button>
           </div>

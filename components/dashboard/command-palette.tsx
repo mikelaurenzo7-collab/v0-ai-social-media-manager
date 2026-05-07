@@ -137,7 +137,7 @@ export function CommandPalette() {
             >
               <span
                 className="mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                style={{ background: 'var(--brand-gradient)' }}
               >
                 {agent.avatar}
               </span>

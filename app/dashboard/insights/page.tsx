@@ -316,7 +316,7 @@ function InsightCard({
               asChild
               size="sm"
               className="flex-1 text-xs"
-              style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+              style={{ background: 'var(--brand-gradient)' }}
             >
               <Link href={insight.action.href}>{insight.action.label} →</Link>
             </Button>
@@ -324,7 +324,7 @@ function InsightCard({
             <Button
               size="sm"
               className="flex-1 text-xs"
-              style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+              style={{ background: 'var(--brand-gradient)' }}
               onClick={insight.action.onClick}
             >
               {insight.action.label}

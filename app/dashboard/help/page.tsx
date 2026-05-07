@@ -265,7 +265,7 @@ export default function HelpPage() {
 
             <div
               className="rounded-2xl p-5 text-white"
-              style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+              style={{ background: 'var(--brand-gradient)' }}
             >
               <p className="text-sm font-bold">Still stuck?</p>
               <p className="text-xs text-white/85 mt-1">Real humans, not a bot. Average reply: 2h.</p>

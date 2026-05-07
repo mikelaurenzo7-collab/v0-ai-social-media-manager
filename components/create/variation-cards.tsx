@@ -61,7 +61,7 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
                 {variation.angle && (
                   <span
                     className="rounded-full px-2 py-0.5 text-[11px] font-medium text-white"
-                    style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                    style={{ background: 'var(--brand-gradient)' }}
                   >
                     {variation.angle}
                   </span>
@@ -77,7 +77,7 @@ export function VariationCards({ variations, selectedId, onSelect, selectedPlatf
                 {isSelected && (
                   <span
                     className="flex h-5 w-5 items-center justify-center rounded-full"
-                    style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                    style={{ background: 'var(--brand-gradient)' }}
                   >
                     <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />

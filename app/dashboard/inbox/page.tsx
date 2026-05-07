@@ -460,7 +460,7 @@ export default function InboxPage() {
                     <div className="flex items-center gap-2 mb-2">
                       <div
                         className="flex h-5 w-5 items-center justify-center rounded-md"
-                        style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                        style={{ background: 'var(--brand-gradient)' }}
                       >
                         <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
@@ -478,7 +478,7 @@ export default function InboxPage() {
                       <Button
                         size="sm"
                         className="h-8 text-xs"
-                        style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                        style={{ background: 'var(--brand-gradient)' }}
                         onClick={handleUseAiSuggestion}
                         disabled={drafting}
                       >
@@ -535,7 +535,7 @@ export default function InboxPage() {
                       <Button
                         size="sm"
                         className="h-8 text-xs px-4"
-                        style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                        style={{ background: 'var(--brand-gradient)' }}
                         disabled={
                           !reply.trim() ||
                           reply.length > PLATFORM_CHAR_LIMITS[selected.platform]

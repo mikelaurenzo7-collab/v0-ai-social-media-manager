@@ -105,7 +105,7 @@ function ImageBriefResult({ result }: { result: Record<string, unknown> }) {
           <button
             type="button"
             className="rounded-lg px-3 py-1.5 text-xs font-bold text-white"
-            style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+            style={{ background: 'var(--brand-gradient)' }}
           >
             Generate image →
           </button>
@@ -292,6 +292,12 @@ export function AgentChat({ agent }: { agent: Agent }) {
                   .map((m) => ({ source: m.source ?? 'explicit', content: m.body }))
               : null
 
+          // Crisis mode — when armed, the server strips every publish/send
+          // tool from the toolset for this request, regardless of any other
+          // permission. Belt-and-suspenders next to the banner.
+          const crisisRaw = readJson('postpilot_crisis_mode_v1') as { active?: boolean } | null
+          const crisisActive = !!crisisRaw?.active
+
           return {
             body: {
               ...body,
@@ -304,6 +310,7 @@ export function AgentChat({ agent }: { agent: Agent }) {
               brandKit,
               customization: readJson(`postpilot_agent_${agent.id}_customization_v1`),
               permissions,
+              crisisMode: crisisActive ? { active: true } : null,
             },
           }
         },

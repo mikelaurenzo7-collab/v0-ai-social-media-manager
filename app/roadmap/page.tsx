@@ -276,7 +276,7 @@ export default function RoadmapPage() {
               <Button
                 asChild
                 className="text-sm font-semibold"
-                style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                style={{ background: 'var(--brand-gradient)' }}
               >
                 <a href="mailto:roadmap@postpilot.app">Send a request</a>
               </Button>

@@ -55,7 +55,7 @@ export default function AgentsPage() {
                   key={agent.id}
                   className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white border-2 shadow-sm"
                   style={{
-                    background: AGENT_GRADIENT[agent.id] ?? 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)',
+                    background: AGENT_GRADIENT[agent.id] ?? 'var(--brand-gradient)',
                     borderColor: 'oklch(0.135 0.018 48)',
                   }}
                   title={agent.name}
@@ -72,7 +72,7 @@ export default function AgentsPage() {
       <div className="p-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {AGENTS.map((agent) => {
           const agentStats = AGENT_STATS[agent.id as keyof typeof AGENT_STATS]
-          const gradient = AGENT_GRADIENT[agent.id] ?? 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)'
+          const gradient = AGENT_GRADIENT[agent.id] ?? 'var(--brand-gradient)'
 
           return (
             <Card
@@ -177,7 +177,7 @@ export default function AgentsPage() {
         <div className="flex flex-col items-center text-center gap-4 sm:flex-row sm:items-start sm:text-left sm:gap-8">
           <div
             className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl"
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+            style={{ background: 'var(--brand-gradient)' }}
           >
             ✨
           </div>

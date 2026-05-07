@@ -172,7 +172,7 @@ export default function LibraryPage() {
             </Button>
             <Button
               size="sm"
-              style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+              style={{ background: 'var(--brand-gradient)' }}
               onClick={() =>
                 toast.message('Upload coming soon', {
                   description: 'Drag-and-drop and S3-backed storage land in the next release.',

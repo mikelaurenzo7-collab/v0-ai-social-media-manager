@@ -107,7 +107,7 @@ export function AgentCustomize({ agent }: { agent: Agent }) {
             size="sm"
             onClick={save}
             disabled={!dirty}
-            style={dirty ? { background: 'linear-gradient(135deg, #EA580C, #DB2777)' } : undefined}
+            style={dirty ? { background: 'var(--brand-gradient)' } : undefined}
           >
             {dirty ? 'Save changes' : 'Saved'}
           </Button>
@@ -124,7 +124,7 @@ export function AgentCustomize({ agent }: { agent: Agent }) {
           <div className="flex items-center gap-4">
             <div
               className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-xl font-black text-white shadow-md"
-              style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+              style={{ background: 'var(--brand-gradient)' }}
               aria-label="Avatar preview"
             >
               {c.avatar.slice(0, 3) || '?'}

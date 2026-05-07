@@ -78,7 +78,7 @@ export default function BrandKitPage() {
           <Button
             size="sm"
             onClick={saveBrandKit}
-            style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+            style={{ background: 'var(--brand-gradient)' }}
           >
             Save brand kit
           </Button>

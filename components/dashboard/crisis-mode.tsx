@@ -172,10 +172,10 @@ export function CrisisModeButton() {
               <div className="rounded-xl border border-border/60 bg-muted/30 p-4 text-sm space-y-1.5">
                 <p className="font-semibold">While crisis mode is on:</p>
                 <ul className="text-xs text-muted-foreground space-y-1 leading-relaxed">
-                  <li>· Auto-Pilot is paused across every agent</li>
+                  <li>· Chat agents refuse to publish or send email — enforced server-side</li>
+                  <li>· Auto-Pilot pauses across every agent (server enforcement lands with the worker)</li>
                   <li>· The scheduled queue is held — no posts go live</li>
                   <li>· Approvals are frozen — drafts stay drafts</li>
-                  <li>· Inbox AI replies require manual send</li>
                   <li>· Every action is recorded in the audit log</li>
                 </ul>
               </div>
@@ -196,6 +196,7 @@ export function CrisisModeButton() {
               <div className="rounded-2xl border border-border/60 bg-muted/30 p-4 text-sm space-y-2">
                 <p className="font-semibold">Arming will:</p>
                 <ul className="text-xs text-muted-foreground space-y-1 leading-relaxed">
+                  <li>· Strip publish + email tools from every agent chat</li>
                   <li>· Pause Auto-Pilot for every agent</li>
                   <li>· Hold every scheduled post</li>
                   <li>· Freeze approvals and inbox auto-replies</li>

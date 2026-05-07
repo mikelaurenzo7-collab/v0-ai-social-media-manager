@@ -267,7 +267,7 @@ export default function TeamPage() {
         action={
           <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}>
+              <Button size="sm" style={{ background: 'var(--brand-gradient)' }}>
                 + Invite member
               </Button>
             </DialogTrigger>
@@ -318,7 +318,7 @@ export default function TeamPage() {
                 </Button>
                 <Button
                   onClick={sendInvite}
-                  style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                  style={{ background: 'var(--brand-gradient)' }}
                 >
                   Send invite
                 </Button>
@@ -335,7 +335,7 @@ export default function TeamPage() {
             <div className="flex items-center gap-4">
               <div
                 className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xl font-black text-white shadow-md"
-                style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                style={{ background: 'var(--brand-gradient)' }}
               >
                 {workspaceName.slice(0, 2).toUpperCase()}
               </div>

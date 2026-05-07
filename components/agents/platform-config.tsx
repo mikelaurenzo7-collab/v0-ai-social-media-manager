@@ -305,11 +305,8 @@ export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
                 <div className="border-t border-orange-100/80 px-5 pb-5 pt-4 space-y-5">
 
                   {/* Agent's headline strategy */}
-                  <div
-                    className="rounded-xl px-4 py-3"
-                    style={{ background: 'linear-gradient(135deg, #EA580C12 0%, #DB277712 100%)', border: '1px solid #EA580C22' }}
-                  >
-                    <p className="text-sm font-semibold leading-snug" style={{ color: '#EA580C' }}>
+                  <div className="bg-brand-tint-soft rounded-xl px-4 py-3">
+                    <p className="text-brand text-sm font-semibold leading-snug">
                       {agent.name}&apos;s strategy: {platformAdvice.headline}
                     </p>
                   </div>
@@ -323,7 +320,7 @@ export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
                       <div key={i} className="flex gap-3">
                         <span
                           className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-black text-white"
-                          style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                          style={{ background: 'var(--brand-gradient)' }}
                         >
                           {i + 1}
                         </span>

@@ -69,8 +69,7 @@ function AutoPilotMiniStatus({ agentId }: { agentId: string }) {
       </div>
       <Link
         href="/dashboard/autopilot"
-        className="flex w-full items-center justify-center gap-1 rounded-md py-1 text-[10px] font-bold transition-opacity hover:opacity-80"
-        style={{ background: 'linear-gradient(135deg, #EA580C22 0%, #DB277722 100%)', color: '#EA580C', border: '1px solid oklch(0.652 0.214 36 / 0.25)' }}
+        className="bg-brand-tint text-brand flex w-full items-center justify-center gap-1 rounded-md py-1 text-[10px] font-bold transition-opacity hover:opacity-80"
       >
         <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
@@ -211,7 +210,7 @@ export default function AgentPage({ params }: { params: Promise<{ id: string }> 
             <div className="relative">
               <div
                 className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-black text-white shadow-lg"
-                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                style={{ background: 'var(--brand-gradient)' }}
               >
                 {agent.avatar}
               </div>
@@ -387,7 +386,7 @@ export default function AgentPage({ params }: { params: Promise<{ id: string }> 
               )}
               style={
                 activeTab === tab
-                  ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
+                  ? { background: 'var(--brand-gradient)' }
                   : undefined
               }
             >

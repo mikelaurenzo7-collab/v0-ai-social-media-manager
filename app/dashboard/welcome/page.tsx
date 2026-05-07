@@ -235,7 +235,7 @@ export default function WelcomePage() {
               <div className="text-center py-4">
                 <div
                   className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full text-4xl"
-                  style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                  style={{ background: 'var(--brand-gradient)' }}
                 >
                   ✨
                 </div>
@@ -278,7 +278,7 @@ export default function WelcomePage() {
                 onClick={next}
                 disabled={!canNext}
                 className="px-6"
-                style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                style={{ background: 'var(--brand-gradient)' }}
               >
                 {isLast ? 'Open dashboard →' : 'Continue →'}
               </Button>

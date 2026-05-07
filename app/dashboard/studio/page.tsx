@@ -166,7 +166,7 @@ export default function StudioPage() {
                   className="flex-1"
                   onClick={generate}
                   disabled={generating}
-                  style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                  style={{ background: 'var(--brand-gradient)' }}
                 >
                   {generating ? 'Remixing…' : '✨ Remix into selected formats'}
                 </Button>
@@ -278,7 +278,7 @@ function OutputShell({
       </div>
       <CardContent className="p-5 space-y-3">{children}</CardContent>
       <div className="px-5 pb-4 pt-0 flex items-center gap-2">
-        <Button size="sm" className="text-xs" style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}>
+        <Button size="sm" className="text-xs" style={{ background: 'var(--brand-gradient)' }}>
           Send to Approvals
         </Button>
         <Button variant="outline" size="sm" className="text-xs">
@@ -478,7 +478,7 @@ function SyncFooter() {
         approval; the Brand Kit travels with them; analytics roll up under one banner.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Button size="sm" style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}>
+        <Button size="sm" style={{ background: 'var(--brand-gradient)' }}>
           Send all to Pipeline
         </Button>
         <Button asChild variant="outline" size="sm">

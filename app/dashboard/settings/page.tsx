@@ -88,7 +88,7 @@ export default function SettingsPage() {
                 <div className="relative">
                   <div
                     className="flex h-16 w-16 items-center justify-center rounded-2xl text-xl font-black text-white shadow-md"
-                    style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                    style={{ background: 'var(--brand-gradient)' }}
                   >
                     {name.charAt(0).toUpperCase()}
                   </div>
@@ -120,7 +120,7 @@ export default function SettingsPage() {
               <Button
                 type="submit"
                 className="font-semibold text-white"
-                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }}
+                style={{ background: 'var(--brand-gradient)', border: 'none' }}
               >
                 Save Profile
               </Button>
@@ -245,7 +245,7 @@ export default function SettingsPage() {
                     )}
                     style={
                       hashtagStyle === style
-                        ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
+                        ? { background: 'var(--brand-gradient)' }
                         : undefined
                     }
                   >
@@ -278,7 +278,7 @@ export default function SettingsPage() {
                       )}
                       style={
                         isSelected
-                          ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
+                          ? { background: 'var(--brand-gradient)' }
                           : undefined
                       }
                     >
@@ -321,7 +321,7 @@ export default function SettingsPage() {
                   )}
                   style={
                     postingFrequency === freq.id
-                      ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
+                      ? { background: 'var(--brand-gradient)' }
                       : undefined
                   }
                 >
@@ -407,7 +407,7 @@ export default function SettingsPage() {
                 </div>
                 <Button
                   className="shrink-0 font-bold text-white"
-                  style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }}
+                  style={{ background: 'var(--brand-gradient)', border: 'none' }}
                 >
                   <svg className="mr-1.5 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />

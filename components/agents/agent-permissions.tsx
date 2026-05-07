@@ -127,7 +127,7 @@ export function AgentPermissions({ agent }: { agent: Agent }) {
           size="sm"
           onClick={save}
           disabled={!dirty}
-          style={dirty ? { background: 'linear-gradient(135deg, #EA580C, #DB2777)' } : undefined}
+          style={dirty ? { background: 'var(--brand-gradient)' } : undefined}
         >
           {dirty ? 'Save permissions' : 'Saved'}
         </Button>

@@ -114,7 +114,7 @@ export default function DraftsPage() {
         action={
           <Button
             asChild
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }}
+            style={{ background: 'var(--brand-gradient)', border: 'none' }}
           >
             <Link href="/dashboard/create">
               <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -145,7 +145,7 @@ export default function DraftsPage() {
                 )}
                 style={
                   activeTab === tab
-                    ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
+                    ? { background: 'var(--brand-gradient)' }
                     : undefined
                 }
               >
@@ -296,10 +296,7 @@ function EmptyState({ title, description }: { title: string; description: string
   return (
     <Card className="border-dashed">
       <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-        <div
-          className="mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-          style={{ background: 'linear-gradient(135deg, #EA580C22 0%, #DB277722 100%)' }}
-        >
+        <div className="bg-brand-tint-soft mb-4 flex h-16 w-16 items-center justify-center rounded-full">
           <svg
             className="h-8 w-8"
             style={{ color: '#EA580C' }}
@@ -316,7 +313,7 @@ function EmptyState({ title, description }: { title: string; description: string
         <Button
           asChild
           className="mt-6"
-          style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }}
+          style={{ background: 'var(--brand-gradient)', border: 'none' }}
         >
           <Link href="/dashboard/create">Create New Content</Link>
         </Button>

@@ -78,6 +78,7 @@ export async function POST(req: Request) {
     brandKit,
     customization,
     permissions,
+    crisisMode,
   } = (await req.json()) as {
     messages: UIMessage[]
     agentId?: string
@@ -88,7 +89,16 @@ export async function POST(req: Request) {
     brandKit?: BrandKit | null
     customization?: AgentCustomization | null
     permissions?: AgentPermissionsPayload | null
+    crisisMode?: { active?: boolean } | null
   }
+
+  // Crisis mode is the workspace's panic stop. When armed, the server
+  // strips every action-oriented tool — publishing AND email send — for
+  // this request, on top of any per-agent permission. The banner says
+  // "every agent paused"; this is the teeth behind that promise for
+  // chat-driven actions. Real Auto-Pilot enforcement happens server-side
+  // in the publish workers when those land.
+  const crisisActive = !!crisisMode?.active
 
   // Both arrive as `string | null` from localStorage on the client. Parse once,
   // explicitly guard NaN, and treat anything outside [0,100] as unset.
@@ -109,7 +119,12 @@ export async function POST(req: Request) {
   const brandKitPrefix = brandKitToSystemPrefix(brandKitAllowed ? (brandKit ?? null) : null)
   const customizationSuffix = customizationToPromptSuffix(customization ?? null)
   const permissionsNote = permissionsToSystemNote(permissions ?? null)
-  const allowPublish = permissionsAllowChannelPublishing(permissions ?? null)
+  const crisisNote = crisisActive
+    ? '\n\n🛑 CRISIS MODE IS ON for this workspace. Do not publish, send email, or schedule anything under any circumstance. Drafts only. If the user asks you to publish or send, refuse and remind them crisis mode is active.'
+    : ''
+  // Publish/send is allowed only when (a) workspace permissions allow it
+  // AND (b) crisis mode is not armed.
+  const allowPublish = permissionsAllowChannelPublishing(permissions ?? null) && !crisisActive
 
   // Adaptive memory v2 prefix — every active row, grouped by source, with
   // explicit framing so the model treats them as durable workspace truths,
@@ -134,7 +149,7 @@ export async function POST(req: Request) {
   const modelMessages = await convertToModelMessages(messages)
 
   let systemPrompt =
-    defaultSystemPrompt + brandKitPrefix + customizationSuffix + permissionsNote + adaptivePrefix
+    defaultSystemPrompt + brandKitPrefix + customizationSuffix + permissionsNote + adaptivePrefix + crisisNote
   let temperature = 0.7
 
   if (agentId) {
@@ -173,7 +188,7 @@ export async function POST(req: Request) {
       ? `You are now operating as "${displayName}". ${persona}`
       : persona
 
-    systemPrompt = `${namedPersona}${toneInstructions}${memoryContext}${brandKitPrefix}${customizationSuffix}${permissionsNote}${adaptivePrefix}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads, carousels, and short-form video storyboards\n- Generating image briefs that match the brand palette\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nWhen the user asks for visuals or video, prefer the design_carousel / storyboard_video / generate_image tools so the output is structured and shippable.\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
+    systemPrompt = `${namedPersona}${toneInstructions}${memoryContext}${brandKitPrefix}${customizationSuffix}${permissionsNote}${adaptivePrefix}${crisisNote}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads, carousels, and short-form video storyboards\n- Generating image briefs that match the brand palette\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nWhen the user asks for visuals or video, prefer the design_carousel / storyboard_video / generate_image tools so the output is structured and shippable.\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
 
     if (creativityNum != null) {
       // Map 0–100 to 0.0–1.0 temperature

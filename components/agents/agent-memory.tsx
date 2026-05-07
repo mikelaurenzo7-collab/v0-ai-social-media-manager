@@ -311,7 +311,7 @@ export function AgentMemory({ agent }: { agent: Agent }) {
               size="sm"
               onClick={addExplicit}
               disabled={!draft.trim()}
-              style={draft.trim() ? { background: 'linear-gradient(135deg, #EA580C, #DB2777)' } : undefined}
+              style={draft.trim() ? { background: 'var(--brand-gradient)' } : undefined}
             >
               Add
             </Button>
