@@ -49,6 +49,7 @@ const NAV_ACTIONS: Action[] = [
   { id: 'accounts', label: 'Accounts', icon: '🔌', href: '/dashboard/accounts', group: 'Account' },
   { id: 'developers', label: 'Developers', desc: 'API keys, webhooks, code samples', icon: '🛠️', href: '/dashboard/developers', group: 'Account', keywords: ['api', 'webhooks', 'sdk'] },
   { id: 'billing', label: 'Billing & plan', desc: 'Subscription, invoices, payment', icon: '💳', href: '/dashboard/billing', group: 'Account', keywords: ['subscription', 'invoices', 'payment', 'upgrade'] },
+  { id: 'referrals', label: 'Refer a friend', desc: 'Earn $29 + tier rewards per upgrade', icon: '🎁', href: '/dashboard/referrals', group: 'Account', keywords: ['referral', 'invite', 'rewards', 'credit'] },
   { id: 'settings', label: 'Settings', icon: '⚙️', href: '/dashboard/settings', group: 'Account' },
   { id: 'agents', label: 'AI Agents', icon: '🤖', href: '/dashboard/agents', group: 'Navigate' },
   { id: 'help', label: 'Help Center', icon: '❓', href: '/dashboard/help', group: 'Help' },

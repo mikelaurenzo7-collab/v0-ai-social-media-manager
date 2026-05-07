@@ -17,6 +17,7 @@ const COLS = [
       { label: 'For founders',  href: '/for/founders' },
       { label: 'For agencies',  href: '/for/agencies' },
       { label: 'For creators',  href: '/for/creators' },
+      { label: 'Examples',      href: '/examples' },
       { label: 'Browse agents', href: '/agents' },
     ],
   },

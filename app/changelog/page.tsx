@@ -1,6 +1,7 @@
 import { Navbar } from '@/components/marketing/navbar'
 import { Footer } from '@/components/marketing/footer'
 import { Badge } from '@/components/ui/badge'
+import { ChangelogSubscribe } from '@/components/marketing/changelog-subscribe'
 
 export const metadata = {
   title: 'Changelog',
@@ -96,6 +97,9 @@ export default function ChangelogPage() {
             <p className="mt-4 text-base text-muted-foreground max-w-xl leading-relaxed">
               We ship every week. Sometimes we miss. We tell you when we do. Here&apos;s the full record.
             </p>
+            <div className="mt-7 max-w-md">
+              <ChangelogSubscribe />
+            </div>
           </div>
         </section>
 
