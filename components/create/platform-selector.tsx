@@ -38,7 +38,7 @@ export function PlatformSelector({ selected, onChange }: PlatformSelectorProps) 
             )}
             style={
               isSelected
-                ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }
+                ? { background: 'var(--brand-gradient)', border: 'none' }
                 : undefined
             }
           >

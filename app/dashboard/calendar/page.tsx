@@ -149,7 +149,7 @@ function DayPanel({
           <p className="text-xs text-muted-foreground">{posts.length} post{posts.length !== 1 ? 's' : ''} scheduled</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button asChild size="sm" className="text-xs h-7 px-3" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}>
+          <Button asChild size="sm" className="text-xs h-7 px-3" style={{ background: 'var(--brand-gradient)' }}>
             <Link href={`/dashboard/create`}>+ Add Post</Link>
           </Button>
           <button
@@ -170,7 +170,7 @@ function DayPanel({
             <span className="text-3xl mb-2">🗓️</span>
             <p className="text-sm font-medium">Nothing scheduled</p>
             <p className="text-xs text-muted-foreground mt-1">Add your first post for this day</p>
-            <Button asChild size="sm" className="mt-3 text-xs" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}>
+            <Button asChild size="sm" className="mt-3 text-xs" style={{ background: 'var(--brand-gradient)' }}>
               <Link href="/dashboard/create">Create a post</Link>
             </Button>
           </div>
@@ -297,7 +297,7 @@ export default function CalendarPage() {
         title="Content Calendar"
         description="Plan, schedule, and manage your content across all platforms"
         action={
-          <Button asChild className="text-xs h-9" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}>
+          <Button asChild className="text-xs h-9" style={{ background: 'var(--brand-gradient)' }}>
             <Link href="/dashboard/create">+ Create Post</Link>
           </Button>
         }
@@ -412,7 +412,7 @@ export default function CalendarPage() {
                               ? 'text-white'
                               : 'text-foreground'
                           )}
-                          style={isToday ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' } : {}}
+                          style={isToday ? { background: 'var(--brand-gradient)' } : {}}
                         >
                           {dayNum}
                         </span>
@@ -452,7 +452,7 @@ export default function CalendarPage() {
             {/* Legend */}
             <div className="flex items-center gap-4 flex-wrap text-[10px] text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full" style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }} />
+                <span className="h-2 w-2 rounded-full" style={{ background: 'var(--brand-gradient)' }} />
                 <span>Today</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -537,7 +537,7 @@ export default function CalendarPage() {
               <div className="flex items-center gap-2 mb-3">
                 <div
                   className="flex h-5 w-5 items-center justify-center rounded-md shrink-0"
-                  style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                  style={{ background: 'var(--brand-gradient)' }}
                 >
                   <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />

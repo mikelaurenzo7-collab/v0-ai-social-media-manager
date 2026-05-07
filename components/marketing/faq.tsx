@@ -10,11 +10,11 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Can I use it just for Gmail or just for Outlook?',
-    a: 'Yes. Gina (Gmail) and Oliver (Outlook) are first-class agents with their own outreach playbooks. Connect one channel and send through it — social is optional.',
+    a: 'Yes. The Gmail Agent and Outlook Agent are first-class on PostPilot — connect one channel and send through it. Social is optional.',
   },
   {
     q: 'How is this different from a generic AI writer?',
-    a: 'Each agent is tuned for one job — Sarah for strategy, Casey for hooks, Riley for voice, Marcus for replies, Gina for cold email, Oliver for executive comms. They know each platform\u2019s formats, character limits, and what actually converts.',
+    a: 'You get one specialist agent per channel — X, Meta (Instagram + Facebook), LinkedIn, TikTok, Gmail, Outlook. Each one knows its platform formats, character limits, hooks, and what actually converts. Personas, voice, and permissions are fully customizable per workspace.',
   },
   {
     q: 'Will my drafts and tone stay private?',

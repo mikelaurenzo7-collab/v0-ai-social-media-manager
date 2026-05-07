@@ -12,20 +12,27 @@ export function Logo({ className, size = 28, wordmark = false, wordmarkClassName
   return (
     <span className={cn('inline-flex items-center gap-2.5', className)}>
       <span
-        className="relative inline-flex items-center justify-center rounded-xl shadow-[0_8px_24px_-6px_rgba(234,88,12,0.45)]"
-        style={{
-          width: size,
-          height: size,
-          background: 'linear-gradient(135deg, #F59E0B 0%, #EA580C 50%, #DB2777 100%)',
-        }}
+        className="bg-brand-warm relative inline-flex items-center justify-center rounded-xl shadow-brand"
+        style={{ width: size, height: size }}
       >
-        {/* Inner highlight */}
+        {/* Soft top-left highlight — gives the icon dimension on light + dark */}
         <span
           aria-hidden
           className="absolute inset-px rounded-[10px]"
           style={{
             background:
-              'radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.45) 0%, transparent 60%)',
+              'radial-gradient(ellipse at 28% 18%, rgba(255,255,255,0.5) 0%, transparent 60%)',
+          }}
+        />
+        {/* Faint trailing trail dot — the "post in flight" detail */}
+        <span
+          aria-hidden
+          className="absolute rounded-full bg-white/55"
+          style={{
+            width: Math.max(2, size * 0.06),
+            height: Math.max(2, size * 0.06),
+            bottom: size * 0.18,
+            left: size * 0.18,
           }}
         />
         {/* Paper plane glyph */}
@@ -51,7 +58,7 @@ export function Logo({ className, size = 28, wordmark = false, wordmarkClassName
             wordmarkClassName,
           )}
         >
-          Post<span className="italic">pilot</span>
+          Post<span className="italic font-normal">pilot</span>
         </span>
       )}
     </span>

@@ -49,7 +49,7 @@ function TwitterPreview({ content }: { content: string }) {
       <div className="flex gap-3">
         <div
           className="h-10 w-10 shrink-0 rounded-full"
-          style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+          style={{ background: 'var(--brand-gradient)' }}
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1 text-sm">
@@ -97,7 +97,7 @@ function InstagramPreview({ content }: { content: string }) {
   return (
     <div className="rounded-xl border border-border/60 bg-card overflow-hidden shadow-sm">
       <div className="flex items-center gap-3 p-3 border-b">
-        <div className="h-8 w-8 rounded-full" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }} />
+        <div className="h-8 w-8 rounded-full" style={{ background: 'var(--brand-gradient)' }} />
         <div className="flex-1">
           <p className="text-sm font-semibold">yourbrand</p>
         </div>
@@ -185,7 +185,7 @@ function LinkedInPreview({ content }: { content: string }) {
       <div className="flex items-start gap-3 p-4">
         <div
           className="h-12 w-12 shrink-0 rounded-full"
-          style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+          style={{ background: 'var(--brand-gradient)' }}
         />
         <div className="flex-1">
           <p className="text-sm font-semibold">Your Name</p>

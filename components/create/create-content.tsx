@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { experimental_useObject } from '@ai-sdk/react'
 import { Button } from '@/components/ui/button'
@@ -23,6 +23,8 @@ import { toast } from 'sonner'
 export function CreateContent() {
   const searchParams = useSearchParams()
   const editId = searchParams.get('edit')
+  const topicParam = searchParams.get('topic')
+  const toneParam = searchParams.get('tone')
 
   // Mode: 'post' or 'thread'
   const [mode, setMode] = useState<'post' | 'thread'>('post')
@@ -64,6 +66,30 @@ export function CreateContent() {
       // corrupt localStorage — ignore
     }
   }, [editId])
+
+  // Pre-fill from query params (?topic=… &tone=…) — used by Trends and Command Palette.
+  // We track the previously-applied topic so revisiting /dashboard/create with a new
+  // ?topic replaces the prior auto-generated prompt without overwriting any custom edits.
+  const prevTopicRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (editId) return
+    if (topicParam) {
+      const prevAuto = prevTopicRef.current
+        ? `Write a post about: ${prevTopicRef.current}`
+        : null
+      const nextAuto = `Write a post about: ${topicParam}`
+      setPrompt((current) =>
+        current === '' || current === prevAuto ? nextAuto : current,
+      )
+      prevTopicRef.current = topicParam
+    }
+    if (toneParam) {
+      const validTones = TONES.map((t) => t.id) as readonly string[]
+      if (validTones.includes(toneParam)) {
+        setTone(toneParam as ToneId)
+      }
+    }
+  }, [editId, topicParam, toneParam])
 
   // Selection + clipboard state
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null)
@@ -120,7 +146,16 @@ export function CreateContent() {
     if (!prompt.trim()) return
     setSelectedVariationId(null)
     setImprovedOverride(null)
-    submit({ prompt, tone, contentType, platforms })
+    let brandKit: unknown = null
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = window.localStorage.getItem('postpilot_brand_kit_v1')
+        if (raw) brandKit = JSON.parse(raw)
+      } catch {
+        // ignore
+      }
+    }
+    submit({ prompt, tone, contentType, platforms, brandKit })
   }, [prompt, tone, contentType, platforms, submit])
 
   const handleGenerateThread = useCallback(() => {

@@ -124,7 +124,7 @@ export function ScheduleDialog({ draft, children }: ScheduleDialogProps) {
                     )}
                     style={
                       selectedPlatform === p
-                        ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
+                        ? { background: 'var(--brand-gradient)' }
                         : undefined
                     }
                   >
@@ -192,7 +192,7 @@ export function ScheduleDialog({ draft, children }: ScheduleDialogProps) {
           <Button
             onClick={handleSchedule}
             disabled={isLoading || !selectedDate || !selectedTime}
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+            style={{ background: 'var(--brand-gradient)' }}
           >
             {isLoading ? (
               <>

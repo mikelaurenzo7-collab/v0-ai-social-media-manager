@@ -246,6 +246,71 @@
     transform: scale(0.98) translateY(0);
   }
 
+  /* ── Brand utilities — single source of truth, replaces inline gradients ── */
+  .bg-brand          { background: var(--brand-gradient); }
+  .bg-brand-soft     { background: var(--brand-gradient-soft); }
+  .bg-brand-warm     { background: var(--brand-gradient-warm); }
+  .text-brand        { color: var(--brand-orange); }
+  .border-brand      { border-color: oklch(0.652 0.214 36 / 0.3); }
+  .ring-brand        { box-shadow: 0 0 0 1px oklch(0.652 0.214 36 / 0.3); }
+  .shadow-brand      { box-shadow: 0 6px 20px -6px oklch(0.652 0.214 36 / 0.4); }
+  .shadow-brand-lg   { box-shadow: 0 18px 40px -12px oklch(0.652 0.214 36 / 0.45); }
+
+  /* Subtle brand-tinted background for callouts and primary surfaces */
+  .bg-brand-tint {
+    background: linear-gradient(135deg,
+      oklch(0.652 0.214 36 / 0.08) 0%,
+      oklch(0.588 0.238 352 / 0.06) 100%);
+    border: 1px solid oklch(0.652 0.214 36 / 0.22);
+  }
+  .bg-brand-tint-soft {
+    background: linear-gradient(135deg,
+      oklch(0.652 0.214 36 / 0.04) 0%,
+      oklch(0.588 0.238 352 / 0.03) 100%);
+    border: 1px solid oklch(0.652 0.214 36 / 0.14);
+  }
+
+  /* Inverse: dark espresso surface used for hero blocks */
+  .surface-espresso {
+    background: linear-gradient(135deg, oklch(0.135 0.018 48), oklch(0.21 0.05 30));
+    color: oklch(0.97 0.005 62);
+  }
+
+  /* Standardized card hover affordance — use sparingly (when card is clickable) */
+  .surface-hover {
+    transition: box-shadow var(--motion-base), transform var(--motion-base), border-color var(--motion-base);
+  }
+  .surface-hover:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: oklch(0.82 0.018 62);
+  }
+
+  /* Reduce-motion override — applied to <html> when the user toggles the
+     pref or has prefers-reduced-motion set. We keep instant transforms for
+     functional cases (modal open, focus) but neutralize decorative motion. */
+  :where(.reduce-motion) *,
+  :where(.reduce-motion) *::before,
+  :where(.reduce-motion) *::after {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* "NEW" pill — small, restrained, only appears next to truly fresh items */
+  .badge-new {
+    background: var(--brand-gradient);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    line-height: 1;
+    box-shadow: 0 1px 4px oklch(0.652 0.214 36 / 0.4);
+  }
+
   .card-warm {
     background: var(--card);
     color: var(--card-foreground);
@@ -409,3 +474,44 @@
     background-clip: padding-box;
   }
 }
+
+/* Policy / legal page content styling */
+.policy-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 3rem;
+  margin-bottom: 0.75rem;
+}
+.policy-content h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+.policy-content p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  color: oklch(0.42 0.012 52);
+}
+.policy-content ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.75rem 0 1rem;
+}
+.policy-content li {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0.4rem 0;
+  color: oklch(0.42 0.012 52);
+}
+.policy-content a {
+  color: #EA580C;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.policy-content a:hover { color: #C2410C; }
+.policy-content strong { color: oklch(0.2 0.018 48); font-weight: 600; }

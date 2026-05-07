@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import type { Agent } from '@/lib/agents'
 
 const AGENT_PLATFORM_ADVICE: Record<string, Record<SocialPlatformId, { headline: string; tips: string[]; formats: string[] }>> = {
-  strategist: {
+  linkedin: {
     twitter: {
       headline: 'Build a thread-first X strategy',
       tips: [
@@ -55,7 +55,7 @@ const AGENT_PLATFORM_ADVICE: Record<string, Record<SocialPlatformId, { headline:
       formats: ['Educational series', 'Day-in-the-life', 'Tips & tricks', 'Weekly recurring format'],
     },
   },
-  viral: {
+  x: {
     twitter: {
       headline: 'Dominate the feed with hooks and hot takes',
       tips: [
@@ -102,7 +102,7 @@ const AGENT_PLATFORM_ADVICE: Record<string, Record<SocialPlatformId, { headline:
       formats: ['Trending sound + niche twist', 'Story-driven video', 'Tutorial with surprise ending', 'Controversial take'],
     },
   },
-  voice: {
+  meta: {
     twitter: {
       headline: 'Write with your authentic voice every single day',
       tips: [
@@ -149,7 +149,7 @@ const AGENT_PLATFORM_ADVICE: Record<string, Record<SocialPlatformId, { headline:
       formats: ['Talking-head story', 'Day-in-my-life', 'Unfiltered opinion', 'Q&A response video'],
     },
   },
-  community: {
+  tiktok: {
     twitter: {
       headline: 'Reply-first strategy is your fastest path to loyal followers',
       tips: [
@@ -203,23 +203,41 @@ interface AgentPlatformConfigProps {
 }
 
 export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
-  const [enabledPlatforms, setEnabledPlatforms] = useState<Set<SocialPlatformId>>(
-    new Set(['twitter', 'instagram', 'linkedin'] as SocialPlatformId[])
-  )
-  const [expandedPlatform, setExpandedPlatform] = useState<SocialPlatformId | null>('twitter')
+  // Each agent only owns the platforms in agent.platforms — scope the matrix to those.
+  const ownedSocial = SOCIAL_PLATFORM_IDS.filter((p) => agent.platforms.includes(p))
+  const advice = AGENT_PLATFORM_ADVICE[agent.id]
 
-  const advice = AGENT_PLATFORM_ADVICE[agent.id] ?? AGENT_PLATFORM_ADVICE['strategist']
+  const [enabledPlatforms, setEnabledPlatforms] = useState<Set<SocialPlatformId>>(
+    new Set(ownedSocial),
+  )
+  const [expandedPlatform, setExpandedPlatform] = useState<SocialPlatformId | null>(
+    ownedSocial[0] ?? null,
+  )
 
   const togglePlatform = (platformId: SocialPlatformId) => {
-    setEnabledPlatforms(prev => {
+    setEnabledPlatforms((prev) => {
       const next = new Set(prev)
-      if (next.has(platformId)) {
-        next.delete(platformId)
-      } else {
-        next.add(platformId)
-      }
+      if (next.has(platformId)) next.delete(platformId)
+      else next.add(platformId)
       return next
     })
+  }
+
+  // Email-only agents (Gmail, Outlook) don't have a social platform matrix — render
+  // an explicit message that points to the right surfaces instead.
+  if (ownedSocial.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="rounded-2xl border border-border/60 bg-muted/20 p-8 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-2xl">✉️</div>
+          <h2 className="text-lg font-bold">{agent.name} is an email-channel agent</h2>
+          <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+            Email agents don&apos;t need social-platform configuration. Manage sending rules,
+            approval workflows, and rate limits from the <strong>Permissions</strong> tab.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -227,16 +245,17 @@ export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
       <div>
         <h2 className="text-lg font-bold text-foreground">Platform Configuration</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Configure how {agent.name} operates across each of your platforms. Toggle platforms on or off, then expand each one for agent-specific strategy.
+          {agent.name} owns {ownedSocial.length === 1 ? 'this channel' : 'these channels'}. Toggle on/off
+          and expand for channel-specific defaults.
         </p>
       </div>
 
       <div className="space-y-3">
-        {SOCIAL_PLATFORM_IDS.map((platformId) => {
+        {ownedSocial.map((platformId) => {
           const platform = PLATFORMS[platformId]
           const isEnabled = enabledPlatforms.has(platformId)
           const isExpanded = expandedPlatform === platformId && isEnabled
-          const platformAdvice = advice[platformId]
+          const platformAdvice = advice?.[platformId]
 
           return (
             <div
@@ -282,15 +301,12 @@ export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
               </div>
 
               {/* Expanded strategy panel */}
-              {isExpanded && (
+              {isExpanded && platformAdvice && (
                 <div className="border-t border-orange-100/80 px-5 pb-5 pt-4 space-y-5">
 
                   {/* Agent's headline strategy */}
-                  <div
-                    className="rounded-xl px-4 py-3"
-                    style={{ background: 'linear-gradient(135deg, #EA580C12 0%, #DB277712 100%)', border: '1px solid #EA580C22' }}
-                  >
-                    <p className="text-sm font-semibold leading-snug" style={{ color: '#EA580C' }}>
+                  <div className="bg-brand-tint-soft rounded-xl px-4 py-3">
+                    <p className="text-brand text-sm font-semibold leading-snug">
                       {agent.name}&apos;s strategy: {platformAdvice.headline}
                     </p>
                   </div>
@@ -304,7 +320,7 @@ export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
                       <div key={i} className="flex gap-3">
                         <span
                           className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-black text-white"
-                          style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                          style={{ background: 'var(--brand-gradient)' }}
                         >
                           {i + 1}
                         </span>

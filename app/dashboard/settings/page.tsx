@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -8,8 +8,11 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/dashboard/header'
 import { TONES, CONTENT_TYPES } from '@/lib/constants/platforms'
+import { AGENTS } from '@/lib/agents'
+import { readPrefs, writePrefs, DEFAULT_PREFS, type UserPreferences, type Theme } from '@/lib/preferences'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -27,6 +30,37 @@ export default function SettingsPage() {
   const [defaultTone, setDefaultTone] = useState('casual')
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [weeklyDigest, setWeeklyDigest] = useState(true)
+  const [prefs, setPrefs] = useState<UserPreferences>(DEFAULT_PREFS)
+
+  useEffect(() => {
+    setPrefs(readPrefs())
+  }, [])
+
+  function updatePrefs(patch: Partial<UserPreferences>) {
+    setPrefs((prev) => ({ ...prev, ...patch }))
+    writePrefs(patch)
+    if ('copilotEnabled' in patch) {
+      toast.success(
+        patch.copilotEnabled
+          ? 'Co-Pilot turned on'
+          : 'Co-Pilot turned off — agent-only mode',
+        {
+          description: patch.copilotEnabled
+            ? 'The drawer is back. Press ⌘J anytime.'
+            : 'You\'ll only see the agents you purchased.',
+        },
+      )
+    }
+    if ('theme' in patch && patch.theme) {
+      const label = patch.theme === 'system' ? 'System theme' : `${patch.theme[0].toUpperCase()}${patch.theme.slice(1)} mode`
+      toast.success(label, {
+        description:
+          patch.theme === 'system'
+            ? 'Following your OS preference.'
+            : 'Applied across the workspace.',
+      })
+    }
+  }
   const [brandVoice, setBrandVoice] = useState(
     'I write for founders and operators who want to grow online without the fluff. Direct, practical, and occasionally witty. Never corporate.'
   )
@@ -88,7 +122,7 @@ export default function SettingsPage() {
                 <div className="relative">
                   <div
                     className="flex h-16 w-16 items-center justify-center rounded-2xl text-xl font-black text-white shadow-md"
-                    style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                    style={{ background: 'var(--brand-gradient)' }}
                   >
                     {name.charAt(0).toUpperCase()}
                   </div>
@@ -120,11 +154,111 @@ export default function SettingsPage() {
               <Button
                 type="submit"
                 className="font-semibold text-white"
-                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }}
+                style={{ background: 'var(--brand-gradient)', border: 'none' }}
               >
                 Save Profile
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        {/* ── Preferences ─────────────────────────────────────────── */}
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="text-base font-bold">Preferences</CardTitle>
+            <CardDescription>
+              Workspace-wide UI preferences. Saved per browser; server-synced
+              preferences land with the workspace persistence layer.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-3">
+              <div className="flex items-center justify-between gap-4 mb-2.5">
+                <div>
+                  <p className="text-sm font-semibold">Theme</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    Light, dark, or follow your system. Applies workspace-wide.
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-1 rounded-lg border border-border/60 p-1">
+                {(
+                  [
+                    { id: 'light', label: 'Light', emoji: '☀️' },
+                    { id: 'system', label: 'System', emoji: '💻' },
+                    { id: 'dark', label: 'Dark', emoji: '🌙' },
+                  ] as { id: Theme; label: string; emoji: string }[]
+                ).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    aria-pressed={prefs.theme === opt.id}
+                    onClick={() => updatePrefs({ theme: opt.id })}
+                    className={cn(
+                      'rounded-md px-3 py-1.5 text-xs font-semibold transition-colors',
+                      prefs.theme === opt.id
+                        ? 'bg-foreground text-background'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <span className="mr-1.5">{opt.emoji}</span>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <PreferenceRow
+              title="AI Co-Pilot"
+              description={
+                <>
+                  The context-aware assistant in the bottom-right corner. When off, the
+                  Co-Pilot drawer, the FAB, and the <kbd className="rounded border border-border/60 bg-muted px-1 font-mono text-[10px]">⌘J</kbd> hotkey
+                  all go quiet — only the agents you opened on purpose run.
+                </>
+              }
+              badge={prefs.copilotEnabled ? null : 'Agent-only mode'}
+              checked={prefs.copilotEnabled}
+              onChange={(v) => updatePrefs({ copilotEnabled: v })}
+            />
+            <PreferenceRow
+              title="Sound effects"
+              description="Soft chimes on send, approve, and toast events."
+              checked={prefs.soundsEnabled}
+              onChange={(v) => updatePrefs({ soundsEnabled: v })}
+            />
+            <PreferenceRow
+              title="Reduce motion"
+              description="Disable non-essential transitions across the app."
+              checked={prefs.reduceMotion}
+              onChange={(v) => updatePrefs({ reduceMotion: v })}
+            />
+
+            <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-3 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">Default agent</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  Where ⌘K &quot;Quick draft&quot; sends you when no channel is implied.
+                </p>
+              </div>
+              <select
+                value={prefs.defaultAgentId}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setPrefs((p) => ({ ...p, defaultAgentId: value }))
+                  writePrefs({ defaultAgentId: value })
+                }}
+                aria-label="Default agent"
+                className="h-9 rounded-md border border-border/60 bg-background px-3 text-xs font-medium shrink-0"
+              >
+                <option value="">No preference (auto)</option>
+                {AGENTS.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </CardContent>
         </Card>
 
@@ -245,7 +379,7 @@ export default function SettingsPage() {
                     )}
                     style={
                       hashtagStyle === style
-                        ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
+                        ? { background: 'var(--brand-gradient)' }
                         : undefined
                     }
                   >
@@ -278,7 +412,7 @@ export default function SettingsPage() {
                       )}
                       style={
                         isSelected
-                          ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
+                          ? { background: 'var(--brand-gradient)' }
                           : undefined
                       }
                     >
@@ -321,7 +455,7 @@ export default function SettingsPage() {
                   )}
                   style={
                     postingFrequency === freq.id
-                      ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
+                      ? { background: 'var(--brand-gradient)' }
                       : undefined
                   }
                 >
@@ -333,7 +467,7 @@ export default function SettingsPage() {
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              This helps agents like Sarah build more accurate content calendars for you.
+              This helps your channel agents build more accurate content calendars for you.
             </p>
           </CardContent>
         </Card>
@@ -407,7 +541,7 @@ export default function SettingsPage() {
                 </div>
                 <Button
                   className="shrink-0 font-bold text-white"
-                  style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }}
+                  style={{ background: 'var(--brand-gradient)', border: 'none' }}
                 >
                   <svg className="mr-1.5 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -462,6 +596,42 @@ export default function SettingsPage() {
         </Card>
 
       </div>
+    </div>
+  )
+}
+
+function PreferenceRow({
+  title,
+  description,
+  badge,
+  checked,
+  onChange,
+}: {
+  title: string
+  description: React.ReactNode
+  badge?: string | null
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-3 flex items-start justify-between gap-4">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold">{title}</p>
+          {badge && (
+            <Badge className="text-[9px] px-1.5 py-0 bg-orange-500/10 text-orange-700 border-orange-200">
+              {badge}
+            </Badge>
+          )}
+        </div>
+        <p className="mt-0.5 text-[11px] text-muted-foreground leading-relaxed">{description}</p>
+      </div>
+      <Switch
+        checked={checked}
+        onCheckedChange={onChange}
+        aria-label={`Toggle ${title}`}
+        className="shrink-0 mt-1"
+      />
     </div>
   )
 }

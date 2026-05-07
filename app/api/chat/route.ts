@@ -6,6 +6,21 @@ import { sendEmailViaGmail, sendEmailViaOutlook } from '@/lib/publishing/email'
 import { publishSocialPost } from '@/lib/publishing/social'
 import { getConnection } from '@/lib/oauth/connections'
 import { getCurrentUserId } from '@/lib/oauth/session'
+import { brandKitToSystemPrefix, type BrandKit } from '@/lib/brand-kit'
+import {
+  customizationToPromptSuffix,
+  type AgentCustomization,
+} from '@/lib/agent-customization'
+import {
+  permissionsAllowChannelPublishing,
+  permissionsToSystemNote,
+  type AgentPermissionsPayload,
+} from '@/lib/agent-permissions'
+import {
+  imageBriefSchema,
+  carouselStoryboardSchema,
+  videoStoryboardSchema,
+} from '@/lib/creative'
 
 // Node runtime — required by googleapis (Gmail) + Microsoft Graph SDK (Outlook).
 export const runtime = 'nodejs'
@@ -53,16 +68,88 @@ const POSTING_SCHEDULES: Record<string, { bestDays: string[]; bestTimes: string[
 }
 
 export async function POST(req: Request) {
-  const { messages, agentId, creativity, tone, memory } = (await req.json()) as {
-    messages: UIMessage[],
-    agentId?: string,
-    creativity?: number,
-    tone?: number,
-    memory?: string
+  const {
+    messages,
+    agentId,
+    creativity,
+    tone,
+    memory,
+    adaptiveMemory,
+    brandKit,
+    customization,
+    permissions,
+    crisisMode,
+  } = (await req.json()) as {
+    messages: UIMessage[]
+    agentId?: string
+    creativity?: string | number | null
+    tone?: string | number | null
+    memory?: string | null
+    adaptiveMemory?: Array<{ source?: string; content?: string }> | null
+    brandKit?: BrandKit | null
+    customization?: AgentCustomization | null
+    permissions?: AgentPermissionsPayload | null
+    crisisMode?: { active?: boolean } | null
   }
+
+  // Crisis mode is the workspace's panic stop. When armed, the server
+  // strips every action-oriented tool — publishing AND email send — for
+  // this request, on top of any per-agent permission. The banner says
+  // "every agent paused"; this is the teeth behind that promise for
+  // chat-driven actions. Real Auto-Pilot enforcement happens server-side
+  // in the publish workers when those land.
+  const crisisActive = !!crisisMode?.active
+
+  // Both arrive as `string | null` from localStorage on the client. Parse once,
+  // explicitly guard NaN, and treat anything outside [0,100] as unset.
+  function parseScale(v: string | number | null | undefined): number | null {
+    if (v == null) return null
+    const n = typeof v === 'number' ? v : Number(v)
+    if (!Number.isFinite(n)) return null
+    if (n < 0 || n > 100) return null
+    return n
+  }
+  const creativityNum = parseScale(creativity)
+  const toneNum = parseScale(tone)
+
+  // If the workspace toggled the Brand Kit tool OFF for this agent, the
+  // server refuses to use the kit even if a stale or hostile client sends
+  // it. The client is also expected not to send it; this is the belt.
+  const brandKitAllowed = permissions?.tools?.brandKit !== false
+  const brandKitPrefix = brandKitToSystemPrefix(brandKitAllowed ? (brandKit ?? null) : null)
+  const customizationSuffix = customizationToPromptSuffix(customization ?? null)
+  const permissionsNote = permissionsToSystemNote(permissions ?? null)
+  const crisisNote = crisisActive
+    ? '\n\n🛑 CRISIS MODE IS ON for this workspace. Do not publish, send email, or schedule anything under any circumstance. Drafts only. If the user asks you to publish or send, refuse and remind them crisis mode is active.'
+    : ''
+  // Publish/send is allowed only when (a) workspace permissions allow it
+  // AND (b) crisis mode is not armed.
+  const allowPublish = permissionsAllowChannelPublishing(permissions ?? null) && !crisisActive
+
+  // Adaptive memory v2 prefix — every active row, grouped by source, with
+  // explicit framing so the model treats them as durable workspace truths,
+  // not turn-level instructions.
+  function adaptiveMemoryPrefix(rows: Array<{ source?: string; content?: string }> | null | undefined): string {
+    if (!rows?.length) return ''
+    const valid = rows.filter((r) => typeof r?.content === 'string' && r.content.trim().length > 0)
+    if (valid.length === 0) return ''
+    const grouped = valid.reduce<Record<string, string[]>>((acc, r) => {
+      const key = r.source ?? 'explicit'
+      ;(acc[key] ||= []).push(r.content!.trim())
+      return acc
+    }, {})
+    const lines: string[] = []
+    for (const [src, items] of Object.entries(grouped)) {
+      lines.push(`(${src}) ${items.map((i) => `· ${i}`).join('\n  ')}`)
+    }
+    return `\n\nADAPTIVE WORKSPACE MEMORY — apply on every turn:\n${lines.join('\n')}\n— These reflect what this workspace has actually approved/rejected/edited and what their audience signals. Honor them.`
+  }
+
+  const adaptivePrefix = adaptiveMemoryPrefix(adaptiveMemory ?? null)
   const modelMessages = await convertToModelMessages(messages)
 
-  let systemPrompt = defaultSystemPrompt
+  let systemPrompt =
+    defaultSystemPrompt + brandKitPrefix + customizationSuffix + permissionsNote + adaptivePrefix + crisisNote
   let temperature = 0.7
 
   if (agentId) {
@@ -85,28 +172,59 @@ export async function POST(req: Request) {
       }
     }
 
-    const toneInstructions = tone ? `\n\nTONE ADJUSTMENT: Your tone should be ${tone > 70 ? 'highly casual and conversational' : tone < 30 ? 'strictly professional and formal' : 'balanced and modern'}.` : ""
+    const toneInstructions = toneNum != null
+      ? `\n\nTONE ADJUSTMENT: Your tone should be ${toneNum > 70 ? 'highly casual and conversational' : toneNum < 30 ? 'strictly professional and formal' : 'balanced and modern'}.`
+      : ''
 
-    systemPrompt = `${agent.systemPrompt}${toneInstructions}${memoryContext}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
+    // If the user overrode the system prompt in Customize, use that instead of
+    // the platform default. The display name (also overridable) is woven into
+    // the prompt so the model can introduce itself by the workspace's chosen name.
+    const customSystemPrompt = customization?.systemPrompt?.trim()
+    const persona = customSystemPrompt && customSystemPrompt.length > 0
+      ? customSystemPrompt
+      : agent.systemPrompt
+    const displayName = customization?.displayName?.trim()
+    const namedPersona = displayName
+      ? `You are now operating as "${displayName}". ${persona}`
+      : persona
 
-    if (creativity) {
-      // Map 0-100 to 0.0-1.0 temperature
-      temperature = creativity / 100
+    systemPrompt = `${namedPersona}${toneInstructions}${memoryContext}${brandKitPrefix}${customizationSuffix}${permissionsNote}${adaptivePrefix}${crisisNote}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads, carousels, and short-form video storyboards\n- Generating image briefs that match the brand palette\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nWhen the user asks for visuals or video, prefer the design_carousel / storyboard_video / generate_image tools so the output is structured and shippable.\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
+
+    if (creativityNum != null) {
+      // Map 0–100 to 0.0–1.0 temperature
+      temperature = creativityNum / 100
     }
   }
 
-  const agentTools = agentId ? (AGENT_TOOLS[agentId as keyof typeof AGENT_TOOLS] || {}) : {}
+  const rawAgentTools = agentId ? (AGENT_TOOLS[agentId as keyof typeof AGENT_TOOLS] || {}) : {}
 
-  const result = streamText({
-    model: anthropic('claude-3-5-sonnet-20241022'),
-    system: systemPrompt,
-    messages: modelMessages,
-    temperature,
-    maxOutputTokens: 2048,
-    stopWhen: stepCountIs(5),
-    tools: {
-      ...agentTools,
-      analyze_post: tool({
+  // Permission-gate every action tool. When the workspace has set the agent
+  // to draft-only / approval-required, or has revoked the post scope, we
+  // strip BOTH `publish_to_platform` (social) AND `send_email` (Gmail /
+  // Outlook) from the toolset entirely so the model cannot act even if it
+  // tries to call them. `draft_email` and `check_email_connection` stay —
+  // they're read-only/preview operations.
+  const agentTools: Record<string, unknown> = { ...rawAgentTools }
+  if (!allowPublish) {
+    delete agentTools.publish_to_platform
+    delete agentTools.send_email
+  }
+  if (permissions?.scopes?.dm === false) {
+    // (No DM tool today — reserved for future scope-gated tools.)
+  }
+
+  // Per-tool permission flags from the Permissions tab. Default ON when
+  // unspecified so existing workspaces keep current behavior; explicit
+  // `false` strips the tool entirely.
+  const allowImage     = permissions?.tools?.image     !== false
+  const allowAnalytics = permissions?.tools?.analytics !== false
+  const allowCalendar  = permissions?.tools?.calendar  !== false
+  // Brand Kit toggle is enforced via the system-prompt prefix above; we
+  // don't expose a dedicated tool for it.
+
+  const allTools: Record<string, unknown> = {
+    ...agentTools,
+    analyze_post: tool({
         description:
           'Analyze a social media post and score it on key metrics: hook strength, CTA clarity, readability, and engagement potential. Use this when the user shares a post or asks for feedback.',
         inputSchema: z.object({
@@ -374,7 +492,114 @@ export async function POST(req: Request) {
           return { ...object, platform, limit: limits.limit }
         },
       }),
-    },
+
+      // ── Creative tools ──────────────────────────────────────────────────
+      // These return structured briefs / storyboards. Real image + video
+      // pixel generation is brokered by a downstream provider keyed off the
+      // returned brief; the chat tool is the planning surface.
+
+      generate_image: tool({
+        description:
+          'Produce an image brief (subject, composition, style, palette, alt text) ready to hand to an image-gen provider. Use when the user asks for an image, hero shot, quote card, or visual to accompany a post. Reflect the connected Brand Kit palette where one is available.',
+        inputSchema: z.object({
+          purpose: z.string().describe('What the image is for, e.g. "LinkedIn hero for the launch post"'),
+          platform: z.enum(['twitter', 'instagram', 'linkedin', 'facebook', 'tiktok']).optional(),
+          mood: z.string().optional().describe('Optional mood — "warm", "minimal", "high-energy"'),
+          paletteHexes: z.array(z.string()).max(5).optional().describe('Hex colors to lean on, if known'),
+        }),
+        execute: async ({ purpose, platform, mood, paletteHexes }) => {
+          const formatGuide: Record<string, string> = {
+            twitter: '16:9 landscape, lead with one bold visual, light text overlay (≤6 words).',
+            instagram: '4:5 portrait or 1:1 square. Composition reads from top-left.',
+            linkedin: '1.91:1 landscape for feed, 1:1 for carousel cover. Professional but human.',
+            facebook: '1.91:1 landscape, leave 20% headroom for OG previews.',
+            tiktok: '9:16 portrait. Bold focal subject; dead-center for safe-zone overlap.',
+          }
+          const guide = platform ? formatGuide[platform] : 'Pick the format that best fits the purpose.'
+          const { object } = await generateObject({
+            model: anthropic('claude-3-5-haiku-20241022'),
+            schema: imageBriefSchema,
+            system:
+              'You are a senior art director writing concrete briefs for an image generation model. Be specific. Brief should read like a director\'s note, not a description of a photograph.',
+            prompt: `Image brief for: ${purpose}\nPlatform: ${platform ?? 'unspecified'}\nGuide: ${guide}\nMood: ${
+              mood ?? 'match the brand tone'
+            }\nPalette: ${paletteHexes?.length ? paletteHexes.join(', ') : 'use the brand kit if connected'}\n\nReturn a brief the model can act on without asking questions.`,
+          })
+          return { ...object, platform: platform ?? null }
+        },
+      }),
+
+      design_carousel: tool({
+        description:
+          'Build a slide-by-slide carousel storyboard for Instagram or LinkedIn. Use when the user asks for a carousel, document post, multi-slide breakdown, or save-worthy listicle.',
+        inputSchema: z.object({
+          topic: z.string(),
+          platform: z.enum(['instagram', 'linkedin']),
+          slideCount: z.number().min(3).max(10).default(7),
+          goal: z
+            .string()
+            .default('save-worthy education')
+            .describe('save-worthy education / persuasive / story-driven / step-by-step / listicle'),
+        }),
+        execute: async ({ topic, platform, slideCount, goal }) => {
+          const { object } = await generateObject({
+            model: anthropic('claude-3-5-sonnet-20241022'),
+            schema: carouselStoryboardSchema,
+            system:
+              'You are a top carousel designer. Slides earn the swipe — every one delivers something or sets up the next. Cover earns the tap, last slide earns the save and follow.',
+            prompt: `Build a ${slideCount}-slide ${platform} carousel on "${topic}".\nGoal: ${goal}.\nRules:\n- Cover slide is a hook, not a title.\n- One idea per slide.\n- End with a save bait + follow CTA.\n- Caption 1–2 short paragraphs + 5–10 niche-relevant hashtags.`,
+          })
+          return object
+        },
+      }),
+
+      storyboard_video: tool({
+        description:
+          'Build a shot-by-shot storyboard for a short-form video (TikTok, Reel, Short). Use when the user asks for a video, script, hook idea, or short-form video plan.',
+        inputSchema: z.object({
+          topic: z.string(),
+          platform: z.enum(['tiktok', 'instagram', 'youtube-shorts']).default('tiktok'),
+          format: z
+            .enum(['talking-head', 'voice-over', 'faceless', 'tutorial', 'POV'])
+            .default('voice-over'),
+          targetDuration: z.string().default('20–30s'),
+        }),
+        execute: async ({ topic, platform, format, targetDuration }) => {
+          const { object } = await generateObject({
+            model: anthropic('claude-3-5-sonnet-20241022'),
+            schema: videoStoryboardSchema,
+            system:
+              'You are a short-form video director. Hook in 1–3 seconds or you lose them forever. Every shot earns the next one. On-screen text complements voice; never duplicates it.',
+            prompt: `Storyboard a ${targetDuration} ${platform} video on "${topic}". Format: ${format}.\nReturn:\n- A hook line that stops the scroll\n- 4–6 shots with frame direction, VO, on-screen text, B-roll\n- Caption (≤150 chars) and trending audio category suggestion\n- A clear CTA at the end`,
+          })
+          return object
+        },
+      }),
+  }
+
+  // Permission-gate per-tool capabilities. Each respects the toggles in
+  // components/agents/agent-permissions.tsx so a workspace decision flows
+  // all the way to what tools the model is allowed to call.
+  if (!allowImage) {
+    delete allTools.generate_image
+  }
+  if (!allowAnalytics) {
+    delete allTools.analyze_post
+    delete allTools.get_posting_schedule
+  }
+  if (!allowCalendar) {
+    delete allTools.create_content_calendar
+  }
+
+  const result = streamText({
+    model: anthropic('claude-3-5-sonnet-20241022'),
+    system: systemPrompt,
+    messages: modelMessages,
+    temperature,
+    maxOutputTokens: 2048,
+    stopWhen: stepCountIs(5),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tools: allTools as any,
   })
 
   return result.toTextStreamResponse()
@@ -467,71 +692,48 @@ function buildEmailTools(channel: 'gmail' | 'outlook') {
   }
 }
 
-const AGENT_TOOLS = {
-  viral: {
-    analyze_virality: tool({
-      description: 'Analyze the virality potential of a post and give it a score.',
-      inputSchema: z.object({
-        content: z.string(),
-      }),
-      execute: async ({ content }) => {
-        const { object } = await generateObject({
-          model: anthropic('claude-3-5-haiku-20241022'),
-          schema: z.object({
-            score: z.number().min(1).max(100),
-            reasoning: z.string(),
-            improvement: z.string(),
-          }),
-          prompt: `Analyze this content for virality potential: ${content}`,
-        })
-        return object
-      },
+/**
+ * Build a publish-to-platform tool scoped to one or more channels. Each social
+ * agent (X, Meta, LinkedIn, TikTok) gets only the platforms it actually owns —
+ * a hard guard against an agent trying to post somewhere it shouldn't.
+ */
+function buildPublishTool(allowed: ReadonlyArray<'twitter' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok'>) {
+  return tool({
+    description:
+      "Publish a short post to the user's connected account on this channel. Only call after the user has explicitly approved the post.",
+    inputSchema: z.object({
+      platform: z.enum(allowed as ['twitter', ...('twitter' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok')[]]),
+      text: z.string().min(1),
+      mediaUrls: z.array(z.string().url()).optional(),
     }),
-  },
-  strategist: {
-    strategic_alignment: tool({
-      description: 'Check if a post aligns with brand pillars and long-term goals.',
-      inputSchema: z.object({
-        content: z.string(),
-        pillars: z.array(z.string()),
-      }),
-      execute: async ({ content, pillars }) => {
-        const { object } = await generateObject({
-          model: anthropic('claude-3-5-haiku-20241022'),
-          schema: z.object({
-            alignmentScore: z.number().min(1).max(10),
-            pillarMatches: z.array(z.string()),
-            feedback: z.string(),
-          }),
-          prompt: `Check alignment for this content: ${content} against pillars: ${pillars.join(', ')}`,
-        })
-        return object
-      },
-    }),
-  },
-  community: {
-    publish_to_platform: tool({
-      description:
-        "Publish a short post to the user's connected social account. Only call after the user has explicitly approved the post and chosen a platform.",
-      inputSchema: z.object({
-        platform: z.enum(['twitter', 'linkedin', 'facebook', 'instagram', 'tiktok']),
-        text: z.string().min(1),
-        mediaUrls: z.array(z.string().url()).optional(),
-      }),
-      execute: async ({ platform, text, mediaUrls }) => {
-        try {
-          const userId = await getCurrentUserId()
-          const result = await publishSocialPost(userId, platform, { text, mediaUrls })
-          return { ...result, platform }
-        } catch (err) {
-          return {
-            success: false,
-            platform,
-            error: err instanceof Error ? err.message : 'Publish failed',
-          }
+    execute: async ({ platform, text, mediaUrls }) => {
+      try {
+        const userId = await getCurrentUserId()
+        const result = await publishSocialPost(userId, platform, { text, mediaUrls })
+        return { ...result, platform }
+      } catch (err) {
+        return {
+          success: false,
+          platform,
+          error: err instanceof Error ? err.message : 'Publish failed',
         }
-      },
-    }),
+      }
+    },
+  })
+}
+
+const AGENT_TOOLS = {
+  x: {
+    publish_to_platform: buildPublishTool(['twitter']),
+  },
+  meta: {
+    publish_to_platform: buildPublishTool(['instagram', 'facebook']),
+  },
+  linkedin: {
+    publish_to_platform: buildPublishTool(['linkedin']),
+  },
+  tiktok: {
+    publish_to_platform: buildPublishTool(['tiktok']),
   },
   gmail: buildEmailTools('gmail'),
   outlook: buildEmailTools('outlook'),
