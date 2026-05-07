@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { getAgentById } from '@/lib/agents'
 import { cn } from '@/lib/utils'
@@ -9,6 +9,71 @@ import { WorkflowComposer } from '@/components/agents/workflow-composer'
 import { AgentSettings } from '@/components/agents/agent-settings'
 import { AgentPlatformConfig } from '@/components/agents/platform-config'
 import { PremiumGate } from '@/components/agents/premium-gate'
+
+// ── AutoPilot mini-status widget ─────────────────────────────────────────────
+
+const AUTOPILOT_DEFAULTS: Record<string, { platform: string; schedule: string; postsWeek: number; active: boolean }> = {
+  strategist: { platform: 'LinkedIn', schedule: 'Mon–Fri · 8:30 AM', postsWeek: 5, active: true },
+  viral:       { platform: 'TikTok',   schedule: 'Mon, Wed, Fri · 5 PM', postsWeek: 6, active: true },
+  voice:       { platform: 'Twitter',  schedule: 'Sundays · 10 AM',  postsWeek: 1, active: false },
+  community:   { platform: 'Instagram', schedule: 'Daily · 12 PM',   postsWeek: 7, active: true },
+}
+
+function AutoPilotMiniStatus({ agentId }: { agentId: string }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  const cfg = AUTOPILOT_DEFAULTS[agentId]
+  if (!cfg) {
+    return (
+      <Link
+        href="/dashboard/autopilot"
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold text-white/70 transition-colors hover:text-white"
+        style={{ background: 'oklch(0.185 0.016 48)', border: '1px dashed oklch(0.3 0.012 48)' }}
+      >
+        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Add Automation
+      </Link>
+    )
+  }
+
+  return (
+    <div className="rounded-lg p-2.5 space-y-2" style={{ background: 'oklch(0.185 0.016 48)' }}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          {mounted && cfg.active ? (
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+            </span>
+          ) : (
+            <span className="h-2 w-2 rounded-full bg-white/20" />
+          )}
+          <span className="text-[10px] font-semibold" style={{ color: cfg.active ? '#4ADE80' : 'oklch(0.45 0.010 52)' }}>
+            {cfg.active ? 'Running' : 'Paused'}
+          </span>
+        </div>
+        <span className="text-[9px] text-white/40">{cfg.postsWeek}/wk</span>
+      </div>
+      <div>
+        <p className="text-[10px] font-bold text-white/80">{cfg.platform}</p>
+        <p className="text-[9px] text-white/40 mt-0.5">{cfg.schedule}</p>
+      </div>
+      <Link
+        href="/dashboard/autopilot"
+        className="flex w-full items-center justify-center gap-1 rounded-md py-1 text-[10px] font-bold transition-opacity hover:opacity-80"
+        style={{ background: 'linear-gradient(135deg, #EA580C22 0%, #DB277722 100%)', color: '#EA580C', border: '1px solid oklch(0.652 0.214 36 / 0.25)' }}
+      >
+        <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+        </svg>
+        View Auto-Pilot
+      </Link>
+    </div>
+  )
+}
 
 const TABS = ['Chat', 'Workflows', 'Memory', 'Platform', 'Settings'] as const
 type Tab = (typeof TABS)[number]
@@ -239,6 +304,25 @@ export default function AgentPage({ params }: { params: Promise<{ id: string }> 
                 {action.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Auto-Pilot section */}
+        <div style={{ borderTop: '1px solid oklch(0.22 0.016 48)' }}>
+          <div className="px-4 py-4">
+            <div className="flex items-center justify-between mb-2.5">
+              <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'oklch(0.4 0.010 52)' }}>
+                Auto-Pilot
+              </p>
+              <Link
+                href="/dashboard/autopilot"
+                className="text-[9px] font-semibold transition-colors hover:opacity-80"
+                style={{ color: '#EA580C' }}
+              >
+                Manage →
+              </Link>
+            </div>
+            <AutoPilotMiniStatus agentId={id} />
           </div>
         </div>
 
