@@ -139,8 +139,25 @@ export function CopilotDrawer() {
     }
 
     if (lower.includes('draft')) {
-      router.push('/dashboard/create')
-      fakeReply('I opened the composer with your prompt loaded. I\'ll generate three takes — pick one and I\'ll route it to Approvals.', 'draft')
+      // Strip the leading directive ("draft a", "write me", etc.) so the
+      // composer's prefill reads naturally instead of "Write a post about:
+      // draft a friday recap". What's left is the actual subject the user
+      // asked for, URL-encoded and passed via ?topic so it flows through to
+      // CreateContent's prefill effect.
+      const subject = trimmed
+        .replace(/^(please\s+)?(can you\s+)?(go\s+)?(draft|write|make|compose|create)\s+(me\s+)?(a|an|the)\s+/i, '')
+        .replace(/^(please\s+)?(can you\s+)?(go\s+)?(draft|write|make|compose|create)\s+(me\s+)?/i, '')
+        .trim()
+      const target = subject
+        ? `/dashboard/create?topic=${encodeURIComponent(subject)}`
+        : '/dashboard/create'
+      router.push(target)
+      fakeReply(
+        subject
+          ? `Opened the composer with “${subject}” loaded. Generating three takes — pick one and I’ll route it to Approvals.`
+          : 'Opened the composer. Tell me what to draft and I’ll generate three takes.',
+        'draft',
+      )
       return
     }
 
