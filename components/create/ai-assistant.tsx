@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport, isTextUIPart, isToolUIPart, type UIMessage } from 'ai'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -376,12 +377,17 @@ const SUGGESTIONS = [
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+function getTextContent(message: UIMessage): string {
+  return message.parts.filter(isTextUIPart).map((p) => p.text).join('')
+}
+
 export function AIAssistant() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [focused, setFocused] = useState(false)
+  const [input, setInput] = useState('')
 
-  const { messages, input, setInput, append, handleSubmit, status, stop } = useChat({
-    api: '/api/chat',
+  const { messages, sendMessage, status, stop } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
   })
 
   const isLoading = status === 'submitted' || status === 'streaming'
@@ -393,20 +399,22 @@ export function AIAssistant() {
   const handleSend = (e?: React.FormEvent<HTMLFormElement>) => {
     if (e) e.preventDefault()
     if (!input || !input.trim() || isLoading) return
-    handleSubmit(e)
+    sendMessage({ text: input })
+    setInput('')
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       if (!input || !input.trim() || isLoading) return
-      handleSubmit()
+      sendMessage({ text: input })
+      setInput('')
     }
   }
 
   const handleSuggestion = (suggestion: string) => {
     if (isLoading) return
-    append({ role: 'user', content: suggestion })
+    sendMessage({ text: suggestion })
   }
 
   return (
@@ -484,14 +492,17 @@ export function AIAssistant() {
                     : { background: 'var(--muted)' }
                 }
               >
-                <p className="whitespace-pre-wrap">{message.content}</p>
+                <p className="whitespace-pre-wrap">{getTextContent(message)}</p>
               </div>
 
-              {message.toolInvocations?.map((toolInvocation) => {
-                const { toolCallId, toolName, state } = toolInvocation
+              {message.parts.filter(isToolUIPart).map((part) => {
+                const toolName = part.type === 'dynamic-tool'
+                  ? part.toolName
+                  : part.type.replace(/^tool-/, '')
+                const toolCallId = part.toolCallId
 
-                if (state === 'result') {
-                  return <ToolResultCard key={toolCallId} toolName={toolName} output={toolInvocation.result} />
+                if (part.state === 'output-available') {
+                  return <ToolResultCard key={toolCallId} toolName={toolName} output={part.output} />
                 }
 
                 return (

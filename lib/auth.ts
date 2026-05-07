@@ -61,7 +61,7 @@ export async function saveSocialConnection(
       encryptedAccessToken: encryptedAccess,
       encryptedRefreshToken: encryptedRefresh,
       expiresAt,
-      accountId,
+      accountId: accountId ?? '',
       username,
       scopes
     }
