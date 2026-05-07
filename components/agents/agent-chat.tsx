@@ -67,14 +67,28 @@ function getTextContent(message: UIMessage): string {
 export function AgentChat({ agent }: { agent: Agent }) {
   const [input, setInput] = useState('')
 
+  // Read at render time so Brand Kit edits flow through on the next message
+  // without forcing a page reload.
+  const ls = typeof window !== 'undefined' ? window.localStorage : null
+  let brandKit: unknown = null
+  if (ls) {
+    try {
+      const raw = ls.getItem('postpilot_brand_kit_v1')
+      if (raw) brandKit = JSON.parse(raw)
+    } catch {
+      // ignore corrupted storage
+    }
+  }
+
   const { messages, sendMessage, status, stop } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
       body: {
         agentId: agent.id,
-        creativity: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_creativity`) : null,
-        tone: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_tone`) : null,
-        memory: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_memory`) : null,
+        creativity: ls?.getItem(`agent_${agent.id}_creativity`) ?? null,
+        tone: ls?.getItem(`agent_${agent.id}_tone`) ?? null,
+        memory: ls?.getItem(`agent_${agent.id}_memory`) ?? null,
+        brandKit,
       },
     }),
   })

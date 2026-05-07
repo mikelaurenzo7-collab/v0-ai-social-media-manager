@@ -6,6 +6,7 @@ import { sendEmailViaGmail, sendEmailViaOutlook } from '@/lib/publishing/email'
 import { publishSocialPost } from '@/lib/publishing/social'
 import { getConnection } from '@/lib/oauth/connections'
 import { getCurrentUserId } from '@/lib/oauth/session'
+import { brandKitToSystemPrefix, type BrandKit } from '@/lib/brand-kit'
 
 // Node runtime — required by googleapis (Gmail) + Microsoft Graph SDK (Outlook).
 export const runtime = 'nodejs'
@@ -53,16 +54,18 @@ const POSTING_SCHEDULES: Record<string, { bestDays: string[]; bestTimes: string[
 }
 
 export async function POST(req: Request) {
-  const { messages, agentId, creativity, tone, memory } = (await req.json()) as {
+  const { messages, agentId, creativity, tone, memory, brandKit } = (await req.json()) as {
     messages: UIMessage[],
     agentId?: string,
     creativity?: number,
     tone?: number,
-    memory?: string
+    memory?: string,
+    brandKit?: BrandKit | null,
   }
+  const brandKitPrefix = brandKitToSystemPrefix(brandKit ?? null)
   const modelMessages = await convertToModelMessages(messages)
 
-  let systemPrompt = defaultSystemPrompt
+  let systemPrompt = defaultSystemPrompt + brandKitPrefix
   let temperature = 0.7
 
   if (agentId) {
@@ -87,7 +90,7 @@ export async function POST(req: Request) {
 
     const toneInstructions = tone ? `\n\nTONE ADJUSTMENT: Your tone should be ${tone > 70 ? 'highly casual and conversational' : tone < 30 ? 'strictly professional and formal' : 'balanced and modern'}.` : ""
 
-    systemPrompt = `${agent.systemPrompt}${toneInstructions}${memoryContext}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
+    systemPrompt = `${agent.systemPrompt}${toneInstructions}${memoryContext}${brandKitPrefix}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
 
     if (creativity) {
       // Map 0-100 to 0.0-1.0 temperature

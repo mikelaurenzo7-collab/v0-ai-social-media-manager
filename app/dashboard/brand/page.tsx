@@ -8,21 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-
-interface VoiceDimension {
-  id: string
-  left: string
-  right: string
-  value: number
-}
-
-const INITIAL_VOICE_DIMENSIONS: VoiceDimension[] = [
-  { id: 'formality', left: 'Casual', right: 'Formal', value: 35 },
-  { id: 'energy', left: 'Calm', right: 'Energetic', value: 70 },
-  { id: 'confidence', left: 'Humble', right: 'Bold', value: 65 },
-  { id: 'humor', left: 'Serious', right: 'Witty', value: 50 },
-  { id: 'tech', left: 'Plain', right: 'Technical', value: 45 },
-]
+import { BRAND_KIT_KEY, DEFAULT_VOICE_DIMENSIONS, type VoiceDimension } from '@/lib/brand-kit'
 
 const SAMPLE_HASHTAG_GROUPS = [
   { name: 'Launch day', tags: '#buildinpublic #shipit #productlaunch #saas #founders', count: 5 },
@@ -36,10 +22,8 @@ const SAMPLE_SNIPPETS = [
   { name: 'Beta invite', body: 'Joining the beta means: weekly feedback calls, direct Slack with founders, lifetime 50% off.' },
 ]
 
-const BRAND_KIT_KEY = 'postpilot_brand_kit_v1'
-
 export default function BrandKitPage() {
-  const [voiceDimensions, setVoiceDimensions] = useState<VoiceDimension[]>(INITIAL_VOICE_DIMENSIONS)
+  const [voiceDimensions, setVoiceDimensions] = useState<VoiceDimension[]>(DEFAULT_VOICE_DIMENSIONS)
   const [voiceSamples, setVoiceSamples] = useState(
     'We don\'t do hype. We ship things that work, write about why we built them, and listen hard when people push back. We\'re for the makers who care about craft.',
   )
@@ -70,7 +54,7 @@ export default function BrandKitPage() {
         BRAND_KIT_KEY,
         JSON.stringify({ voiceDimensions, voiceSamples, audience }),
       )
-      toast.success('Brand kit saved', { description: 'Your agents will pick this up on the next request.' })
+      toast.success('Brand kit saved', { description: 'Agents will use it on the next chat or generation in this browser.' })
     } catch {
       toast.error('Could not save — local storage blocked')
     } finally {

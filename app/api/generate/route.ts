@@ -2,14 +2,31 @@ import { streamObject } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { contentVariationSchema } from '@/lib/schemas/content'
+import { brandKitToSystemPrefix } from '@/lib/brand-kit'
 
 const SUPPORTED_PLATFORMS = ['twitter', 'instagram', 'facebook', 'linkedin', 'tiktok'] as const
+
+const voiceDimensionSchema = z.object({
+  id: z.string(),
+  left: z.string(),
+  right: z.string(),
+  value: z.number(),
+})
+
+const brandKitSchema = z
+  .object({
+    voiceDimensions: z.array(voiceDimensionSchema).optional(),
+    voiceSamples: z.string().optional(),
+    audience: z.string().optional(),
+  })
+  .nullish()
 
 const requestSchema = z.object({
   prompt: z.string().trim().min(1).max(2000),
   tone: z.string().trim().min(1).max(80),
   contentType: z.string().trim().min(1).max(80),
   platforms: z.array(z.enum(SUPPORTED_PLATFORMS)).min(1).max(5),
+  brandKit: brandKitSchema,
 })
 
 export const runtime = 'edge'
@@ -60,7 +77,16 @@ export async function POST(req: Request) {
   if (!validation.success) {
     return Response.json({ error: 'Invalid request body' }, { status: 400 })
   }
-  const { prompt, tone, contentType, platforms } = validation.data
+  const { prompt, tone, contentType, platforms, brandKit } = validation.data
+  const brandKitPrefix = brandKitToSystemPrefix(
+    brandKit
+      ? {
+          voiceDimensions: brandKit.voiceDimensions ?? [],
+          voiceSamples: brandKit.voiceSamples ?? '',
+          audience: brandKit.audience ?? '',
+        }
+      : null,
+  )
 
   const platformNames = platforms.join(', ')
   const platformGuides = platforms
@@ -92,7 +118,7 @@ Hook types to rotate through:
 4. Specific Statistic or Number
 5. Story or Personal Experience
 
-Target platforms: ${platformNames}`
+Target platforms: ${platformNames}${brandKitPrefix}`
 
   const result = streamObject({
     model: anthropic('claude-3-5-sonnet-20241022'),

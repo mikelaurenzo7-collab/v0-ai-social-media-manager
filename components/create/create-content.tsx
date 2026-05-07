@@ -146,7 +146,16 @@ export function CreateContent() {
     if (!prompt.trim()) return
     setSelectedVariationId(null)
     setImprovedOverride(null)
-    submit({ prompt, tone, contentType, platforms })
+    let brandKit: unknown = null
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = window.localStorage.getItem('postpilot_brand_kit_v1')
+        if (raw) brandKit = JSON.parse(raw)
+      } catch {
+        // ignore
+      }
+    }
+    submit({ prompt, tone, contentType, platforms, brandKit })
   }, [prompt, tone, contentType, platforms, submit])
 
   const handleGenerateThread = useCallback(() => {
