@@ -11,6 +11,11 @@ import {
   customizationToPromptSuffix,
   type AgentCustomization,
 } from '@/lib/agent-customization'
+import {
+  permissionsAllowChannelPublishing,
+  permissionsToSystemNote,
+  type AgentPermissionsPayload,
+} from '@/lib/agent-permissions'
 
 // Node runtime — required by googleapis (Gmail) + Microsoft Graph SDK (Outlook).
 export const runtime = 'nodejs'
@@ -58,21 +63,37 @@ const POSTING_SCHEDULES: Record<string, { bestDays: string[]; bestTimes: string[
 }
 
 export async function POST(req: Request) {
-  const { messages, agentId, creativity, tone, memory, brandKit, customization } =
+  const { messages, agentId, creativity, tone, memory, brandKit, customization, permissions } =
     (await req.json()) as {
       messages: UIMessage[]
       agentId?: string
-      creativity?: number
-      tone?: number
-      memory?: string
+      creativity?: string | number | null
+      tone?: string | number | null
+      memory?: string | null
       brandKit?: BrandKit | null
       customization?: AgentCustomization | null
+      permissions?: AgentPermissionsPayload | null
     }
+
+  // Both arrive as `string | null` from localStorage on the client. Parse once,
+  // explicitly guard NaN, and treat anything outside [0,100] as unset.
+  function parseScale(v: string | number | null | undefined): number | null {
+    if (v == null) return null
+    const n = typeof v === 'number' ? v : Number(v)
+    if (!Number.isFinite(n)) return null
+    if (n < 0 || n > 100) return null
+    return n
+  }
+  const creativityNum = parseScale(creativity)
+  const toneNum = parseScale(tone)
+
   const brandKitPrefix = brandKitToSystemPrefix(brandKit ?? null)
   const customizationSuffix = customizationToPromptSuffix(customization ?? null)
+  const permissionsNote = permissionsToSystemNote(permissions ?? null)
+  const allowPublish = permissionsAllowChannelPublishing(permissions ?? null)
   const modelMessages = await convertToModelMessages(messages)
 
-  let systemPrompt = defaultSystemPrompt + brandKitPrefix + customizationSuffix
+  let systemPrompt = defaultSystemPrompt + brandKitPrefix + customizationSuffix + permissionsNote
   let temperature = 0.7
 
   if (agentId) {
@@ -95,7 +116,9 @@ export async function POST(req: Request) {
       }
     }
 
-    const toneInstructions = tone ? `\n\nTONE ADJUSTMENT: Your tone should be ${tone > 70 ? 'highly casual and conversational' : tone < 30 ? 'strictly professional and formal' : 'balanced and modern'}.` : ""
+    const toneInstructions = toneNum != null
+      ? `\n\nTONE ADJUSTMENT: Your tone should be ${toneNum > 70 ? 'highly casual and conversational' : toneNum < 30 ? 'strictly professional and formal' : 'balanced and modern'}.`
+      : ''
 
     // If the user overrode the system prompt in Customize, use that instead of
     // the platform default. The display name (also overridable) is woven into
@@ -109,15 +132,27 @@ export async function POST(req: Request) {
       ? `You are now operating as "${displayName}". ${persona}`
       : persona
 
-    systemPrompt = `${namedPersona}${toneInstructions}${memoryContext}${brandKitPrefix}${customizationSuffix}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
+    systemPrompt = `${namedPersona}${toneInstructions}${memoryContext}${brandKitPrefix}${customizationSuffix}${permissionsNote}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
 
-    if (creativity) {
-      // Map 0-100 to 0.0-1.0 temperature
-      temperature = creativity / 100
+    if (creativityNum != null) {
+      // Map 0–100 to 0.0–1.0 temperature
+      temperature = creativityNum / 100
     }
   }
 
-  const agentTools = agentId ? (AGENT_TOOLS[agentId as keyof typeof AGENT_TOOLS] || {}) : {}
+  const rawAgentTools = agentId ? (AGENT_TOOLS[agentId as keyof typeof AGENT_TOOLS] || {}) : {}
+
+  // Permission-gate channel publishing tools. When the workspace has set the
+  // agent to draft-only / approval-required, or has revoked the post scope,
+  // we strip publish_to_platform from the toolset entirely so the model
+  // cannot publish even if it tries to call it.
+  const agentTools: Record<string, unknown> = { ...rawAgentTools }
+  if (!allowPublish && 'publish_to_platform' in agentTools) {
+    delete agentTools.publish_to_platform
+  }
+  if (permissions?.scopes?.dm === false) {
+    // (No DM tool today, but reserved for future scope-gated tools.)
+  }
 
   const result = streamText({
     model: anthropic('claude-3-5-sonnet-20241022'),

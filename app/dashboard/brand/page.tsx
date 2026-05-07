@@ -38,7 +38,18 @@ export default function BrandKitPage() {
         voiceSamples?: string
         audience?: string
       }
-      if (Array.isArray(parsed.voiceDimensions)) setVoiceDimensions(parsed.voiceDimensions)
+      if (Array.isArray(parsed.voiceDimensions)) {
+        const valid = parsed.voiceDimensions.filter(
+          (d): d is VoiceDimension =>
+            !!d &&
+            typeof d.id === 'string' &&
+            typeof d.left === 'string' &&
+            typeof d.right === 'string' &&
+            typeof d.value === 'number' &&
+            Number.isFinite(d.value),
+        )
+        if (valid.length > 0) setVoiceDimensions(valid)
+      }
       if (typeof parsed.voiceSamples === 'string') setVoiceSamples(parsed.voiceSamples)
       if (typeof parsed.audience === 'string') setAudience(parsed.audience)
     } catch {

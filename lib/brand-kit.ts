@@ -11,14 +11,24 @@
  * same so the surface above doesn't move.
  */
 
+import { z } from 'zod'
+
 export const BRAND_KIT_KEY = 'postpilot_brand_kit_v1'
 
-export interface VoiceDimension {
-  id: string
-  left: string
-  right: string
-  value: number // 0–100
-}
+export const voiceDimensionSchema = z.object({
+  id: z.string(),
+  left: z.string(),
+  right: z.string(),
+  value: z.number(),
+})
+
+export const brandKitSchema = z.object({
+  voiceDimensions: z.array(voiceDimensionSchema).optional(),
+  voiceSamples: z.string().optional(),
+  audience: z.string().optional(),
+})
+
+export type VoiceDimension = z.infer<typeof voiceDimensionSchema>
 
 export interface BrandKit {
   voiceDimensions: VoiceDimension[]

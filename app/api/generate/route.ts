@@ -2,31 +2,16 @@ import { streamObject } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { contentVariationSchema } from '@/lib/schemas/content'
-import { brandKitToSystemPrefix } from '@/lib/brand-kit'
+import { brandKitToSystemPrefix, brandKitSchema } from '@/lib/brand-kit'
 
 const SUPPORTED_PLATFORMS = ['twitter', 'instagram', 'facebook', 'linkedin', 'tiktok'] as const
-
-const voiceDimensionSchema = z.object({
-  id: z.string(),
-  left: z.string(),
-  right: z.string(),
-  value: z.number(),
-})
-
-const brandKitSchema = z
-  .object({
-    voiceDimensions: z.array(voiceDimensionSchema).optional(),
-    voiceSamples: z.string().optional(),
-    audience: z.string().optional(),
-  })
-  .nullish()
 
 const requestSchema = z.object({
   prompt: z.string().trim().min(1).max(2000),
   tone: z.string().trim().min(1).max(80),
   contentType: z.string().trim().min(1).max(80),
   platforms: z.array(z.enum(SUPPORTED_PLATFORMS)).min(1).max(5),
-  brandKit: brandKitSchema,
+  brandKit: brandKitSchema.nullish(),
 })
 
 export const runtime = 'edge'

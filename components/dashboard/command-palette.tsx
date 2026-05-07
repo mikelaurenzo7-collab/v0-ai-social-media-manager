@@ -30,6 +30,8 @@ const NAV_ACTIONS: Action[] = [
   { id: 'inbox', label: 'Inbox', desc: 'Replies, mentions, DMs', icon: '📬', href: '/dashboard/inbox', group: 'Navigate', shortcut: 'g i' },
   { id: 'approvals', label: 'Approvals', desc: 'Drafts pending your sign-off', icon: '✅', href: '/dashboard/approvals', group: 'Navigate', shortcut: 'g v', keywords: ['approve', 'review', 'pending'] },
   { id: 'library', label: 'Asset Library', desc: 'Images, video, templates', icon: '🖼️', href: '/dashboard/library', group: 'Navigate', shortcut: 'g l', keywords: ['assets', 'media', 'images', 'templates'] },
+  { id: 'pipeline', label: 'Pipeline', desc: 'Kanban: Idea → Published', icon: '📋', href: '/dashboard/pipeline', group: 'Navigate', shortcut: 'g p', keywords: ['kanban', 'board', 'flow'] },
+  { id: 'workflows', label: 'Workflows', desc: 'Recipes & automations', icon: '⚙️', href: '/dashboard/workflows', group: 'Navigate', shortcut: 'g w', keywords: ['recipes', 'automation', 'rules'] },
   { id: 'create', label: 'Create content', icon: '✨', href: '/dashboard/create', group: 'Create', shortcut: 'c' },
   { id: 'autopilot', label: 'Auto-Pilot', icon: '⚡', href: '/dashboard/autopilot', group: 'Create' },
   { id: 'drafts', label: 'Drafts', icon: '📝', href: '/dashboard/drafts', group: 'Navigate', shortcut: 'g f' },
@@ -37,14 +39,16 @@ const NAV_ACTIONS: Action[] = [
   { id: 'analytics', label: 'Analytics', icon: '📊', href: '/dashboard/analytics', group: 'Navigate', shortcut: 'g a' },
   { id: 'trends', label: 'Trends & Discovery', icon: '🔥', href: '/dashboard/trends', group: 'Navigate', keywords: ['discovery', 'topics'] },
   { id: 'brand', label: 'Brand Kit', icon: '🎨', href: '/dashboard/brand', group: 'Navigate', keywords: ['voice', 'palette', 'hashtags'] },
-  { id: 'team', label: 'Team & Workspace', desc: 'Members, roles, invites, audit log', icon: '👥', href: '/dashboard/team', group: 'Account', keywords: ['workspace', 'members', 'roles', 'audit'] },
+  { id: 'team', label: 'Team & Workspace', desc: 'Members, roles, invites, audit log', icon: '👥', href: '/dashboard/team', group: 'Account', shortcut: 'g t', keywords: ['workspace', 'members', 'roles', 'audit'] },
   { id: 'accounts', label: 'Accounts', icon: '🔌', href: '/dashboard/accounts', group: 'Account' },
+  { id: 'developers', label: 'Developers', desc: 'API keys, webhooks, code samples', icon: '🛠️', href: '/dashboard/developers', group: 'Account', keywords: ['api', 'webhooks', 'sdk'] },
   { id: 'settings', label: 'Settings', icon: '⚙️', href: '/dashboard/settings', group: 'Account' },
   { id: 'agents', label: 'AI Agents', icon: '🤖', href: '/dashboard/agents', group: 'Navigate' },
   { id: 'help', label: 'Help Center', icon: '❓', href: '/dashboard/help', group: 'Help' },
   { id: 'changelog', label: 'Changelog', icon: '📝', href: '/changelog', group: 'Help' },
   { id: 'status', label: 'System Status', icon: '🟢', href: '/status', group: 'Help' },
   { id: 'security', label: 'Security', icon: '🔒', href: '/security', group: 'Help' },
+  { id: 'shortcuts', label: 'Keyboard shortcuts', desc: 'Press ? for the full list', icon: '⌨️', href: '#open-shortcuts', group: 'Help', shortcut: '?' },
 ]
 
 export function CommandPalette() {
@@ -73,6 +77,15 @@ export function CommandPalette() {
   const go = useCallback(
     (href: string) => {
       setOpen(false)
+      if (href === '#open-shortcuts') {
+        // dispatch as a real ? key on document so the ShortcutsOverlay picks it up
+        // without us coupling the two components
+        if (typeof document !== 'undefined') {
+          const evt = new KeyboardEvent('keydown', { key: '?', bubbles: true })
+          document.dispatchEvent(evt)
+        }
+        return
+      }
       router.push(href)
     },
     [router],

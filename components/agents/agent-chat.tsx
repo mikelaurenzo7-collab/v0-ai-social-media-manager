@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, isTextUIPart, isToolUIPart, type UIMessage } from 'ai'
 import { cn } from '@/lib/utils'
@@ -67,39 +67,42 @@ function getTextContent(message: UIMessage): string {
 export function AgentChat({ agent }: { agent: Agent }) {
   const [input, setInput] = useState('')
 
-  // Read at render time so Brand Kit and Customize edits flow through on the
-  // next message without forcing a page reload.
-  const ls = typeof window !== 'undefined' ? window.localStorage : null
-  let brandKit: unknown = null
-  let customization: unknown = null
-  if (ls) {
-    try {
-      const raw = ls.getItem('postpilot_brand_kit_v1')
-      if (raw) brandKit = JSON.parse(raw)
-    } catch {
-      // ignore corrupted storage
-    }
-    try {
-      const raw = ls.getItem(`postpilot_agent_${agent.id}_customization_v1`)
-      if (raw) customization = JSON.parse(raw)
-    } catch {
-      // ignore corrupted storage
-    }
-  }
+  // Build the transport once — useChat freezes its initial transport, so
+  // dynamic per-send values must be read inside prepareSendMessagesRequest
+  // (re-evaluated on every send).
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: '/api/chat',
+        prepareSendMessagesRequest: ({ messages, body }) => {
+          const ls = typeof window !== 'undefined' ? window.localStorage : null
+          const readJson = (key: string): unknown => {
+            try {
+              const raw = ls?.getItem(key)
+              return raw ? JSON.parse(raw) : null
+            } catch {
+              return null
+            }
+          }
+          return {
+            body: {
+              ...body,
+              messages,
+              agentId: agent.id,
+              creativity: ls?.getItem(`agent_${agent.id}_creativity`) ?? null,
+              tone: ls?.getItem(`agent_${agent.id}_tone`) ?? null,
+              memory: ls?.getItem(`agent_${agent.id}_memory`) ?? null,
+              brandKit: readJson('postpilot_brand_kit_v1'),
+              customization: readJson(`postpilot_agent_${agent.id}_customization_v1`),
+              permissions: readJson(`agent_${agent.id}_permissions_v1`),
+            },
+          }
+        },
+      }),
+    [agent.id],
+  )
 
-  const { messages, sendMessage, status, stop } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/chat',
-      body: {
-        agentId: agent.id,
-        creativity: ls?.getItem(`agent_${agent.id}_creativity`) ?? null,
-        tone: ls?.getItem(`agent_${agent.id}_tone`) ?? null,
-        memory: ls?.getItem(`agent_${agent.id}_memory`) ?? null,
-        brandKit,
-        customization,
-      },
-    }),
-  })
+  const { messages, sendMessage, status, stop } = useChat({ transport })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isLoading = status === 'submitted' || status === 'streaming'

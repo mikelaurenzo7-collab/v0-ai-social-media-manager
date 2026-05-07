@@ -2,6 +2,7 @@ import { Sidebar } from '@/components/dashboard/sidebar'
 import { MobileNav } from '@/components/dashboard/mobile-nav'
 import { TopBar } from '@/components/dashboard/top-bar'
 import { CommandPalette } from '@/components/dashboard/command-palette'
+import { ShortcutsOverlay } from '@/components/dashboard/shortcuts-overlay'
 
 export default function DashboardLayout({
   children,
@@ -39,8 +40,9 @@ export default function DashboardLayout({
         </main>
       </div>
 
-      {/* Global ⌘K palette */}
+      {/* Global ⌘K palette + ? shortcuts overlay */}
       <CommandPalette />
+      <ShortcutsOverlay />
     </div>
   )
 }

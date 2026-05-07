@@ -62,7 +62,7 @@ const POPULAR = [
 ]
 
 const RESOURCES: { label: string; desc: string; href?: string; emoji: string; comingSoon?: boolean }[] = [
-  { label: 'API & Webhooks', desc: 'Build on top of PostPilot', emoji: '🛠️', comingSoon: true },
+  { label: 'API & Webhooks', desc: 'Build on top of PostPilot', href: '/dashboard/developers', emoji: '🛠️' },
   { label: 'Changelog', desc: 'See what shipped this week', href: '/changelog', emoji: '📝' },
   { label: 'System status', desc: 'Live uptime + incident log', href: '/status', emoji: '🟢' },
   { label: 'Security', desc: 'How we keep your data safe', href: '/security', emoji: '🔒' },
