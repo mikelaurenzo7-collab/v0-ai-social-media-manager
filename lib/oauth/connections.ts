@@ -96,19 +96,24 @@ export async function listConnections(userId: string) {
     orderBy: { createdAt: 'desc' },
   })
   // Strip encrypted tokens — never return them to clients.
-  return rows.map((r) => ({
-    id: r.id,
-    platform: r.platform,
-    accountId: r.accountId,
-    username: r.username,
-    displayName: r.displayName,
-    email: r.email,
-    avatarUrl: r.avatarUrl,
-    scopes: r.scopes,
-    expiresAt: r.expiresAt,
-    createdAt: r.createdAt,
-    isExpired: r.expiresAt ? r.expiresAt.getTime() < Date.now() : false,
-  }))
+  return rows.map((r) => {
+    const isExpired = r.expiresAt ? r.expiresAt.getTime() < Date.now() : false
+    return {
+      id: r.id,
+      platform: r.platform,
+      accountId: r.accountId,
+      username: r.username,
+      displayName: r.displayName,
+      email: r.email,
+      avatarUrl: r.avatarUrl,
+      scopes: r.scopes,
+      expiresAt: r.expiresAt,
+      createdAt: r.createdAt,
+      isExpired,
+      // We can auto-refresh if a refresh token exists; otherwise the user must reconnect.
+      needsReauth: isExpired && !r.encryptedRefreshToken,
+    }
+  })
 }
 
 export async function deleteConnection(userId: string, platform: ProviderId) {

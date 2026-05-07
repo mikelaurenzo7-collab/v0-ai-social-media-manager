@@ -6,11 +6,13 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/dashboard/header'
 
-const AGENT_STATS = {
+const AGENT_STATS: Record<string, { sessions: number; workflows: number; rating: string; specialty: string }> = {
   strategist: { sessions: 24, workflows: 8, rating: '4.9', specialty: 'Brand Growth' },
   viral: { sessions: 31, workflows: 5, rating: '4.8', specialty: 'Viral Reach' },
   voice: { sessions: 18, workflows: 11, rating: '4.9', specialty: 'Tone & Voice' },
   community: { sessions: 42, workflows: 6, rating: '5.0', specialty: 'Engagement' },
+  gmail: { sessions: 12, workflows: 4, rating: '4.9', specialty: 'Gmail Outreach' },
+  outlook: { sessions: 9, workflows: 3, rating: '4.8', specialty: 'Business Email' },
 }
 
 const AGENT_GRADIENT: Record<string, string> = {
@@ -18,6 +20,8 @@ const AGENT_GRADIENT: Record<string, string> = {
   viral: 'linear-gradient(135deg, #EA580C 0%, #EAB308 100%)',
   voice: 'linear-gradient(135deg, #A855F7 0%, #DB2777 100%)',
   community: 'linear-gradient(135deg, #22C55E 0%, #0EA5E9 100%)',
+  gmail: 'linear-gradient(135deg, #EA4335 0%, #FBBC04 100%)',
+  outlook: 'linear-gradient(135deg, #0078D4 0%, #00BCF2 100%)',
 }
 
 export default function AgentsPage() {
@@ -39,9 +43,9 @@ export default function AgentsPage() {
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Your AI Team</p>
-              <h2 className="mt-1 text-lg font-bold text-white">4 specialists · Always available</h2>
+              <h2 className="mt-1 text-lg font-bold text-white">{AGENTS.length} specialists · Always available</h2>
               <p className="mt-1 text-sm text-white/60">
-                Each agent has a unique role. Use them together for a complete social media strategy.
+                Each agent has a unique role across social and email. Use them together for a complete go-to-market strategy.
               </p>
             </div>
             <div className="flex -space-x-3 shrink-0">
@@ -64,7 +68,7 @@ export default function AgentsPage() {
       </div>
 
       {/* Agent cards */}
-      <div className="p-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+      <div className="p-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {AGENTS.map((agent) => {
           const agentStats = AGENT_STATS[agent.id as keyof typeof AGENT_STATS]
           const gradient = AGENT_GRADIENT[agent.id] ?? 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)'

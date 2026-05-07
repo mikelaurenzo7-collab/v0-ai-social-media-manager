@@ -149,6 +149,17 @@ export const PLATFORMS = {
 } as const
 
 export type PlatformId = keyof typeof PLATFORMS
+export type SocialPlatformId = 'twitter' | 'instagram' | 'linkedin' | 'facebook' | 'tiktok'
+export type EmailPlatformId = 'gmail' | 'outlook'
+
+export const SOCIAL_PLATFORM_IDS: SocialPlatformId[] = [
+  'twitter',
+  'instagram',
+  'linkedin',
+  'facebook',
+  'tiktok',
+]
+export const EMAIL_PLATFORM_IDS: EmailPlatformId[] = ['gmail', 'outlook']
 
 export const TONES = [
   { id: 'professional', name: 'Professional', description: 'Polished and business-appropriate' },

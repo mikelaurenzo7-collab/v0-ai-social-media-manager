@@ -14,6 +14,7 @@ export interface Connection {
   expiresAt: string | null
   createdAt: string
   isExpired: boolean
+  needsReauth: boolean
 }
 
 const fetcher = async (url: string) => {
@@ -31,6 +32,7 @@ export function useConnections() {
     connections: data?.connections ?? [],
     isLoading,
     error,
+    mutate,
     refresh: mutate,
     getByPlatform: (platform: string) =>
       data?.connections.find((c) => c.platform === platform) ?? null,

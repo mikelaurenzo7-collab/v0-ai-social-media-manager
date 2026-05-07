@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { PLATFORMS, type PlatformId } from '@/lib/constants/platforms'
+import { PLATFORMS, SOCIAL_PLATFORM_IDS, type PlatformId } from '@/lib/constants/platforms'
 
 interface PlatformSelectorProps {
   selected: PlatformId[]
@@ -21,14 +21,15 @@ export function PlatformSelector({ selected, onChange }: PlatformSelectorProps) 
 
   return (
     <div className="flex flex-wrap gap-2">
-      {Object.entries(PLATFORMS).map(([id, platform]) => {
-        const isSelected = selected.includes(id as PlatformId)
+      {SOCIAL_PLATFORM_IDS.map((id) => {
+        const platform = PLATFORMS[id]
+        const isSelected = selected.includes(id)
         return (
           <button
             key={id}
             type="button"
             aria-pressed={isSelected}
-            onClick={() => togglePlatform(id as PlatformId)}
+            onClick={() => togglePlatform(id)}
             className={cn(
               'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
               isSelected
@@ -41,7 +42,7 @@ export function PlatformSelector({ selected, onChange }: PlatformSelectorProps) 
                 : undefined
             }
           >
-            <PlatformIcon platform={id as PlatformId} className="h-4 w-4" />
+            <PlatformIcon platform={id} className="h-4 w-4" />
             {platform.shortName}
           </button>
         )
@@ -80,6 +81,13 @@ export function PlatformIcon({ platform, className }: { platform: PlatformId; cl
       return (
         <svg className={className} viewBox="0 0 24 24" fill="currentColor">
           <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.74a4.85 4.85 0 01-1.01-.05z" />
+        </svg>
+      )
+    case 'gmail':
+    case 'outlook':
+      return (
+        <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2.25 6.75A2.25 2.25 0 014.5 4.5h15a2.25 2.25 0 012.25 2.25v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75zm2.4-.225a.75.75 0 00-.9 1.2L11.55 13.2a.75.75 0 00.9 0l7.8-5.475a.75.75 0 10-.9-1.2L12 11.715 4.65 6.525z" />
         </svg>
       )
   }

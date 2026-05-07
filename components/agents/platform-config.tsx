@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { PLATFORMS, type PlatformId } from '@/lib/constants/platforms'
+import { PLATFORMS, SOCIAL_PLATFORM_IDS, type SocialPlatformId } from '@/lib/constants/platforms'
 import { PlatformIcon } from '@/components/create/platform-selector'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import type { Agent } from '@/lib/agents'
 
-const AGENT_PLATFORM_ADVICE: Record<string, Record<PlatformId, { headline: string; tips: string[]; formats: string[] }>> = {
+const AGENT_PLATFORM_ADVICE: Record<string, Record<SocialPlatformId, { headline: string; tips: string[]; formats: string[] }>> = {
   strategist: {
     twitter: {
       headline: 'Build a thread-first X strategy',
@@ -203,14 +203,14 @@ interface AgentPlatformConfigProps {
 }
 
 export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
-  const [enabledPlatforms, setEnabledPlatforms] = useState<Set<PlatformId>>(
-    new Set(['twitter', 'instagram', 'linkedin'] as PlatformId[])
+  const [enabledPlatforms, setEnabledPlatforms] = useState<Set<SocialPlatformId>>(
+    new Set(['twitter', 'instagram', 'linkedin'] as SocialPlatformId[])
   )
-  const [expandedPlatform, setExpandedPlatform] = useState<PlatformId | null>('twitter')
+  const [expandedPlatform, setExpandedPlatform] = useState<SocialPlatformId | null>('twitter')
 
   const advice = AGENT_PLATFORM_ADVICE[agent.id] ?? AGENT_PLATFORM_ADVICE['strategist']
 
-  const togglePlatform = (platformId: PlatformId) => {
+  const togglePlatform = (platformId: SocialPlatformId) => {
     setEnabledPlatforms(prev => {
       const next = new Set(prev)
       if (next.has(platformId)) {
@@ -232,8 +232,8 @@ export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
       </div>
 
       <div className="space-y-3">
-        {Object.entries(PLATFORMS).map(([id, platform]) => {
-          const platformId = id as PlatformId
+        {SOCIAL_PLATFORM_IDS.map((platformId) => {
+          const platform = PLATFORMS[platformId]
           const isEnabled = enabledPlatforms.has(platformId)
           const isExpanded = expandedPlatform === platformId && isEnabled
           const platformAdvice = advice[platformId]

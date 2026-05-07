@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { PLATFORMS } from '@/lib/constants/platforms'
-import type { PlatformId } from '@/lib/constants/platforms'
+import type { PlatformId, SocialPlatformId } from '@/lib/constants/platforms'
 
 interface SchedulableDraft {
   id: string
@@ -28,7 +28,7 @@ interface ScheduleDialogProps {
   children: React.ReactNode
 }
 
-const BEST_SLOTS: Record<PlatformId, { label: string; times: string[] }> = {
+const BEST_SLOTS: Record<SocialPlatformId, { label: string; times: string[] }> = {
   twitter:   { label: 'X/Twitter', times: ['08:00', '12:00', '17:00', '20:00'] },
   instagram: { label: 'Instagram', times: ['09:00', '11:00', '14:00', '19:00'] },
   linkedin:  { label: 'LinkedIn',  times: ['07:30', '08:30', '12:00', '17:00'] },
@@ -56,7 +56,9 @@ export function ScheduleDialog({ draft, children }: ScheduleDialogProps) {
   const [selectedTime, setSelectedTime] = useState('09:00')
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId>(draft.platforms[0] ?? 'twitter')
 
-  const slots = BEST_SLOTS[selectedPlatform]?.times ?? ['09:00', '12:00', '17:00']
+  const slot = (BEST_SLOTS as Record<string, { label: string; times: string[] } | undefined>)[selectedPlatform]
+  const slots: string[] = slot?.times ?? ['09:00', '12:00', '17:00']
+  const slotLabel: string = slot?.label ?? PLATFORMS[selectedPlatform]?.name ?? 'this platform'
 
   const handleSchedule = useCallback(async () => {
     setIsLoading(true)
@@ -161,7 +163,7 @@ export function ScheduleDialog({ draft, children }: ScheduleDialogProps) {
           {/* Suggested times */}
           <div className="space-y-1.5">
             <p className="text-xs font-medium text-muted-foreground">
-              Best times for {BEST_SLOTS[selectedPlatform]?.label}
+              Best times for {slotLabel}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {slots.map((t) => (
