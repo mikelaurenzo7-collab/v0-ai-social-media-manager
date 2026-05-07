@@ -5,9 +5,9 @@ const COLS = [
   {
     heading: 'Product',
     items: [
-      { label: 'Features',  href: '#features' },
-      { label: 'Agents',    href: '#agents'   },
-      { label: 'Pricing',   href: '#pricing'  },
+      { label: 'Features',  href: '/#features' },
+      { label: 'Agents',    href: '/agents'   },
+      { label: 'Pricing',   href: '/#pricing' },
       { label: 'Live demo', href: '/dashboard/create' },
     ],
   },

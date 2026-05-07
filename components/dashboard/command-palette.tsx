@@ -45,6 +45,7 @@ const NAV_ACTIONS: Action[] = [
   { id: 'team', label: 'Team & Workspace', desc: 'Members, roles, invites, audit log', icon: '👥', href: '/dashboard/team', group: 'Account', shortcut: 'g t', keywords: ['workspace', 'members', 'roles', 'audit'] },
   { id: 'accounts', label: 'Accounts', icon: '🔌', href: '/dashboard/accounts', group: 'Account' },
   { id: 'developers', label: 'Developers', desc: 'API keys, webhooks, code samples', icon: '🛠️', href: '/dashboard/developers', group: 'Account', keywords: ['api', 'webhooks', 'sdk'] },
+  { id: 'billing', label: 'Billing & plan', desc: 'Subscription, invoices, payment', icon: '💳', href: '/dashboard/billing', group: 'Account', keywords: ['subscription', 'invoices', 'payment', 'upgrade'] },
   { id: 'settings', label: 'Settings', icon: '⚙️', href: '/dashboard/settings', group: 'Account' },
   { id: 'agents', label: 'AI Agents', icon: '🤖', href: '/dashboard/agents', group: 'Navigate' },
   { id: 'help', label: 'Help Center', icon: '❓', href: '/dashboard/help', group: 'Help' },
