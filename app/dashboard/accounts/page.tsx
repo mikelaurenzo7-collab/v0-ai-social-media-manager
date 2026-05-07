@@ -104,15 +104,6 @@ const UTILITY_PLATFORMS: PlatformDef[] = [
     category: 'utility',
     available: true,
   },
-  {
-    id: 'research',
-    name: 'Web Research (Tavily)',
-    description: 'Research trending topics and competitor content to fuel your strategy.',
-    bg: '#10B981',
-    features: ['Trend analysis', 'Competitor research', 'News monitoring'],
-    category: 'utility',
-    available: true,
-  },
 ]
 
 function CallbackBanner() {
@@ -266,7 +257,7 @@ export default function AccountsPage() {
 
         <PlatformGrid
           title="Utility Integrations"
-          description="Team notifications, research tools, and workflow automation."
+          description="Team notifications and workflow automation."
           platforms={UTILITY_PLATFORMS}
           connectionsByPlatform={connectionsByPlatform}
           onChanged={mutate}

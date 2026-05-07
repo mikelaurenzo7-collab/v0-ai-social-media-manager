@@ -636,5 +636,4 @@ const AGENT_TOOLS = {
   gmail: { ...buildEmailTools('gmail'), ...sharedTools },
   outlook: { ...buildEmailTools('outlook'), ...sharedTools },
   slack: { ...slackTool, ...sharedTools },
-  research: { ...sharedTools },
 }

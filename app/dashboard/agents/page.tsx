@@ -18,7 +18,6 @@ const AGENT_STATS: Record<string, { sessions: number; workflows: number; rating:
   gmail:     { sessions: 12, workflows: 4, rating: '4.9', status: 'connected' },
   outlook:   { sessions: 9,  workflows: 3, rating: '4.8', status: 'disconnected' },
   slack:     { sessions: 28, workflows: 12, rating: '4.9', status: 'connected' },
-  research:  { sessions: 35, workflows: 8, rating: '5.0', status: 'connected' },
 }
 
 export default function AgentsPage() {
