@@ -9,11 +9,20 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 const navigation = [
   {
+    name: 'Dashboard',
+    href: '/dashboard',
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+      </svg>
+    ),
+  },
+  {
     name: 'Create',
     href: '/dashboard/create',
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
       </svg>
     ),
   },
@@ -23,6 +32,15 @@ const navigation = [
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+      </svg>
+    ),
+  },
+  {
+    name: 'Agents',
+    href: '/dashboard/agents',
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
       </svg>
     ),
   },
@@ -47,74 +65,98 @@ const navigation = [
   },
 ]
 
+const LogoIcon = () => (
+  <div
+    className="flex h-8 w-8 items-center justify-center rounded-lg shadow-md"
+    style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+  >
+    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-white" stroke="currentColor" strokeWidth="2">
+      <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+    </svg>
+  </div>
+)
+
 export function MobileNav() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="flex h-14 items-center justify-between border-b bg-background px-4 lg:hidden">
-      <Link href="/" className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            className="h-5 w-5 text-primary-foreground"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-          </svg>
-        </div>
-        <span className="text-lg font-semibold">PostPilot</span>
+    <div
+      className="flex h-14 items-center justify-between border-b px-4 lg:hidden"
+      style={{ background: 'oklch(0.135 0.018 48)' }}
+    >
+      <Link href="/dashboard" className="flex items-center gap-2.5">
+        <LogoIcon />
+        <span className="text-base font-bold text-white">PostPilot</span>
       </Link>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white/70 hover:text-white hover:bg-white/10"
+          >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
             <span className="sr-only">Toggle menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
-          <div className="flex h-14 items-center gap-2 border-b px-6">
-            <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="h-5 w-5 text-primary-foreground"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-              </div>
-              <span className="text-lg font-semibold">PostPilot</span>
+
+        <SheetContent
+          side="left"
+          className="w-64 p-0 border-r-0"
+          style={{ background: 'oklch(0.135 0.018 48)' }}
+        >
+          {/* Sheet header */}
+          <div className="flex h-14 items-center gap-2.5 px-5 border-b border-white/10">
+            <Link href="/dashboard" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
+              <LogoIcon />
+              <span className="text-base font-bold text-white">PostPilot</span>
             </Link>
           </div>
-          <nav className="flex-1 space-y-1 p-4">
+
+          {/* Navigation */}
+          <nav className="flex-1 space-y-0.5 p-3">
             {navigation.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+              const isActive = item.href === '/dashboard'
+                ? pathname === '/dashboard'
+                : pathname === item.href || pathname.startsWith(item.href + '/')
               return (
                 <Link
                   key={item.name}
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                    isActive ? 'text-white' : 'text-white/50 hover:text-white/80 hover:bg-white/5'
                   )}
+                  style={isActive ? { background: 'oklch(0.652 0.214 36 / 0.25)', borderLeft: '3px solid #EA580C' } : { paddingLeft: '15px' }}
                 >
-                  {item.icon}
+                  <span style={isActive ? { color: '#EA580C' } : undefined}>{item.icon}</span>
                   {item.name}
                 </Link>
               )
             })}
           </nav>
+
+          {/* Upgrade CTA */}
+          <div className="p-4 border-t border-white/10">
+            <div
+              className="rounded-xl p-3 text-center"
+              style={{ background: 'linear-gradient(135deg, #EA580C22 0%, #DB277722 100%)', border: '1px solid #EA580C30' }}
+            >
+              <p className="text-xs font-semibold text-white mb-2">Upgrade to Pro</p>
+              <p className="text-[10px] text-white/50 mb-3">Unlimited generations + all agents</p>
+              <button
+                className="w-full rounded-lg py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+              >
+                Upgrade Now
+              </button>
+            </div>
+          </div>
         </SheetContent>
       </Sheet>
     </div>

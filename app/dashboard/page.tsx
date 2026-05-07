@@ -64,11 +64,21 @@ export default function DashboardPage() {
     setMounted(true)
     try {
       const storedDrafts = localStorage.getItem('postpilot_drafts')
-      const storedThreads = localStorage.getItem('postpilot_threads')
-      if (storedDrafts) setDrafts(JSON.parse(storedDrafts))
-      if (storedThreads) setThreads(JSON.parse(storedThreads))
+      if (storedDrafts) {
+        const parsed = JSON.parse(storedDrafts)
+        setDrafts(Array.isArray(parsed) ? parsed : [])
+      }
     } catch {
-      // corrupt localStorage — ignore
+      setDrafts([])
+    }
+    try {
+      const storedThreads = localStorage.getItem('postpilot_threads')
+      if (storedThreads) {
+        const parsed = JSON.parse(storedThreads)
+        setThreads(Array.isArray(parsed) ? parsed : [])
+      }
+    } catch {
+      setThreads([])
     }
   }, [])
 
