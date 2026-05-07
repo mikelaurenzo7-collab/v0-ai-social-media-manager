@@ -2,7 +2,28 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
+import { ThemeManager } from '@/components/dashboard/theme-manager'
 import './globals.css'
+
+// Inline script that runs *before* React hydrates to set the right
+// theme class on <html>, eliminating the white flash on dark-mode users.
+// Mirrors the logic in lib/preferences.ts but stays small and dependency-free.
+const NO_FLASH_THEME_SCRIPT = `
+(function() {
+  try {
+    var raw = localStorage.getItem('postpilot_prefs_v1');
+    var prefs = raw ? JSON.parse(raw) : null;
+    var theme = prefs && prefs.theme ? prefs.theme : 'system';
+    var reduceMotion = !!(prefs && prefs.reduceMotion);
+    var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var dark = theme === 'dark' || (theme === 'system' && sysDark);
+    var root = document.documentElement;
+    if (dark) root.classList.add('dark');
+    if (reduceMotion) root.classList.add('reduce-motion');
+    root.style.colorScheme = dark ? 'dark' : 'light';
+  } catch (e) {}
+})();
+`
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -86,10 +107,16 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Pre-hydration theme paint — stops the white flash on dark-mode users */}
+        <script dangerouslySetInnerHTML={{ __html: NO_FLASH_THEME_SCRIPT }} />
+      </head>
       <body className="font-sans antialiased bg-background text-foreground">
+        <ThemeManager />
         {children}
-        <Toaster position="bottom-right" richColors closeButton theme="light" />
+        <Toaster position="bottom-right" richColors closeButton />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

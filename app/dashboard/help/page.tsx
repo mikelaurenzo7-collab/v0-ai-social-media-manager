@@ -52,13 +52,13 @@ const CATEGORIES = [
   },
 ]
 
-const POPULAR = [
-  { q: 'Why do I need to connect my X account separately from my LinkedIn?', read: '2 min' },
-  { q: 'Can the AI agents post on my behalf without my approval?', read: '3 min' },
-  { q: 'How do I train an agent on my brand voice?', read: '4 min' },
-  { q: 'What happens when a scheduled post fails?', read: '2 min' },
-  { q: 'Is my OAuth token stored in plain text? (No.)', read: '5 min' },
-  { q: 'How do I delete my account and all my data?', read: '1 min' },
+const POPULAR: { q: string; read: string; slug: string }[] = [
+  { q: 'Why do I need to connect my X account separately from my LinkedIn?', read: '2 min', slug: 'why-connect-each-platform-separately' },
+  { q: 'Can the AI agents post on my behalf without my approval?', read: '3 min', slug: 'can-the-ai-agents-post-on-my-behalf-without-my-approval' },
+  { q: 'How do I train an agent on my brand voice?', read: '4 min', slug: 'how-do-i-train-an-agent-on-my-brand-voice' },
+  { q: 'What happens when a scheduled post fails?', read: '2 min', slug: 'what-happens-when-a-scheduled-post-fails' },
+  { q: 'Is my OAuth token stored in plain text? (No.)', read: '5 min', slug: 'is-my-oauth-token-stored-in-plain-text' },
+  { q: 'How do I delete my account and all my data?', read: '1 min', slug: 'how-do-i-delete-my-account-and-all-my-data' },
 ]
 
 const RESOURCES: { label: string; desc: string; href?: string; emoji: string; comingSoon?: boolean }[] = [
@@ -203,18 +203,19 @@ export default function HelpPage() {
                     No matching articles.
                   </p>
                 ) : filteredPopular.map((p) => (
-                  <div
+                  <Link
                     key={p.q}
-                    className="w-full flex items-center justify-between gap-4 rounded-xl px-4 py-3 text-left"
+                    href={`/dashboard/help/${p.slug}`}
+                    className="group w-full flex items-center justify-between gap-4 rounded-xl px-4 py-3 text-left hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <svg className="h-3.5 w-3.5 text-muted-foreground shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                      <svg className="h-3.5 w-3.5 text-muted-foreground shrink-0 group-hover:text-orange-500 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
                       </svg>
                       <span className="text-sm truncate">{p.q}</span>
                     </div>
                     <span className="text-[10px] text-muted-foreground shrink-0">{p.read}</span>
-                  </div>
+                  </Link>
                 ))}
               </CardContent>
             </Card>

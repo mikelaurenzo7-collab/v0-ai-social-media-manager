@@ -10,6 +10,8 @@
 
 export const PREFS_KEY = 'postpilot_prefs_v1'
 
+export type Theme = 'system' | 'light' | 'dark'
+
 export interface UserPreferences {
   /**
    * When false, the global AI Co-Pilot drawer is hidden:
@@ -39,6 +41,12 @@ export interface UserPreferences {
    * preference (router picks based on context).
    */
   defaultAgentId: string
+
+  /**
+   * UI theme. 'system' tracks the OS preference; 'light' / 'dark' are
+   * explicit overrides. Applied via the `dark` class on <html>.
+   */
+  theme: Theme
 }
 
 export const DEFAULT_PREFS: UserPreferences = {
@@ -46,6 +54,7 @@ export const DEFAULT_PREFS: UserPreferences = {
   soundsEnabled: false,
   reduceMotion: false,
   defaultAgentId: '',
+  theme: 'system',
 }
 
 export function readPrefs(): UserPreferences {

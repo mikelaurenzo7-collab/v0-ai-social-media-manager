@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/dashboard/header'
 import { TONES, CONTENT_TYPES } from '@/lib/constants/platforms'
 import { AGENTS } from '@/lib/agents'
-import { readPrefs, writePrefs, DEFAULT_PREFS, type UserPreferences } from '@/lib/preferences'
+import { readPrefs, writePrefs, DEFAULT_PREFS, type UserPreferences, type Theme } from '@/lib/preferences'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -50,6 +50,15 @@ export default function SettingsPage() {
             : 'You\'ll only see the agents you purchased.',
         },
       )
+    }
+    if ('theme' in patch && patch.theme) {
+      const label = patch.theme === 'system' ? 'System theme' : `${patch.theme[0].toUpperCase()}${patch.theme.slice(1)} mode`
+      toast.success(label, {
+        description:
+          patch.theme === 'system'
+            ? 'Following your OS preference.'
+            : 'Applied across the workspace.',
+      })
     }
   }
   const [brandVoice, setBrandVoice] = useState(
@@ -163,6 +172,42 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
+            <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-3">
+              <div className="flex items-center justify-between gap-4 mb-2.5">
+                <div>
+                  <p className="text-sm font-semibold">Theme</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    Light, dark, or follow your system. Applies workspace-wide.
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-1 rounded-lg border border-border/60 p-1">
+                {(
+                  [
+                    { id: 'light', label: 'Light', emoji: '☀️' },
+                    { id: 'system', label: 'System', emoji: '💻' },
+                    { id: 'dark', label: 'Dark', emoji: '🌙' },
+                  ] as { id: Theme; label: string; emoji: string }[]
+                ).map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    aria-pressed={prefs.theme === opt.id}
+                    onClick={() => updatePrefs({ theme: opt.id })}
+                    className={cn(
+                      'rounded-md px-3 py-1.5 text-xs font-semibold transition-colors',
+                      prefs.theme === opt.id
+                        ? 'bg-foreground text-background'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <span className="mr-1.5">{opt.emoji}</span>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <PreferenceRow
               title="AI Co-Pilot"
               description={
