@@ -12,23 +12,22 @@ const COLS = [
     ],
   },
   {
-    heading: 'Channels',
+    heading: 'Use cases',
     items: [
-      { label: 'X / Twitter', href: '/dashboard/accounts' },
-      { label: 'Instagram',   href: '/dashboard/accounts' },
-      { label: 'LinkedIn',    href: '/dashboard/accounts' },
-      { label: 'TikTok',      href: '/dashboard/accounts' },
-      { label: 'Gmail',       href: '/dashboard/accounts' },
-      { label: 'Outlook',     href: '/dashboard/accounts' },
+      { label: 'For founders',  href: '/for/founders' },
+      { label: 'For agencies',  href: '/for/agencies' },
+      { label: 'For creators',  href: '/for/creators' },
+      { label: 'Browse agents', href: '/agents' },
     ],
   },
   {
     heading: 'Company',
     items: [
-      { label: 'Roadmap',    href: '/roadmap' },
-      { label: 'Changelog',  href: '/changelog' },
+      { label: 'About',         href: '/about' },
+      { label: 'Roadmap',       href: '/roadmap' },
+      { label: 'Changelog',     href: '/changelog' },
       { label: 'System status', href: '/status' },
-      { label: 'Contact',    href: 'mailto:hello@postpilot.app' },
+      { label: 'Contact',       href: 'mailto:hello@postpilot.app' },
     ],
   },
   {
