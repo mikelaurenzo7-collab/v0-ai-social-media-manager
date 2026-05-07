@@ -15,19 +15,19 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'PostPilot - Your AI Co-Pilot for Social Media',
-  description: 'AI-powered social media management for influencers, businesses, and creators. Generate engaging content for X, Instagram, and Facebook in seconds.',
-  keywords: ['social media', 'AI', 'content creation', 'Instagram', 'Twitter', 'Facebook', 'automation'],
-  authors: [{ name: 'PostPilot' }],
+  title: 'Lumina AI — The Most Successful, Professional & Flawless AI Social Media OS',
+  description: 'Enterprise-grade AI social media orchestrator with hyper-personal specialist agents, real OAuth posting, A/B testing, team collaboration, and breathtaking Cosmic Orbit design. Built for creators, agencies, and teams who demand maximum results.',
+  keywords: ['social media', 'AI agents', 'content creation', 'Instagram', 'X', 'LinkedIn', 'TikTok', 'YouTube', 'Facebook', 'automation', 'enterprise', 'A/B testing', 'team collaboration'],
+  authors: [{ name: 'Lumina AI' }],
   openGraph: {
-    title: 'PostPilot - Your AI Co-Pilot for Social Media',
-    description: 'Generate engaging social media content with AI. Perfect for influencers, businesses, and creators.',
+    title: 'Lumina AI — The Most Successful, Professional & Flawless AI Social Media OS',
+    description: 'Hyper-personal AI agents, real OAuth posting, A/B testing, team features, and immersive Cosmic Orbit design. The category-defining social media OS for 2026.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'PostPilot - Your AI Co-Pilot for Social Media',
-    description: 'Generate engaging social media content with AI.',
+    title: 'Lumina AI — The Most Successful, Professional & Flawless AI Social Media OS',
+    description: 'Enterprise AI social media orchestrator with specialist agents, A/B testing, and breathtaking design.',
   },
 }
 
