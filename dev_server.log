@@ -1,18 +1,102 @@
 
-> my-project@0.1.0 dev
+> my-project@0.1.0 dev /app
 > next dev
 
-⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
 ▲ Next.js 16.2.4 (Turbopack)
-- Local:         http://localhost:3001
-- Network:       http://192.168.0.2:3001
-✓ Ready in 707ms
-⨯ Another next dev server is already running.
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 666ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
 
-- Local:        http://localhost:3000
-- PID:          209586
-- Dir:          /app
-- Log:          .next/dev/logs/next-development.log
 
-Run kill 209586 to stop it.
-[?25h
+○ Compiling /dashboard/agents ...
+ GET /dashboard/agents 200 in 5.8s (next.js: 5.2s, application-code: 560ms)
+ GET /dashboard/agents 200 in 112ms (next.js: 7ms, application-code: 105ms)
+○ Compiling /dashboard/agents/[id] ...
+ GET /dashboard/agents/strategist 200 in 4.6s (next.js: 4.5s, application-code: 133ms)
+ GET /dashboard/agents 200 in 99ms (next.js: 5ms, application-code: 94ms)
+ GET /dashboard/agents/strategist 200 in 178ms (next.js: 48ms, application-code: 130ms)
+ GET /dashboard/agents 200 in 193ms (next.js: 13ms, application-code: 180ms)
+ GET /dashboard/agents/strategist 200 in 186ms (next.js: 59ms, application-code: 127ms)
+[browser] Uncaught TypeError: Cannot read properties of undefined (reading 'trim')
+    at AgentChat (components/agents/agent-chat.tsx:132:32)
+    at AgentPage (app/dashboard/agents/[id]/page.tsx:59:13)
+  130 |               type="submit"
+  131 |               size="icon"
+> 132 |               disabled={!input.trim()}
+      |                                ^
+  133 |               className="h-[44px] w-[44px] rounded-xl shrink-0"
+  134 |             >
+  135 |               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" ...
+ GET /dashboard/agents 200 in 106ms (next.js: 4ms, application-code: 102ms)
+ GET /dashboard/agents/strategist 200 in 170ms (next.js: 46ms, application-code: 124ms)
+[browser] Uncaught TypeError: setInput is not a function
+    at onChange (components/agents/agent-chat.tsx:117:30)
+    at textarea (<anonymous>)
+    at AgentChat (components/agents/agent-chat.tsx:115:11)
+    at AgentPage (app/dashboard/agents/[id]/page.tsx:59:13)
+  115 |           <textarea
+  116 |             value={input}
+> 117 |             onChange={(e) => setInput(e.target.value)}
+      |                              ^
+  118 |             onKeyDown={handleKeyDown}
+  119 |             placeholder={`Message ${agent.name}...`}
+  120 |             className="flex-1 resize-none rounded-xl border bg-muted/50 px-4 py-3 text-sm...
+ GET /dashboard/agents 200 in 99ms (next.js: 7ms, application-code: 92ms)
+ GET /dashboard/agents/strategist 200 in 153ms (next.js: 46ms, application-code: 107ms)
+[browser] Uncaught TypeError: setInput is not a function
+    at onChange (components/agents/agent-chat.tsx:117:30)
+    at textarea (<anonymous>)
+    at AgentChat (components/agents/agent-chat.tsx:115:11)
+    at AgentPage (app/dashboard/agents/[id]/page.tsx:59:13)
+  115 |           <textarea
+  116 |             value={input}
+> 117 |             onChange={(e) => setInput(e.target.value)}
+      |                              ^
+  118 |             onKeyDown={handleKeyDown}
+  119 |             placeholder={`Message ${agent.name}...`}
+  120 |             className="flex-1 resize-none rounded-xl border bg-muted/50 px-4 py-3 text-sm...
+ GET /dashboard/agents 200 in 89ms (next.js: 4ms, application-code: 85ms)
+ GET /dashboard/agents/strategist 200 in 151ms (next.js: 42ms, application-code: 109ms)
+ GET /dashboard/agents 200 in 93ms (next.js: 7ms, application-code: 86ms)
+ GET /dashboard/agents/strategist 200 in 106ms (next.js: 41ms, application-code: 65ms)
+ GET /dashboard/agents 200 in 181ms (next.js: 7ms, application-code: 174ms)
+ GET /dashboard/agents/strategist 200 in 141ms (next.js: 33ms, application-code: 109ms)
+ GET /dashboard/agents 200 in 86ms (next.js: 3ms, application-code: 83ms)
+ GET /dashboard/agents/strategist 200 in 92ms (next.js: 27ms, application-code: 65ms)
+ GET /dashboard/agents 200 in 80ms (next.js: 3ms, application-code: 77ms)
+ GET /dashboard/agents/strategist 200 in 150ms (next.js: 31ms, application-code: 118ms)
+ GET /dashboard/agents 200 in 91ms (next.js: 4ms, application-code: 87ms)
+ GET /dashboard/agents/strategist 200 in 94ms (next.js: 31ms, application-code: 63ms)
+[browser] Uncaught TypeError: append is not a function
+    at onClick (components/agents/agent-chat.tsx:68:34)
+    at button (<anonymous>)
+    at Button (components/ui/button.tsx:52:5)
+    at <unknown> (components/agents/agent-chat.tsx:64:17)
+    at Array.map (<anonymous>)
+    at AgentChat (components/agents/agent-chat.tsx:63:35)
+    at AgentPage (app/dashboard/agents/[id]/page.tsx:59:13)
+  66 |                   variant="outline"
+  67 |                   className="justify-start text-xs font-normal h-9"
+> 68 |                   onClick={() => append({ role: 'user', content: `Help me with ${cap}` })}
+     |                                  ^
+  69 |                 >
+  70 |                   <svg className="mr-2 h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 ...
+  71 |                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7...
+ GET /dashboard/agents 200 in 780ms (next.js: 288ms, application-code: 492ms)
+ GET /dashboard/agents/viral 200 in 316ms (next.js: 70ms, application-code: 246ms)
+⨯ Error [AI_LoadAPIKeyError]: Anthropic API key is missing. Pass it using the 'apiKey' parameter or the ANTHROPIC_API_KEY environment variable.
+    at ignore-listed frames
+⨯ Error [AI_LoadAPIKeyError]: Anthropic API key is missing. Pass it using the 'apiKey' parameter or the ANTHROPIC_API_KEY environment variable.
+    at ignore-listed frames
+ POST /api/workflow 500 in 6.9s (next.js: 6.6s, application-code: 267ms)
+ GET /dashboard/agents 200 in 118ms (next.js: 6ms, application-code: 111ms)
+ GET /dashboard/agents/viral 200 in 168ms (next.js: 48ms, application-code: 120ms)
+⨯ Error [AI_LoadAPIKeyError]: Anthropic API key is missing. Pass it using the 'apiKey' parameter or the ANTHROPIC_API_KEY environment variable.
+    at ignore-listed frames
+⨯ Error [AI_LoadAPIKeyError]: Anthropic API key is missing. Pass it using the 'apiKey' parameter or the ANTHROPIC_API_KEY environment variable.
+    at ignore-listed frames
+ POST /api/workflow 500 in 752ms (next.js: 721ms, application-code: 31ms)

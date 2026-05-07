@@ -1,10 +1,11 @@
 import { streamText, tool, generateObject, convertToModelMessages, stepCountIs, type UIMessage } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
+import { getAgentById } from '@/lib/agents'
 
 export const runtime = 'edge'
 
-const systemPrompt = `You are PostPilot's AI Content Strategist — a sharp, senior social media expert with 10+ years growing top brands across every major platform.
+const defaultSystemPrompt = `You are PostPilot's AI Content Strategist — a sharp, senior social media expert with 10+ years growing top brands across every major platform.
 
 Your capabilities:
 - Brainstorm hooks, angles, and post ideas for any niche or goal
@@ -46,16 +47,49 @@ const POSTING_SCHEDULES: Record<string, { bestDays: string[]; bestTimes: string[
 }
 
 export async function POST(req: Request) {
-  const { messages } = (await req.json()) as { messages: UIMessage[] }
+  const { messages, agentId, creativity, tone, memory } = (await req.json()) as {
+    messages: UIMessage[],
+    agentId?: string,
+    creativity?: number,
+    tone?: number,
+    memory?: string
+  }
   const modelMessages = await convertToModelMessages(messages)
+
+  let systemPrompt = defaultSystemPrompt
+  let temperature = 0.7
+
+  if (agentId) {
+    const agent = getAgentById(agentId)
+    let memoryContext = ""
+    if (memory) {
+      try {
+        const parsedMemory = JSON.parse(memory)
+        memoryContext = `\n\nLONG-TERM MEMORY & CONTEXT:\n${parsedMemory.map((m: any) => `- ${m.content}`).join('\n')}`
+      } catch (e) {}
+    }
+
+    const toneInstructions = tone ? `\n\nTONE ADJUSTMENT: Your tone should be ${tone > 70 ? 'highly casual and conversational' : tone < 30 ? 'strictly professional and formal' : 'balanced and modern'}.` : ""
+
+    systemPrompt = `${agent.systemPrompt}${toneInstructions}${memoryContext}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
+
+    if (creativity) {
+      // Map 0-100 to 0.0-1.0 temperature
+      temperature = creativity / 100
+    }
+  }
+
+  const agentTools = agentId ? (AGENT_TOOLS[agentId as keyof typeof AGENT_TOOLS] || {}) : {}
 
   const result = streamText({
     model: anthropic('claude-3-5-sonnet-20241022'),
     system: systemPrompt,
     messages: modelMessages,
+    temperature,
     maxOutputTokens: 2048,
     stopWhen: stepCountIs(5),
     tools: {
+      ...agentTools,
       analyze_post: tool({
         description:
           'Analyze a social media post and score it on key metrics: hook strength, CTA clarity, readability, and engagement potential. Use this when the user shares a post or asks for feedback.',
@@ -328,4 +362,50 @@ export async function POST(req: Request) {
   })
 
   return result.toTextStreamResponse()
+}
+
+// ── Agent-specific tools logic ───────────────────────────────────────────────
+
+const AGENT_TOOLS = {
+  viral: {
+    analyze_virality: tool({
+      description: 'Analyze the virality potential of a post and give it a score.',
+      inputSchema: z.object({
+        content: z.string(),
+      }),
+      execute: async ({ content }) => {
+        const { object } = await generateObject({
+          model: anthropic('claude-3-5-haiku-20241022'),
+          schema: z.object({
+            score: z.number().min(1).max(100),
+            reasoning: z.string(),
+            improvement: z.string(),
+          }),
+          prompt: `Analyze this content for virality potential: ${content}`,
+        })
+        return object
+      },
+    }),
+  },
+  strategist: {
+    strategic_alignment: tool({
+      description: 'Check if a post aligns with brand pillars and long-term goals.',
+      inputSchema: z.object({
+        content: z.string(),
+        pillars: z.array(z.string()),
+      }),
+      execute: async ({ content, pillars }) => {
+        const { object } = await generateObject({
+          model: anthropic('claude-3-5-haiku-20241022'),
+          schema: z.object({
+            alignmentScore: z.number().min(1).max(10),
+            pillarMatches: z.array(z.string()),
+            feedback: z.string(),
+          }),
+          prompt: `Check alignment for this content: ${content} against pillars: ${pillars.join(', ')}`,
+        })
+        return object
+      },
+    }),
+  },
 }
