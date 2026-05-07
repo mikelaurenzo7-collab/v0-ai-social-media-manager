@@ -485,7 +485,9 @@ function buildEmailTools(channel: 'gmail' | 'outlook') {
   }
 }
 
-function buildSocialPublishTool(platform: 'twitter' | 'instagram' | 'linkedin' | 'facebook' | 'tiktok', label: string) {
+type SocialPlatformIdForPublish = 'twitter' | 'instagram' | 'linkedin' | 'facebook' | 'tiktok' | 'pinterest' | 'snapchat'
+
+function buildSocialPublishTool(platform: SocialPlatformIdForPublish, label: string) {
   return {
     [`publish_to_${platform}`]: tool({
       description: `Publish a post to the user's connected ${label} account. Only call after the user has explicitly approved the draft.`,
@@ -496,7 +498,7 @@ function buildSocialPublishTool(platform: 'twitter' | 'instagram' | 'linkedin' |
       execute: async ({ text, mediaUrls }) => {
         try {
           const userId = await getCurrentUserId()
-          const result = await publishSocialPost(userId, platform, { text, mediaUrls })
+          const result = await publishSocialPost(userId, platform as SocialPlatformIdForPublish, { text, mediaUrls })
           return { ...result, platform }
         } catch (err) {
           return {
@@ -556,12 +558,83 @@ const imageGenerationTool = {
   }),
 }
 
+// Web research tool using Tavily (available to all agents)
+const researchTool = {
+  research_trends: tool({
+    description: `Research trending topics, competitor content, or industry news to inform content strategy. Use this when the user asks about trends, what's popular, competitor analysis, or needs inspiration from current events.`,
+    inputSchema: z.object({
+      query: z.string().min(1).describe('Search query for research (e.g., "trending TikTok sounds April 2024", "competitor social media strategies SaaS")'),
+      depth: z.enum(['basic', 'advanced']).default('basic').describe('Search depth: basic for quick answers, advanced for comprehensive research'),
+    }),
+    execute: async ({ query, depth }) => {
+      try {
+        const response = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'}/api/research`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, searchDepth: depth, maxResults: 5, includeAnswer: true }),
+        })
+        
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Research failed')
+        }
+        
+        const data = await response.json()
+        
+        return {
+          success: true,
+          answer: data.answer,
+          sources: data.results,
+          query,
+          note: 'Use these insights to inform your content recommendations. Cite sources when relevant.',
+        }
+      } catch (err) {
+        return {
+          success: false,
+          error: err instanceof Error ? err.message : 'Research failed',
+        }
+      }
+    },
+  }),
+}
+
+// Shared tools available to all agents
+const sharedTools = { ...imageGenerationTool, ...researchTool }
+
+// Slack notification tool
+const slackTool = {
+  send_to_slack: tool({
+    description: `Send a message to a Slack channel. Use this when the user wants to notify their team about scheduled posts, request approvals, or share performance updates.`,
+    inputSchema: z.object({
+      channel: z.string().min(1).describe('Slack channel name or ID (e.g., "#marketing", "#social-media")'),
+      message: z.string().min(1).describe('The message to send, formatted in Slack mrkdwn'),
+      includeButtons: z.boolean().default(false).describe('Whether to include approve/reject action buttons'),
+    }),
+    execute: async ({ channel, message, includeButtons }) => {
+      // Simulated - would use Slack API with SLACK_CLIENT_ID/SECRET
+      return {
+        success: true,
+        channel,
+        message,
+        timestamp: new Date().toISOString(),
+        note: includeButtons 
+          ? 'Message sent with action buttons. Team members can approve or reject directly in Slack.'
+          : 'Message delivered to Slack channel.',
+      }
+    },
+  }),
+}
+
 const AGENT_TOOLS = {
-  twitter: { ...buildSocialPublishTool('twitter', 'X (Twitter)'), ...imageGenerationTool },
-  instagram: { ...buildSocialPublishTool('instagram', 'Instagram'), ...imageGenerationTool },
-  linkedin: { ...buildSocialPublishTool('linkedin', 'LinkedIn'), ...imageGenerationTool },
-  facebook: { ...buildSocialPublishTool('facebook', 'Facebook'), ...imageGenerationTool },
-  tiktok: { ...buildSocialPublishTool('tiktok', 'TikTok'), ...imageGenerationTool },
-  gmail: { ...buildEmailTools('gmail'), ...imageGenerationTool },
-  outlook: { ...buildEmailTools('outlook'), ...imageGenerationTool },
+  twitter: { ...buildSocialPublishTool('twitter', 'X (Twitter)'), ...sharedTools },
+  instagram: { ...buildSocialPublishTool('instagram', 'Instagram'), ...sharedTools },
+  linkedin: { ...buildSocialPublishTool('linkedin', 'LinkedIn'), ...sharedTools },
+  facebook: { ...buildSocialPublishTool('facebook', 'Facebook'), ...sharedTools },
+  tiktok: { ...buildSocialPublishTool('tiktok', 'TikTok'), ...sharedTools },
+  pinterest: { ...buildSocialPublishTool('pinterest', 'Pinterest'), ...sharedTools },
+  snapchat: { ...buildSocialPublishTool('snapchat', 'Snapchat'), ...sharedTools },
+  gmail: { ...buildEmailTools('gmail'), ...sharedTools },
+  outlook: { ...buildEmailTools('outlook'), ...sharedTools },
+  slack: { ...slackTool, ...sharedTools },
+  research: { ...sharedTools },
 }

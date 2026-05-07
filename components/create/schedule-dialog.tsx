@@ -34,6 +34,8 @@ const BEST_SLOTS: Record<SocialPlatformId, { label: string; times: string[] }> =
   linkedin:  { label: 'LinkedIn',  times: ['07:30', '08:30', '12:00', '17:00'] },
   tiktok:    { label: 'TikTok',    times: ['09:00', '12:00', '17:00', '21:00'] },
   facebook:  { label: 'Facebook',  times: ['09:00', '13:00', '16:00', '20:00'] },
+  pinterest: { label: 'Pinterest', times: ['14:00', '20:00', '21:00', '23:00'] },
+  snapchat:  { label: 'Snapchat',  times: ['10:00', '13:00', '18:00', '22:00'] },
 }
 
 function fmtTime(t: string): string {

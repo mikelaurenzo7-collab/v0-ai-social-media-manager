@@ -23,6 +23,8 @@ const PLATFORM_COLOR: Record<SocialPlatformId, { color: string; bg: string }> = 
   linkedin: { color: '#0A66C2', bg: '#EFF6FF' },
   tiktok: { color: '#6366F1', bg: '#F0F0FF' },
   facebook: { color: '#1877F2', bg: '#EEF2FF' },
+  pinterest: { color: '#E60023', bg: '#FFF0F3' },
+  snapchat: { color: '#FFFC00', bg: '#FFFEF0' },
 }
 
 const KIND_LABEL: Record<InboxKind, string> = {

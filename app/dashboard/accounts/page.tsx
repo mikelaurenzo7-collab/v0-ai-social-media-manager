@@ -53,6 +53,24 @@ const SOCIAL_PLATFORMS: PlatformDef[] = [
     category: 'social',
     available: true,
   },
+  {
+    id: 'pinterest',
+    name: 'Pinterest',
+    description: 'Drive long-term traffic with SEO-optimized Pins and Idea Pins.',
+    bg: '#E60023',
+    features: ['Pin publishing', 'Board organization', 'SEO-optimized descriptions'],
+    category: 'social',
+    available: true,
+  },
+  {
+    id: 'snapchat',
+    name: 'Snapchat',
+    description: 'Reach Gen-Z with Stories and Spotlight content on Snapchat.',
+    bg: '#FFFC00',
+    features: ['Story publishing', 'Spotlight videos', 'AR lens promos'],
+    category: 'social',
+    available: true,
+  },
 ]
 
 const EMAIL_PLATFORMS: PlatformDef[] = [
@@ -72,6 +90,27 @@ const EMAIL_PLATFORMS: PlatformDef[] = [
     bg: '#0078D4',
     features: ['Microsoft Graph API', 'Calendar-aware drafts', 'AI-assisted composition'],
     category: 'email',
+    available: true,
+  },
+]
+
+const UTILITY_PLATFORMS: PlatformDef[] = [
+  {
+    id: 'slack',
+    name: 'Slack',
+    description: 'Get team notifications when posts publish, need approval, or hit milestones.',
+    bg: '#4A154B',
+    features: ['Publish notifications', 'Approval workflows', 'Performance alerts'],
+    category: 'utility',
+    available: true,
+  },
+  {
+    id: 'research',
+    name: 'Web Research (Tavily)',
+    description: 'Research trending topics and competitor content to fuel your strategy.',
+    bg: '#10B981',
+    features: ['Trend analysis', 'Competitor research', 'News monitoring'],
+    category: 'utility',
     available: true,
   },
 ]
@@ -162,7 +201,7 @@ export default function AccountsPage() {
   for (const c of connections) connectionsByPlatform[c.platform] = c
 
   const totalConnected = connections.filter((c) => !c.needsReauth).length
-  const totalAvailable = SOCIAL_PLATFORMS.length + EMAIL_PLATFORMS.length
+  const totalAvailable = SOCIAL_PLATFORMS.length + EMAIL_PLATFORMS.length + UTILITY_PLATFORMS.length
 
   return (
     <div className="flex flex-col">
@@ -221,6 +260,14 @@ export default function AccountsPage() {
           title="Email Channels"
           description="Let your AI agents draft and send emails on your behalf."
           platforms={EMAIL_PLATFORMS}
+          connectionsByPlatform={connectionsByPlatform}
+          onChanged={mutate}
+        />
+
+        <PlatformGrid
+          title="Utility Integrations"
+          description="Team notifications, research tools, and workflow automation."
+          platforms={UTILITY_PLATFORMS}
           connectionsByPlatform={connectionsByPlatform}
           onChanged={mutate}
         />

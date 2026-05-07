@@ -11,9 +11,59 @@ interface AgentPlatformConfigProps {
 }
 
 export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
-  const platform = PLATFORMS[agent.platform]
+  const platform = PLATFORMS[agent.platform as keyof typeof PLATFORMS] ?? null
   const { connections, isLoading } = useConnections()
   const isConnected = !isLoading && connections.some((c) => c.platform === agent.platform)
+
+  // Utility agents (slack, research) don't have PLATFORMS entries
+  if (!platform) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div>
+          <h2 className="text-lg font-bold text-foreground">{agent.name} Agent · Integration</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This is a utility agent that enhances your workflow. Manage the connection below.
+          </p>
+        </div>
+        <div
+          className="relative overflow-hidden rounded-2xl border p-5"
+          style={{
+            background: 'var(--card)',
+            borderColor: isConnected ? '#10B98155' : 'var(--border)',
+          }}
+        >
+          <div className="flex items-center gap-4">
+            <div
+              className="flex h-12 w-12 items-center justify-center rounded-xl text-white font-bold text-lg"
+              style={{ background: agent.gradient }}
+            >
+              {agent.avatar}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-semibold text-foreground">{agent.name}</p>
+              <p className="text-sm text-muted-foreground">{agent.description}</p>
+            </div>
+          </div>
+        </div>
+        <Section title="Capabilities">
+          <ul className="space-y-2">
+            {agent.capabilities.map((cap) => (
+              <li
+                key={cap}
+                className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/20 px-3.5 py-2.5"
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full shrink-0"
+                  style={{ background: agent.color }}
+                />
+                <span className="text-sm text-foreground/85">{cap}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

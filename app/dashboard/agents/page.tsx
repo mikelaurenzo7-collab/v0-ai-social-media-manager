@@ -13,8 +13,12 @@ const AGENT_STATS: Record<string, { sessions: number; workflows: number; rating:
   linkedin:  { sessions: 31, workflows: 5, rating: '4.8', status: 'connected' },
   facebook:  { sessions: 9,  workflows: 2, rating: '4.7', status: 'disconnected' },
   tiktok:    { sessions: 18, workflows: 11, rating: '4.9', status: 'connected' },
+  pinterest: { sessions: 15, workflows: 4, rating: '4.8', status: 'connected' },
+  snapchat:  { sessions: 7,  workflows: 2, rating: '4.7', status: 'disconnected' },
   gmail:     { sessions: 12, workflows: 4, rating: '4.9', status: 'connected' },
   outlook:   { sessions: 9,  workflows: 3, rating: '4.8', status: 'disconnected' },
+  slack:     { sessions: 28, workflows: 12, rating: '4.9', status: 'connected' },
+  research:  { sessions: 35, workflows: 8, rating: '5.0', status: 'connected' },
 }
 
 export default function AgentsPage() {

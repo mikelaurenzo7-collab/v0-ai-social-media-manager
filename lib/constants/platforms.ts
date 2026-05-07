@@ -146,10 +146,52 @@ export const PLATFORMS = {
       'Subject prefixes like [Action] or [FYI] help recipients triage faster',
     ],
   },
+  pinterest: {
+    id: 'pinterest',
+    name: 'Pinterest',
+    shortName: 'Pinterest',
+    maxLength: 500,
+    optimalLength: 200,
+    hashtagLimit: 20,
+    color: '#E60023',
+    bgColor: 'bg-[#E60023]',
+    textColor: 'text-white',
+    icon: 'pinterest',
+    features: ['Pin descriptions', 'Board strategy', 'SEO-driven discovery'],
+    contentFormats: ['Standard Pin', 'Idea Pin', 'Video Pin', 'Product Pin', 'Carousel Pin'],
+    algorithmTips: [
+      'Pinterest is a search engine — SEO-optimized descriptions rank for months',
+      'Vertical images (2:3 ratio) take up more feed space and get more saves',
+      'Keywords in the first 50 characters matter most for search ranking',
+      'Idea Pins get 9× more comments than standard pins',
+      'Pin consistently — 10–25 pins per day outperforms sporadic bursts',
+    ],
+  },
+  snapchat: {
+    id: 'snapchat',
+    name: 'Snapchat',
+    shortName: 'Snap',
+    maxLength: 250,
+    optimalLength: 80,
+    hashtagLimit: 0,
+    color: '#FFFC00',
+    bgColor: 'bg-[#FFFC00]',
+    textColor: 'text-black',
+    icon: 'snapchat',
+    features: ['Story scripts', 'Spotlight hooks', 'AR lens briefs'],
+    contentFormats: ['Story', 'Spotlight video', 'Snap Map content', 'AR Lens promo', 'Snap Ad'],
+    algorithmTips: [
+      'Spotlight rewards completion rate — hook in the first second',
+      'Vertical 9:16 is mandatory — landscape content gets cropped',
+      'Music and text overlays increase Spotlight distribution',
+      'Stories disappear in 24h — create urgency with exclusive content',
+      'Consistency matters less than virality — one hit can drive millions of views',
+    ],
+  },
 } as const
 
 export type PlatformId = keyof typeof PLATFORMS
-export type SocialPlatformId = 'twitter' | 'instagram' | 'linkedin' | 'facebook' | 'tiktok'
+export type SocialPlatformId = 'twitter' | 'instagram' | 'linkedin' | 'facebook' | 'tiktok' | 'pinterest' | 'snapchat'
 export type EmailPlatformId = 'gmail' | 'outlook'
 
 export const SOCIAL_PLATFORM_IDS: SocialPlatformId[] = [
@@ -158,6 +200,8 @@ export const SOCIAL_PLATFORM_IDS: SocialPlatformId[] = [
   'linkedin',
   'facebook',
   'tiktok',
+  'pinterest',
+  'snapchat',
 ]
 export const EMAIL_PLATFORM_IDS: EmailPlatformId[] = ['gmail', 'outlook']
 

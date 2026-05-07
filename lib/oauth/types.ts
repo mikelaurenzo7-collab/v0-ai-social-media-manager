@@ -4,6 +4,8 @@ export type ProviderId =
   | 'facebook'
   | 'instagram'
   | 'tiktok'
+  | 'pinterest'
+  | 'snapchat'
   | 'gmail'
   | 'outlook'
 

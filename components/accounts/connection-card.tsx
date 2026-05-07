@@ -12,7 +12,7 @@ export interface PlatformDef {
   description: string
   bg: string
   features: string[]
-  category: 'social' | 'email'
+  category: 'social' | 'email' | 'utility'
   available: boolean
 }
 

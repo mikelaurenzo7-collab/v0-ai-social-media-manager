@@ -237,6 +237,107 @@ async function publishToTikTok(
   return { success: true, externalId: json.data.publish_id }
 }
 
+// ── Pinterest ─────────────────────────────────────────────────────────────────
+
+async function publishToPinterest(
+  userId: string,
+  payload: SocialPostPayload,
+): Promise<PublishResult> {
+  const conn = await getValidAccessToken(userId, 'pinterest')
+  const imageUrl = payload.mediaUrls?.[0]
+  if (!imageUrl) {
+    return {
+      success: false,
+      error: 'Pinterest publishing requires an image URL in mediaUrls[0].',
+    }
+  }
+  
+  // Pinterest requires a board_id - we'll use the first board or create a default
+  const meta = (conn.metadata ?? {}) as { defaultBoardId?: string }
+  const boardId = meta.defaultBoardId
+  if (!boardId) {
+    return {
+      success: false,
+      error: 'No default Pinterest board configured. Reconnect and select a board.',
+    }
+  }
+
+  const res = await fetch('https://api.pinterest.com/v5/pins', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${conn.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      board_id: boardId,
+      media_source: {
+        source_type: 'image_url',
+        url: imageUrl,
+      },
+      description: payload.text,
+      link: undefined, // can add link support later
+    }),
+  })
+  const json = (await res.json()) as { id?: string; message?: string }
+  if (!res.ok || !json.id) {
+    return {
+      success: false,
+      error: `Pinterest publish failed: ${json.message ?? 'unknown'}`,
+    }
+  }
+  return {
+    success: true,
+    externalId: json.id,
+    url: `https://www.pinterest.com/pin/${json.id}`,
+  }
+}
+
+// ── Snapchat ──────────────────────────────────────────────────────────────────
+
+async function publishToSnapchat(
+  userId: string,
+  payload: SocialPostPayload,
+): Promise<PublishResult> {
+  const conn = await getValidAccessToken(userId, 'snapchat')
+  const videoUrl = payload.mediaUrls?.[0]
+  if (!videoUrl) {
+    return {
+      success: false,
+      error: 'Snapchat Spotlight publishing requires a video URL in mediaUrls[0].',
+    }
+  }
+
+  // Snapchat Content Posting API for Spotlight
+  const res = await fetch('https://adsapi.snapchat.com/v1/media', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${conn.accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      media: [{
+        media_type: 'VIDEO',
+        download_link: videoUrl,
+      }],
+    }),
+  })
+  const json = (await res.json()) as { 
+    request_status?: string
+    media?: Array<{ id?: string }> 
+    debug_message?: string 
+  }
+  if (!res.ok || json.request_status !== 'SUCCESS' || !json.media?.[0]?.id) {
+    return {
+      success: false,
+      error: `Snapchat publish failed: ${json.debug_message ?? 'unknown'}`,
+    }
+  }
+  return {
+    success: true,
+    externalId: json.media[0].id,
+  }
+}
+
 // ── Dispatcher ────────────────────────────────────────────────────────────────
 
 const HANDLERS: Record<
@@ -248,6 +349,8 @@ const HANDLERS: Record<
   facebook: publishToFacebook,
   instagram: publishToInstagram,
   tiktok: publishToTikTok,
+  pinterest: publishToPinterest,
+  snapchat: publishToSnapchat,
 }
 
 export async function publishSocialPost(

@@ -5,6 +5,8 @@ import { twitterProvider } from './twitter'
 import { linkedinProvider } from './linkedin'
 import { facebookProvider, instagramProvider } from './meta'
 import { tiktokProvider } from './tiktok'
+import { pinterestProvider } from './pinterest'
+import { snapchatProvider } from './snapchat'
 
 const PROVIDERS: Record<ProviderId, OAuthProvider> = {
   twitter: twitterProvider,
@@ -12,6 +14,8 @@ const PROVIDERS: Record<ProviderId, OAuthProvider> = {
   facebook: facebookProvider,
   instagram: instagramProvider,
   tiktok: tiktokProvider,
+  pinterest: pinterestProvider,
+  snapchat: snapchatProvider,
   gmail: googleProvider,
   outlook: microsoftProvider,
 }

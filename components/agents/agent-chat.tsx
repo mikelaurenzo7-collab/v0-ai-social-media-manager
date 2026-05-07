@@ -96,11 +96,62 @@ function GeneratedImageResult({ result }: { result: Record<string, unknown> }) {
   )
 }
 
+function ResearchResult({ result }: { result: Record<string, unknown> }) {
+  const success = result.success as boolean
+  const sources = (result.sources as Array<{ title: string; url: string; snippet: string }>) || []
+  const answer = result.answer as string | null
+  
+  if (!success) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm font-medium text-amber-700">Research unavailable</p>
+        <p className="text-xs text-amber-600 mt-1">{result.error as string}</p>
+      </div>
+    )
+  }
+  
+  return (
+    <div className="rounded-xl border bg-blue-500/5 p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+        </svg>
+        <span className="text-xs font-bold uppercase tracking-widest text-blue-600">Research Results</span>
+      </div>
+      
+      {answer && (
+        <div className="rounded-lg bg-blue-100/50 p-3 border border-blue-200">
+          <p className="text-sm text-blue-900">{answer}</p>
+        </div>
+      )}
+      
+      {sources.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground">Sources:</p>
+          {sources.slice(0, 3).map((source, idx) => (
+            <a
+              key={idx}
+              href={source.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-lg border border-blue-100 bg-white p-2 hover:border-blue-300 transition-colors"
+            >
+              <p className="text-xs font-semibold text-blue-700 truncate">{source.title}</p>
+              <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{source.snippet}</p>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ToolResult({ toolName, result }: { toolName: string; result: unknown }) {
   const r = result as Record<string, unknown>
   if (toolName === 'analyze_virality') return <ViralityScore result={r} />
   if (toolName === 'strategic_alignment') return <AlignmentResult result={r} />
   if (toolName === 'generate_image') return <GeneratedImageResult result={r} />
+  if (toolName === 'research_trends') return <ResearchResult result={r} />
   return (
     <div className="rounded-lg border bg-muted/30 p-3 text-xs">
       <p className="font-bold mb-1">Tool: {toolName}</p>
