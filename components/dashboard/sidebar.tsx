@@ -71,9 +71,18 @@ const sections: NavSection[] = [
         ),
       },
       {
+        name: 'Studio',
+        href: '/dashboard/studio',
+        badge: 'NEW',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18 7.5l-.394 1.184a1.5 1.5 0 01-1.03 1.03L15.39 10.5l1.184.394a1.5 1.5 0 011.03 1.03L18 13.5l.394-1.184a1.5 1.5 0 011.03-1.03L20.61 10.5l-1.184-.394a1.5 1.5 0 01-1.03-1.03L18 7.5zM16.5 18l-.394-1.183a1.5 1.5 0 00-1.03-1.03L13.89 15.39l1.183-.394a1.5 1.5 0 001.03-1.03L16.5 12.78l.394 1.183a1.5 1.5 0 001.03 1.03l1.183.394-1.183.394a1.5 1.5 0 00-1.03 1.03L16.5 18z" />
+          </svg>
+        ),
+      },
+      {
         name: 'Pipeline',
         href: '/dashboard/pipeline',
-        badge: 'NEW',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6h16.5M3.75 12h16.5m-16.5 6h16.5" />

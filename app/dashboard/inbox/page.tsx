@@ -216,10 +216,25 @@ export default function InboxPage() {
     })
   }, [items, filter, platform])
 
-  const selected = useMemo(
-    () => items.find((i) => i.id === selectedId) ?? null,
-    [items, selectedId],
-  )
+  // Resolve selection from the filtered list so the detail pane never
+  // disagrees with what's visible. If the previously-selected item is no
+  // longer in scope, fall back to the top of the filtered list.
+  const selected = useMemo(() => {
+    const fromFilter = filtered.find((i) => i.id === selectedId)
+    if (fromFilter) return fromFilter
+    return filtered[0] ?? null
+  }, [filtered, selectedId])
+
+  // Keep selectedId in sync with what's actually displayed so reply / send
+  // operations always target a visible conversation.
+  useEffect(() => {
+    if (selected && selected.id !== selectedId) {
+      setSelectedId(selected.id)
+    } else if (!selected && selectedId !== null) {
+      setSelectedId(null)
+    }
+  }, [selected, selectedId])
+
   const unreadCount = useMemo(() => items.filter((i) => i.unread).length, [items])
 
   function markRead(id: string) {

@@ -7,10 +7,11 @@ import { getAgentById } from '@/lib/agents'
 import { cn } from '@/lib/utils'
 import { AgentChat } from '@/components/agents/agent-chat'
 import { WorkflowComposer } from '@/components/agents/workflow-composer'
-import { AgentSettings } from '@/components/agents/agent-settings'
 import { AgentPlatformConfig } from '@/components/agents/platform-config'
 import { AgentCustomize } from '@/components/agents/agent-customize'
 import { AgentPermissions } from '@/components/agents/agent-permissions'
+import { AgentMemory } from '@/components/agents/agent-memory'
+import { AgentProbe } from '@/components/agents/agent-probe'
 import { PremiumGate } from '@/components/agents/premium-gate'
 
 // ── AutoPilot mini-status widget ─────────────────────────────────────────────
@@ -399,8 +400,11 @@ export default function AgentPage({ params }: { params: Promise<{ id: string }> 
         {/* Tab content */}
         <div className="flex-1 overflow-hidden min-h-0">
           {activeTab === 'Chat' && (
-            <div className="h-full">
+            <div className="h-full overflow-y-auto">
               <PremiumGate agentPremium={agent.premium}>
+                <div className="p-6 max-w-3xl mx-auto">
+                  <AgentProbe agent={agent} />
+                </div>
                 <AgentChat agent={agent} />
               </PremiumGate>
             </div>
@@ -428,7 +432,7 @@ export default function AgentPage({ params }: { params: Promise<{ id: string }> 
 
           {activeTab === 'Memory' && (
             <div className="h-full overflow-y-auto p-6">
-              <AgentSettings agent={agent} mode="memory" />
+              <AgentMemory agent={agent} />
             </div>
           )}
 

@@ -34,6 +34,7 @@ const GROUPS: ShortcutGroup[] = [
       { keys: ['G', 'A'], desc: 'Go to Analytics' },
       { keys: ['G', 'L'], desc: 'Go to Library' },
       { keys: ['G', 'P'], desc: 'Go to Pipeline' },
+      { keys: ['G', 'S'], desc: 'Go to Studio' },
       { keys: ['G', 'W'], desc: 'Go to Workflows' },
       { keys: ['G', 'T'], desc: 'Go to Team' },
     ],
@@ -67,6 +68,7 @@ const NAV_ROUTES: Record<string, string> = {
   a: '/dashboard/analytics',
   l: '/dashboard/library',
   p: '/dashboard/pipeline',
+  s: '/dashboard/studio',
   w: '/dashboard/workflows',
   t: '/dashboard/team',
 }

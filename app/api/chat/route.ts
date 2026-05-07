@@ -16,6 +16,11 @@ import {
   permissionsToSystemNote,
   type AgentPermissionsPayload,
 } from '@/lib/agent-permissions'
+import {
+  imageBriefSchema,
+  carouselStoryboardSchema,
+  videoStoryboardSchema,
+} from '@/lib/creative'
 
 // Node runtime — required by googleapis (Gmail) + Microsoft Graph SDK (Outlook).
 export const runtime = 'nodejs'
@@ -63,17 +68,27 @@ const POSTING_SCHEDULES: Record<string, { bestDays: string[]; bestTimes: string[
 }
 
 export async function POST(req: Request) {
-  const { messages, agentId, creativity, tone, memory, brandKit, customization, permissions } =
-    (await req.json()) as {
-      messages: UIMessage[]
-      agentId?: string
-      creativity?: string | number | null
-      tone?: string | number | null
-      memory?: string | null
-      brandKit?: BrandKit | null
-      customization?: AgentCustomization | null
-      permissions?: AgentPermissionsPayload | null
-    }
+  const {
+    messages,
+    agentId,
+    creativity,
+    tone,
+    memory,
+    adaptiveMemory,
+    brandKit,
+    customization,
+    permissions,
+  } = (await req.json()) as {
+    messages: UIMessage[]
+    agentId?: string
+    creativity?: string | number | null
+    tone?: string | number | null
+    memory?: string | null
+    adaptiveMemory?: Array<{ source?: string; content?: string }> | null
+    brandKit?: BrandKit | null
+    customization?: AgentCustomization | null
+    permissions?: AgentPermissionsPayload | null
+  }
 
   // Both arrive as `string | null` from localStorage on the client. Parse once,
   // explicitly guard NaN, and treat anything outside [0,100] as unset.
@@ -95,9 +110,31 @@ export async function POST(req: Request) {
   const customizationSuffix = customizationToPromptSuffix(customization ?? null)
   const permissionsNote = permissionsToSystemNote(permissions ?? null)
   const allowPublish = permissionsAllowChannelPublishing(permissions ?? null)
+
+  // Adaptive memory v2 prefix — every active row, grouped by source, with
+  // explicit framing so the model treats them as durable workspace truths,
+  // not turn-level instructions.
+  function adaptiveMemoryPrefix(rows: Array<{ source?: string; content?: string }> | null | undefined): string {
+    if (!rows?.length) return ''
+    const valid = rows.filter((r) => typeof r?.content === 'string' && r.content.trim().length > 0)
+    if (valid.length === 0) return ''
+    const grouped = valid.reduce<Record<string, string[]>>((acc, r) => {
+      const key = r.source ?? 'explicit'
+      ;(acc[key] ||= []).push(r.content!.trim())
+      return acc
+    }, {})
+    const lines: string[] = []
+    for (const [src, items] of Object.entries(grouped)) {
+      lines.push(`(${src}) ${items.map((i) => `· ${i}`).join('\n  ')}`)
+    }
+    return `\n\nADAPTIVE WORKSPACE MEMORY — apply on every turn:\n${lines.join('\n')}\n— These reflect what this workspace has actually approved/rejected/edited and what their audience signals. Honor them.`
+  }
+
+  const adaptivePrefix = adaptiveMemoryPrefix(adaptiveMemory ?? null)
   const modelMessages = await convertToModelMessages(messages)
 
-  let systemPrompt = defaultSystemPrompt + brandKitPrefix + customizationSuffix + permissionsNote
+  let systemPrompt =
+    defaultSystemPrompt + brandKitPrefix + customizationSuffix + permissionsNote + adaptivePrefix
   let temperature = 0.7
 
   if (agentId) {
@@ -136,7 +173,7 @@ export async function POST(req: Request) {
       ? `You are now operating as "${displayName}". ${persona}`
       : persona
 
-    systemPrompt = `${namedPersona}${toneInstructions}${memoryContext}${brandKitPrefix}${customizationSuffix}${permissionsNote}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
+    systemPrompt = `${namedPersona}${toneInstructions}${memoryContext}${brandKitPrefix}${customizationSuffix}${permissionsNote}${adaptivePrefix}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads, carousels, and short-form video storyboards\n- Generating image briefs that match the brand palette\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nWhen the user asks for visuals or video, prefer the design_carousel / storyboard_video / generate_image tools so the output is structured and shippable.\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
 
     if (creativityNum != null) {
       // Map 0–100 to 0.0–1.0 temperature
@@ -436,6 +473,89 @@ export async function POST(req: Request) {
             prompt: `Write an optimized ${platform} bio for:\n\n${brandDescription}\n\nGoal: ${goal}\n\nStay under ${limits.limit} characters.`,
           })
           return { ...object, platform, limit: limits.limit }
+        },
+      }),
+
+      // ── Creative tools ──────────────────────────────────────────────────
+      // These return structured briefs / storyboards. Real image + video
+      // pixel generation is brokered by a downstream provider keyed off the
+      // returned brief; the chat tool is the planning surface.
+
+      generate_image: tool({
+        description:
+          'Produce an image brief (subject, composition, style, palette, alt text) ready to hand to an image-gen provider. Use when the user asks for an image, hero shot, quote card, or visual to accompany a post. Reflect the connected Brand Kit palette where one is available.',
+        inputSchema: z.object({
+          purpose: z.string().describe('What the image is for, e.g. "LinkedIn hero for the launch post"'),
+          platform: z.enum(['twitter', 'instagram', 'linkedin', 'facebook', 'tiktok']).optional(),
+          mood: z.string().optional().describe('Optional mood — "warm", "minimal", "high-energy"'),
+          paletteHexes: z.array(z.string()).max(5).optional().describe('Hex colors to lean on, if known'),
+        }),
+        execute: async ({ purpose, platform, mood, paletteHexes }) => {
+          const formatGuide: Record<string, string> = {
+            twitter: '16:9 landscape, lead with one bold visual, light text overlay (≤6 words).',
+            instagram: '4:5 portrait or 1:1 square. Composition reads from top-left.',
+            linkedin: '1.91:1 landscape for feed, 1:1 for carousel cover. Professional but human.',
+            facebook: '1.91:1 landscape, leave 20% headroom for OG previews.',
+            tiktok: '9:16 portrait. Bold focal subject; dead-center for safe-zone overlap.',
+          }
+          const guide = platform ? formatGuide[platform] : 'Pick the format that best fits the purpose.'
+          const { object } = await generateObject({
+            model: anthropic('claude-3-5-haiku-20241022'),
+            schema: imageBriefSchema,
+            system:
+              'You are a senior art director writing concrete briefs for an image generation model. Be specific. Brief should read like a director\'s note, not a description of a photograph.',
+            prompt: `Image brief for: ${purpose}\nPlatform: ${platform ?? 'unspecified'}\nGuide: ${guide}\nMood: ${
+              mood ?? 'match the brand tone'
+            }\nPalette: ${paletteHexes?.length ? paletteHexes.join(', ') : 'use the brand kit if connected'}\n\nReturn a brief the model can act on without asking questions.`,
+          })
+          return { ...object, platform: platform ?? null }
+        },
+      }),
+
+      design_carousel: tool({
+        description:
+          'Build a slide-by-slide carousel storyboard for Instagram or LinkedIn. Use when the user asks for a carousel, document post, multi-slide breakdown, or save-worthy listicle.',
+        inputSchema: z.object({
+          topic: z.string(),
+          platform: z.enum(['instagram', 'linkedin']),
+          slideCount: z.number().min(3).max(10).default(7),
+          goal: z
+            .string()
+            .default('save-worthy education')
+            .describe('save-worthy education / persuasive / story-driven / step-by-step / listicle'),
+        }),
+        execute: async ({ topic, platform, slideCount, goal }) => {
+          const { object } = await generateObject({
+            model: anthropic('claude-3-5-sonnet-20241022'),
+            schema: carouselStoryboardSchema,
+            system:
+              'You are a top carousel designer. Slides earn the swipe — every one delivers something or sets up the next. Cover earns the tap, last slide earns the save and follow.',
+            prompt: `Build a ${slideCount}-slide ${platform} carousel on "${topic}".\nGoal: ${goal}.\nRules:\n- Cover slide is a hook, not a title.\n- One idea per slide.\n- End with a save bait + follow CTA.\n- Caption 1–2 short paragraphs + 5–10 niche-relevant hashtags.`,
+          })
+          return object
+        },
+      }),
+
+      storyboard_video: tool({
+        description:
+          'Build a shot-by-shot storyboard for a short-form video (TikTok, Reel, Short). Use when the user asks for a video, script, hook idea, or short-form video plan.',
+        inputSchema: z.object({
+          topic: z.string(),
+          platform: z.enum(['tiktok', 'instagram', 'youtube-shorts']).default('tiktok'),
+          format: z
+            .enum(['talking-head', 'voice-over', 'faceless', 'tutorial', 'POV'])
+            .default('voice-over'),
+          targetDuration: z.string().default('20–30s'),
+        }),
+        execute: async ({ topic, platform, format, targetDuration }) => {
+          const { object } = await generateObject({
+            model: anthropic('claude-3-5-sonnet-20241022'),
+            schema: videoStoryboardSchema,
+            system:
+              'You are a short-form video director. Hook in 1–3 seconds or you lose them forever. Every shot earns the next one. On-screen text complements voice; never duplicates it.',
+            prompt: `Storyboard a ${targetDuration} ${platform} video on "${topic}". Format: ${format}.\nReturn:\n- A hook line that stops the scroll\n- 4–6 shots with frame direction, VO, on-screen text, B-roll\n- Caption (≤150 chars) and trending audio category suggestion\n- A clear CTA at the end`,
+          })
+          return object
         },
       }),
     },

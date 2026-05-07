@@ -46,10 +46,194 @@ function AlignmentResult({ result }: { result: Record<string, unknown> }) {
   )
 }
 
+function ImageBriefResult({ result }: { result: Record<string, unknown> }) {
+  const palette = (result.paletteHexes as string[] | undefined) ?? []
+  const styleNotes = (result.styleNotes as string[] | undefined) ?? []
+  return (
+    <div className="rounded-2xl border border-border/60 overflow-hidden bg-card">
+      <div
+        className="relative flex items-center justify-center aspect-[16/9] bg-gradient-to-br from-orange-500/15 via-pink-500/10 to-violet-500/15"
+      >
+        <span className="text-5xl drop-shadow-md">🎨</span>
+        <div className="absolute top-2 left-2 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm uppercase tracking-widest">
+          Image brief · {String(result.aspectRatio ?? '')}
+        </div>
+        {result.textOverlay ? (
+          <div className="absolute bottom-2 left-2 right-2 rounded-lg bg-black/45 px-2 py-1 text-[11px] font-bold text-white text-center backdrop-blur-sm">
+            “{String(result.textOverlay)}”
+          </div>
+        ) : null}
+      </div>
+      <div className="p-4 space-y-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Subject</p>
+          <p className="text-sm font-semibold">{String(result.subject ?? '')}</p>
+        </div>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Composition</p>
+          <p className="text-xs leading-relaxed text-muted-foreground">{String(result.composition ?? '')}</p>
+        </div>
+        {styleNotes.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Style</p>
+            <div className="flex flex-wrap gap-1">
+              {styleNotes.map((s) => (
+                <span
+                  key={s}
+                  className="rounded-full bg-muted text-[10px] font-semibold uppercase tracking-widest text-muted-foreground px-1.5 py-0.5"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {palette.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Palette</p>
+            <div className="flex gap-1">
+              {palette.map((hex) => (
+                <div key={hex} className="flex-1 space-y-1">
+                  <div className="h-7 rounded-md ring-1 ring-border/50" style={{ background: hex }} />
+                  <p className="text-[9px] font-mono text-center text-muted-foreground">{hex}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="pt-1 flex items-center gap-2">
+          <button
+            type="button"
+            className="rounded-lg px-3 py-1.5 text-xs font-bold text-white"
+            style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+          >
+            Generate image →
+          </button>
+          <span className="text-[10px] text-muted-foreground italic">
+            Hands the brief to your connected image provider.
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CarouselStoryboardResult({ result }: { result: Record<string, unknown> }) {
+  const slides = (result.slides as Array<Record<string, unknown>> | undefined) ?? []
+  const hashtags = (result.hashtags as string[] | undefined) ?? []
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-border/40">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-bold leading-tight">{String(result.title ?? 'Carousel')}</p>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            {String(result.platform ?? '')} · {slides.length} slides
+          </span>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">{String(result.hook ?? '')}</p>
+      </div>
+      <div className="px-4 py-3 overflow-x-auto">
+        <div className="flex gap-2 min-w-max">
+          {slides.map((s, i) => (
+            <div
+              key={i}
+              className="w-44 shrink-0 rounded-xl border border-border/60 p-3 bg-gradient-to-br from-orange-500/5 to-pink-500/5 flex flex-col"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {i + 1} · {String(s.type ?? '')}
+                </span>
+              </div>
+              <p className="text-sm font-bold leading-snug line-clamp-3">{String(s.headline ?? '')}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground line-clamp-3 leading-relaxed">
+                {String(s.body ?? '')}
+              </p>
+              <p className="mt-2 text-[10px] italic text-orange-700 dark:text-orange-300 line-clamp-2">
+                Visual: {String(s.visualNote ?? '')}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="px-4 py-3 border-t border-border/40 space-y-2">
+        <p className="text-xs leading-relaxed">{String(result.caption ?? '')}</p>
+        {hashtags.length > 0 && (
+          <p className="text-[10px] font-mono text-muted-foreground">
+            {hashtags.map((h) => `#${h.replace(/^#/, '')}`).join(' ')}
+          </p>
+        )}
+        {result.saveBait ? (
+          <p className="text-[11px] text-muted-foreground italic">💾 {String(result.saveBait)}</p>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+function VideoStoryboardResult({ result }: { result: Record<string, unknown> }) {
+  const shots = (result.shots as Array<Record<string, unknown>> | undefined) ?? []
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-border/40 bg-gradient-to-br from-fuchsia-500/8 to-rose-500/8">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            {String(result.platform ?? '')} · {String(result.format ?? '')} · {String(result.totalDuration ?? '')}
+          </span>
+        </div>
+        <p className="mt-1 text-sm font-bold leading-snug">🎬 {String(result.hook ?? '')}</p>
+      </div>
+      <div className="divide-y divide-border/40">
+        {shots.map((s, i) => (
+          <div key={i} className="flex gap-3 px-4 py-3">
+            <div className="flex flex-col items-center shrink-0 pt-0.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold">
+                {i + 1}
+              </span>
+              <span className="text-[9px] mt-1 font-mono text-muted-foreground">{String(s.duration ?? '')}</span>
+            </div>
+            <div className="flex-1 min-w-0 space-y-1">
+              <p className="text-xs font-semibold">{String(s.cameraDirection ?? '')}</p>
+              {s.voiceOver ? (
+                <p className="text-[11px] text-muted-foreground">
+                  <span className="font-bold uppercase tracking-widest text-[9px] mr-1.5">VO</span>
+                  {String(s.voiceOver)}
+                </p>
+              ) : null}
+              {s.onScreenText ? (
+                <p className="text-[11px] text-foreground/90">
+                  <span className="font-bold uppercase tracking-widest text-[9px] mr-1.5 text-orange-600">
+                    TEXT
+                  </span>
+                  “{String(s.onScreenText)}”
+                </p>
+              ) : null}
+              {s.bRoll ? (
+                <p className="text-[11px] text-muted-foreground italic">
+                  <span className="font-bold uppercase tracking-widest text-[9px] mr-1.5 not-italic">B-ROLL</span>
+                  {String(s.bRoll)}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="px-4 py-3 border-t border-border/40 space-y-1">
+        <p className="text-xs leading-relaxed">{String(result.caption ?? '')}</p>
+        <p className="text-[10px] text-muted-foreground">
+          🎵 {String(result.audioSuggestion ?? '')} · 🎯 {String(result.cta ?? '')}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function ToolResult({ toolName, result }: { toolName: string; result: unknown }) {
   const r = result as Record<string, unknown>
   if (toolName === 'analyze_virality') return <ViralityScore result={r} />
   if (toolName === 'strategic_alignment') return <AlignmentResult result={r} />
+  if (toolName === 'generate_image') return <ImageBriefResult result={r} />
+  if (toolName === 'design_carousel') return <CarouselStoryboardResult result={r} />
+  if (toolName === 'storyboard_video') return <VideoStoryboardResult result={r} />
   return (
     <div className="rounded-lg border bg-muted/30 p-3 text-xs">
       <p className="font-bold mb-1">Tool: {toolName}</p>
@@ -93,6 +277,21 @@ export function AgentChat({ agent }: { agent: Agent }) {
           const brandKitEnabled = permissions?.tools?.brandKit !== false
           const brandKit = brandKitEnabled ? readJson('postpilot_brand_kit_v1') : null
 
+          // Adaptive memory v2: structured signals (explicit / inferred /
+          // performance / feedback / audience). We send only the active rows
+          // and the agent prepends them to its system prompt as a memory
+          // ledger. Falls back to the legacy free-text memory blob if v2
+          // hasn't been populated yet.
+          const memoryV2 = readJson(`postpilot_agent_${agent.id}_memoryv2`) as
+            | Array<{ body?: string; active?: boolean; source?: string }>
+            | null
+          const adaptiveMemory =
+            Array.isArray(memoryV2)
+              ? memoryV2
+                  .filter((m) => m && typeof m.body === 'string' && m.active !== false)
+                  .map((m) => ({ source: m.source ?? 'explicit', content: m.body }))
+              : null
+
           return {
             body: {
               ...body,
@@ -101,6 +300,7 @@ export function AgentChat({ agent }: { agent: Agent }) {
               creativity: ls?.getItem(`agent_${agent.id}_creativity`) ?? null,
               tone: ls?.getItem(`agent_${agent.id}_tone`) ?? null,
               memory: ls?.getItem(`agent_${agent.id}_memory`) ?? null,
+              adaptiveMemory,
               brandKit,
               customization: readJson(`postpilot_agent_${agent.id}_customization_v1`),
               permissions,

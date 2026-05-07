@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Header } from '@/components/dashboard/header'
@@ -147,10 +147,21 @@ export default function ApprovalsPage() {
     [items, filter],
   )
 
-  const selected = useMemo(
-    () => items.find((i) => i.id === selectedId) ?? filtered[0] ?? null,
-    [items, selectedId, filtered],
-  )
+  // Resolve selection from the filtered list so the detail pane never
+  // disagrees with what's visible.
+  const selected = useMemo(() => {
+    const fromFilter = filtered.find((i) => i.id === selectedId)
+    if (fromFilter) return fromFilter
+    return filtered[0] ?? null
+  }, [filtered, selectedId])
+
+  useEffect(() => {
+    if (selected && selected.id !== selectedId) {
+      setSelectedId(selected.id)
+    } else if (!selected && selectedId) {
+      setSelectedId('')
+    }
+  }, [selected, selectedId])
 
   const counts = useMemo(() => {
     const c: Record<Status | 'all', number> = {

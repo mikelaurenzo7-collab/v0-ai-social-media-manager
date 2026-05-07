@@ -33,6 +33,7 @@ const NAV_ACTIONS: Action[] = [
   { id: 'pipeline', label: 'Pipeline', desc: 'Kanban: Idea → Published', icon: '📋', href: '/dashboard/pipeline', group: 'Navigate', shortcut: 'g p', keywords: ['kanban', 'board', 'flow'] },
   { id: 'workflows', label: 'Workflows', desc: 'Recipes & automations', icon: '⚙️', href: '/dashboard/workflows', group: 'Navigate', shortcut: 'g w', keywords: ['recipes', 'automation', 'rules'] },
   { id: 'create', label: 'Create content', icon: '✨', href: '/dashboard/create', group: 'Create', shortcut: 'c' },
+  { id: 'studio', label: 'Creative Studio', desc: 'Multi-format remix from one prompt', icon: '🪄', href: '/dashboard/studio', group: 'Create', shortcut: 'g s', keywords: ['remix', 'multi-format', 'image', 'video', 'carousel'] },
   { id: 'autopilot', label: 'Auto-Pilot', icon: '⚡', href: '/dashboard/autopilot', group: 'Create' },
   { id: 'drafts', label: 'Drafts', icon: '📝', href: '/dashboard/drafts', group: 'Navigate', shortcut: 'g f' },
   { id: 'calendar', label: 'Calendar', icon: '📅', href: '/dashboard/calendar', group: 'Navigate', shortcut: 'g c' },
