@@ -87,7 +87,11 @@ export async function POST(req: Request) {
   const creativityNum = parseScale(creativity)
   const toneNum = parseScale(tone)
 
-  const brandKitPrefix = brandKitToSystemPrefix(brandKit ?? null)
+  // If the workspace toggled the Brand Kit tool OFF for this agent, the
+  // server refuses to use the kit even if a stale or hostile client sends
+  // it. The client is also expected not to send it; this is the belt.
+  const brandKitAllowed = permissions?.tools?.brandKit !== false
+  const brandKitPrefix = brandKitToSystemPrefix(brandKitAllowed ? (brandKit ?? null) : null)
   const customizationSuffix = customizationToPromptSuffix(customization ?? null)
   const permissionsNote = permissionsToSystemNote(permissions ?? null)
   const allowPublish = permissionsAllowChannelPublishing(permissions ?? null)
@@ -142,16 +146,19 @@ export async function POST(req: Request) {
 
   const rawAgentTools = agentId ? (AGENT_TOOLS[agentId as keyof typeof AGENT_TOOLS] || {}) : {}
 
-  // Permission-gate channel publishing tools. When the workspace has set the
-  // agent to draft-only / approval-required, or has revoked the post scope,
-  // we strip publish_to_platform from the toolset entirely so the model
-  // cannot publish even if it tries to call it.
+  // Permission-gate every action tool. When the workspace has set the agent
+  // to draft-only / approval-required, or has revoked the post scope, we
+  // strip BOTH `publish_to_platform` (social) AND `send_email` (Gmail /
+  // Outlook) from the toolset entirely so the model cannot act even if it
+  // tries to call them. `draft_email` and `check_email_connection` stay —
+  // they're read-only/preview operations.
   const agentTools: Record<string, unknown> = { ...rawAgentTools }
-  if (!allowPublish && 'publish_to_platform' in agentTools) {
+  if (!allowPublish) {
     delete agentTools.publish_to_platform
+    delete agentTools.send_email
   }
   if (permissions?.scopes?.dm === false) {
-    // (No DM tool today, but reserved for future scope-gated tools.)
+    // (No DM tool today — reserved for future scope-gated tools.)
   }
 
   const result = streamText({

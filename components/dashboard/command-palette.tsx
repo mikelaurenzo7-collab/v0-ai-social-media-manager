@@ -37,6 +37,7 @@ const NAV_ACTIONS: Action[] = [
   { id: 'drafts', label: 'Drafts', icon: '📝', href: '/dashboard/drafts', group: 'Navigate', shortcut: 'g f' },
   { id: 'calendar', label: 'Calendar', icon: '📅', href: '/dashboard/calendar', group: 'Navigate', shortcut: 'g c' },
   { id: 'analytics', label: 'Analytics', icon: '📊', href: '/dashboard/analytics', group: 'Navigate', shortcut: 'g a' },
+  { id: 'insights', label: 'Insights', desc: 'Anomalies, wins, opportunities', icon: '💡', href: '/dashboard/insights', group: 'Navigate', keywords: ['anomalies', 'analytics', 'observations'] },
   { id: 'trends', label: 'Trends & Discovery', icon: '🔥', href: '/dashboard/trends', group: 'Navigate', keywords: ['discovery', 'topics'] },
   { id: 'brand', label: 'Brand Kit', icon: '🎨', href: '/dashboard/brand', group: 'Navigate', keywords: ['voice', 'palette', 'hashtags'] },
   { id: 'team', label: 'Team & Workspace', desc: 'Members, roles, invites, audit log', icon: '👥', href: '/dashboard/team', group: 'Account', shortcut: 'g t', keywords: ['workspace', 'members', 'roles', 'audit'] },
@@ -48,7 +49,9 @@ const NAV_ACTIONS: Action[] = [
   { id: 'changelog', label: 'Changelog', icon: '📝', href: '/changelog', group: 'Help' },
   { id: 'status', label: 'System Status', icon: '🟢', href: '/status', group: 'Help' },
   { id: 'security', label: 'Security', icon: '🔒', href: '/security', group: 'Help' },
+  { id: 'copilot', label: 'Open AI Co-Pilot', desc: 'Context-aware assistant', icon: '✨', href: '#open-copilot', group: 'Help', shortcut: '⌘ J' },
   { id: 'shortcuts', label: 'Keyboard shortcuts', desc: 'Press ? for the full list', icon: '⌨️', href: '#open-shortcuts', group: 'Help', shortcut: '?' },
+  { id: 'roadmap', label: 'Public roadmap', desc: 'See what\'s shipping next', icon: '🗺️', href: '/roadmap', group: 'Help' },
 ]
 
 export function CommandPalette() {
@@ -78,11 +81,15 @@ export function CommandPalette() {
     (href: string) => {
       setOpen(false)
       if (href === '#open-shortcuts') {
-        // dispatch as a real ? key on document so the ShortcutsOverlay picks it up
-        // without us coupling the two components
         if (typeof document !== 'undefined') {
           const evt = new KeyboardEvent('keydown', { key: '?', bubbles: true })
           document.dispatchEvent(evt)
+        }
+        return
+      }
+      if (href === '#open-copilot') {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('copilot:open'))
         }
         return
       }

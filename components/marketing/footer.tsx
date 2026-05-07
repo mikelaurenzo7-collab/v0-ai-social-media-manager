@@ -25,9 +25,9 @@ const COLS = [
   {
     heading: 'Company',
     items: [
+      { label: 'Roadmap',    href: '/roadmap' },
       { label: 'Changelog',  href: '/changelog' },
       { label: 'System status', href: '/status' },
-      { label: 'Help center', href: '/dashboard/help' },
       { label: 'Contact',    href: 'mailto:hello@postpilot.app' },
     ],
   },

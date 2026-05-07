@@ -84,6 +84,15 @@ export function AgentChat({ agent }: { agent: Agent }) {
               return null
             }
           }
+          // Read agent permissions first so we can respect tool-access toggles
+          // before deciding whether to ship optional payloads (Brand Kit etc.).
+          const permissions = readJson(`agent_${agent.id}_permissions_v1`) as
+            | { tools?: { brandKit?: boolean } }
+            | null
+
+          const brandKitEnabled = permissions?.tools?.brandKit !== false
+          const brandKit = brandKitEnabled ? readJson('postpilot_brand_kit_v1') : null
+
           return {
             body: {
               ...body,
@@ -92,9 +101,9 @@ export function AgentChat({ agent }: { agent: Agent }) {
               creativity: ls?.getItem(`agent_${agent.id}_creativity`) ?? null,
               tone: ls?.getItem(`agent_${agent.id}_tone`) ?? null,
               memory: ls?.getItem(`agent_${agent.id}_memory`) ?? null,
-              brandKit: readJson('postpilot_brand_kit_v1'),
+              brandKit,
               customization: readJson(`postpilot_agent_${agent.id}_customization_v1`),
-              permissions: readJson(`agent_${agent.id}_permissions_v1`),
+              permissions,
             },
           }
         },

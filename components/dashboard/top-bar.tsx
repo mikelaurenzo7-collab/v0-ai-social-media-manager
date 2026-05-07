@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { NotificationsButton } from '@/components/dashboard/notifications'
+import { CrisisModeButton } from '@/components/dashboard/crisis-mode'
 
 export function TopBar() {
   function openCommandPalette() {
@@ -21,6 +22,7 @@ export function TopBar() {
         <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground">⌘K</kbd>
       </button>
 
+      <CrisisModeButton />
       <NotificationsButton />
 
       <Link

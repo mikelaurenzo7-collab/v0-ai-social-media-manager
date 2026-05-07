@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { getAgentById } from '@/lib/agents'
 import { cn } from '@/lib/utils'
 import { AgentChat } from '@/components/agents/agent-chat'
@@ -167,7 +168,18 @@ const DEFAULT_STATS = { chats: 0, workflows: 0, memories: 0, rating: '—' }
 export default function AgentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const agent = getAgentById(id)
-  const [activeTab, setActiveTab] = useState<Tab>('Chat')
+  const searchParams = useSearchParams()
+
+  // Honor ?tab=Platform / ?tab=Customize / etc. from inbound deep-links so
+  // shortcuts like the gear icon on /dashboard/agents land users on the
+  // right tab instead of always defaulting to Chat.
+  const initialTab: Tab = (() => {
+    const fromQuery = searchParams.get('tab')
+    if (!fromQuery) return 'Chat'
+    const match = TABS.find((t) => t.toLowerCase() === fromQuery.toLowerCase())
+    return match ?? 'Chat'
+  })()
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab)
 
   const stats = MOCK_STATS[agent.id] ?? DEFAULT_STATS
 
