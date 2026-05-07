@@ -16,6 +16,12 @@ interface WorkflowStep {
   icon: React.ReactNode
 }
 
+interface WorkflowResult {
+  id: string
+  name: string
+  output: string
+}
+
 const COMMON_STEPS: WorkflowStep[] = [
   { id: 'research', name: 'Topic Research', description: 'Analyze trends and search intent', icon: <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg> },
   { id: 'hooks', name: 'Viral Hooks', description: 'Generate high-CTR opening lines', icon: <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.048 8.287 8.287 0 0 0 9 9.6a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" /></svg> },
@@ -28,7 +34,7 @@ export function WorkflowComposer({ agent }: { agent: Agent }) {
   const [topic, setTopic] = useState('')
   const [selectedSteps, setSelectedSteps] = useState<string[]>(['research', 'hooks', 'draft'])
   const [isRunning, setIsRunning] = useState(false)
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<WorkflowResult[]>([])
 
   const toggleStep = (id: string) => {
     setSelectedSteps(prev =>
@@ -49,11 +55,15 @@ export function WorkflowComposer({ agent }: { agent: Agent }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ steps: selectedSteps, topic, agentId: agent.id })
       })
-      const data = await res.json()
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error((errData as { error?: string }).error || 'Workflow request failed')
+      }
+      const data = await res.json() as { results: WorkflowResult[] }
       setResults(data.results)
       toast.success("Workflow completed!")
-    } catch (e) {
-      toast.error("Workflow failed")
+    } catch {
+      toast.error("Workflow failed. Please try again.")
     } finally {
       setIsRunning(false)
     }

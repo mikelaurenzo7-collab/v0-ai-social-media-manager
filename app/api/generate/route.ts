@@ -1,6 +1,16 @@
 import { streamObject } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
+import { z } from 'zod'
 import { contentVariationSchema } from '@/lib/schemas/content'
+
+const SUPPORTED_PLATFORMS = ['twitter', 'instagram', 'facebook', 'linkedin', 'tiktok'] as const
+
+const requestSchema = z.object({
+  prompt: z.string().trim().min(1).max(2000),
+  tone: z.string().trim().min(1).max(80),
+  contentType: z.string().trim().min(1).max(80),
+  platforms: z.array(z.enum(SUPPORTED_PLATFORMS)).min(1).max(5),
+})
 
 export const runtime = 'edge'
 
@@ -45,11 +55,16 @@ const PLATFORM_DEEP_GUIDES: Record<string, string> = {
 }
 
 export async function POST(req: Request) {
-  const { prompt, tone, contentType, platforms } = await req.json()
+  const body = await req.json().catch(() => null)
+  const validation = requestSchema.safeParse(body)
+  if (!validation.success) {
+    return Response.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+  const { prompt, tone, contentType, platforms } = validation.data
 
-  const platformNames = (platforms as string[]).join(', ')
-  const platformGuides = (platforms as string[])
-    .map((p: string) => PLATFORM_DEEP_GUIDES[p])
+  const platformNames = platforms.join(', ')
+  const platformGuides = platforms
+    .map((p) => PLATFORM_DEEP_GUIDES[p])
     .filter(Boolean)
     .join('\n\n')
 

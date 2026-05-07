@@ -18,22 +18,47 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
   const [newItem, setNewItem] = useState('')
 
   useEffect(() => {
-    // Load from localStorage
-    const savedMemory = localStorage.getItem(`agent_${agent.id}_memory`)
-    if (savedMemory) {
-      setMemoryItems(JSON.parse(savedMemory))
-    } else {
-      setMemoryItems([
-        { id: '1', content: 'Target audience: B2B Founders in SaaS', type: 'knowledge' },
-        { id: '2', content: 'Avoid using corporate jargon or buzzwords', type: 'style' },
-      ])
+    // Memory read is isolated — a parse failure here won't affect creativity/tone
+    try {
+      const savedMemory = localStorage.getItem(`agent_${agent.id}_memory`)
+      if (savedMemory) {
+        const parsed = JSON.parse(savedMemory)
+        const isValid =
+          Array.isArray(parsed) &&
+          parsed.every(
+            (item) =>
+              item &&
+              typeof item.id === 'string' &&
+              typeof item.content === 'string' &&
+              typeof item.type === 'string'
+          )
+        setMemoryItems(isValid ? parsed : [])
+      } else {
+        setMemoryItems([
+          { id: '1', content: 'Target audience: B2B Founders in SaaS', type: 'knowledge' },
+          { id: '2', content: 'Avoid using corporate jargon or buzzwords', type: 'style' },
+        ])
+      }
+    } catch {
+      setMemoryItems([])
     }
 
-    const savedCreativity = localStorage.getItem(`agent_${agent.id}_creativity`)
-    if (savedCreativity) setCreativity(Number(savedCreativity))
+    // Creativity/tone reads are isolated — failures here don't clobber memory
+    try {
+      const savedCreativity = localStorage.getItem(`agent_${agent.id}_creativity`)
+      if (savedCreativity) {
+        const n = Number(savedCreativity)
+        if (isFinite(n)) setCreativity(n)
+      }
 
-    const savedTone = localStorage.getItem(`agent_${agent.id}_tone`)
-    if (savedTone) setTone(Number(savedTone))
+      const savedTone = localStorage.getItem(`agent_${agent.id}_tone`)
+      if (savedTone) {
+        const n = Number(savedTone)
+        if (isFinite(n)) setTone(n)
+      }
+    } catch {
+      // creativity/tone remain at useState defaults
+    }
   }, [agent.id])
 
   const saveMemory = (items: typeof memoryItems) => {
@@ -43,7 +68,13 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
 
   const handleAddMemory = () => {
     if (!newItem.trim()) return
-    const updated = [...memoryItems, { id: Math.random().toString(), content: newItem, type: 'knowledge' }]
+    const id =
+      typeof crypto?.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : Array.from(crypto.getRandomValues(new Uint8Array(16)))
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('')
+    const updated = [...memoryItems, { id, content: newItem, type: 'knowledge' }]
     saveMemory(updated)
     setNewItem('')
     toast.success("Memory updated")

@@ -11,7 +11,6 @@ interface PlatformSelectorProps {
 export function PlatformSelector({ selected, onChange }: PlatformSelectorProps) {
   const togglePlatform = (platformId: PlatformId) => {
     if (selected.includes(platformId)) {
-      // Don't allow deselecting all platforms
       if (selected.length > 1) {
         onChange(selected.filter((p) => p !== platformId))
       }
@@ -28,13 +27,19 @@ export function PlatformSelector({ selected, onChange }: PlatformSelectorProps) 
           <button
             key={id}
             type="button"
+            aria-pressed={isSelected}
             onClick={() => togglePlatform(id as PlatformId)}
             className={cn(
-              'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all',
+              'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
               isSelected
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                ? 'text-white shadow-md scale-[1.02]'
+                : 'bg-muted/60 text-muted-foreground border border-border/60 hover:bg-muted hover:text-foreground'
             )}
+            style={
+              isSelected
+                ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }
+                : undefined
+            }
           >
             <PlatformIcon platform={id as PlatformId} className="h-4 w-4" />
             {platform.shortName}

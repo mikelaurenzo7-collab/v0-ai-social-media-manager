@@ -64,9 +64,19 @@ export async function POST(req: Request) {
     let memoryContext = ""
     if (memory) {
       try {
-        const parsedMemory = JSON.parse(memory)
-        memoryContext = `\n\nLONG-TERM MEMORY & CONTEXT:\n${parsedMemory.map((m: any) => `- ${m.content}`).join('\n')}`
-      } catch (e) {}
+        const parsed = JSON.parse(memory)
+        const validEntries = Array.isArray(parsed)
+          ? parsed.filter(
+              (m): m is { content: string } =>
+                !!m && typeof m.content === 'string' && m.content.trim().length > 0
+            )
+          : []
+        if (validEntries.length > 0) {
+          memoryContext = `\n\nLONG-TERM MEMORY & CONTEXT:\n${validEntries.map((m) => `- ${m.content}`).join('\n')}`
+        }
+      } catch {
+        // malformed memory string — skip
+      }
     }
 
     const toneInstructions = tone ? `\n\nTONE ADJUSTMENT: Your tone should be ${tone > 70 ? 'highly casual and conversational' : tone < 30 ? 'strictly professional and formal' : 'balanced and modern'}.` : ""

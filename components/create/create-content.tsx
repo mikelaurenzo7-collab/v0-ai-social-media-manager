@@ -39,19 +39,29 @@ export function CreateContent() {
 
   // Pre-fill if editing
   useEffect(() => {
-    if (editId) {
+    if (!editId) return
+    try {
       const stored = localStorage.getItem('postpilot_drafts')
-      if (stored) {
-        const drafts = JSON.parse(stored)
-        const draft = drafts.find((d: any) => d.id === editId)
-        if (draft) {
-          setPrompt(draft.content)
-          setTone(draft.tone)
-          setContentType(draft.contentType)
-          setPlatforms(draft.platforms)
-          setMode('post')
-        }
+      if (!stored) return
+      type SavedDraft = {
+        id: string
+        content: string
+        tone: ToneId
+        contentType: ContentTypeId
+        platforms: PlatformId[]
+        createdAt: string
       }
+      const drafts = JSON.parse(stored) as SavedDraft[]
+      const draft = drafts.find((d) => d.id === editId)
+      if (draft) {
+        setPrompt(draft.content)
+        setTone(draft.tone)
+        setContentType(draft.contentType)
+        setPlatforms(draft.platforms)
+        setMode('post')
+      }
+    } catch {
+      // corrupt localStorage — ignore
     }
   }, [editId])
 
@@ -60,6 +70,12 @@ export function CreateContent() {
   const [copied, setCopied] = useState(false)
   const [showAssistant, setShowAssistant] = useState(false)
 
+  // Declare improvedOverride before experimental_useObject so onFinish can reference setImprovedOverride
+  const [improvedOverride, setImprovedOverride] = useState<{
+    content: string
+    hashtags: string[]
+  } | null>(null)
+
   // Streaming object generation via Claude
   const { object, submit, isLoading: isGenerating, stop } = experimental_useObject({
     api: '/api/generate',
@@ -67,6 +83,7 @@ export function CreateContent() {
     onFinish: (event) => {
       if (event.object?.variations?.length) {
         setSelectedVariationId(event.object.variations[0].id ?? null)
+        setImprovedOverride(null)
         toast.success('Content generated successfully!')
       }
     },
@@ -93,9 +110,16 @@ export function CreateContent() {
 
   const selectedContent = variations.find((v) => v.id === selectedVariationId) ?? null
 
+  // displayContent is the single source of truth: improved version when one exists, else selected variation
+  const displayContent =
+    improvedOverride && selectedContent
+      ? { ...selectedContent, ...improvedOverride }
+      : selectedContent
+
   const handleGenerate = useCallback(() => {
     if (!prompt.trim()) return
     setSelectedVariationId(null)
+    setImprovedOverride(null)
     submit({ prompt, tone, contentType, platforms })
   }, [prompt, tone, contentType, platforms, submit])
 
@@ -104,25 +128,37 @@ export function CreateContent() {
     submitThread({ topic: prompt, tweetCount: threadTweetCount, tone: threadTone })
   }, [prompt, threadTweetCount, threadTone, submitThread])
 
+  // When selection changes, clear the override
+  const handleSelectVariation = useCallback((id: string) => {
+    setSelectedVariationId(id)
+    setImprovedOverride(null)
+  }, [])
+
   const handleCopy = useCallback(async () => {
-    if (!selectedContent) return
+    if (!displayContent) return
     const full =
-      selectedContent.hashtags.length > 0
-        ? `${selectedContent.content}\n\n${selectedContent.hashtags.map((t) => `#${t}`).join(' ')}`
-        : selectedContent.content
+      displayContent.hashtags.length > 0
+        ? `${displayContent.content}\n\n${displayContent.hashtags.map((t) => `#${t}`).join(' ')}`
+        : displayContent.content
     await navigator.clipboard.writeText(full)
     setCopied(true)
     toast.success('Copied to clipboard!')
     setTimeout(() => setCopied(false), 2000)
-  }, [selectedContent])
+  }, [displayContent])
 
   const handleSaveDraft = useCallback(() => {
-    if (!selectedContent) return
-    const existingDrafts = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
+    if (!displayContent) return
+    let existingDrafts: unknown[] = []
+    try {
+      const parsed = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
+      existingDrafts = Array.isArray(parsed) ? parsed : []
+    } catch {
+      existingDrafts = []
+    }
     const newDraft = {
       id: Date.now().toString(),
-      content: selectedContent.content,
-      hashtags: selectedContent.hashtags,
+      content: displayContent.content,
+      hashtags: displayContent.hashtags,
       platforms,
       tone,
       contentType,
@@ -130,7 +166,7 @@ export function CreateContent() {
     }
     localStorage.setItem('postpilot_drafts', JSON.stringify([newDraft, ...existingDrafts]))
     toast.success('Draft saved!')
-  }, [selectedContent, platforms, tone, contentType])
+  }, [displayContent, platforms, tone, contentType])
 
   const handleCopyThread = useCallback(async (tweets: ThreadTweet[]) => {
     const text = tweets.map((t, i) => `${i + 1}/ ${t.content}`).join('\n\n')
@@ -140,36 +176,27 @@ export function CreateContent() {
 
   const handleSaveThread = useCallback((thread: Partial<Thread>) => {
     if (!thread.tweets?.length) return
-    const existing = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
-    localStorage.setItem('postpilot_threads', JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing]))
+    let existing: unknown[] = []
+    try {
+      const parsed = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
+      existing = Array.isArray(parsed) ? parsed : []
+    } catch {
+      existing = []
+    }
+    localStorage.setItem(
+      'postpilot_threads',
+      JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing])
+    )
     toast.success('Thread saved!')
   }, [])
 
   const handleImproved = useCallback(
     (newContent: string, newHashtags: string[]) => {
       if (!selectedContent) return
-      // Update the selected variation in the object by triggering a new generation isn't ideal,
-      // so we store the improved version in local state and switch to it
       setImprovedOverride({ content: newContent, hashtags: newHashtags })
     },
     [selectedContent]
   )
-
-  // Improved override for the selected variation
-  const [improvedOverride, setImprovedOverride] = useState<{
-    content: string
-    hashtags: string[]
-  } | null>(null)
-
-  // When selection changes, clear the override
-  const handleSelectVariation = useCallback((id: string) => {
-    setSelectedVariationId(id)
-    setImprovedOverride(null)
-  }, [])
-
-  const displayContent = improvedOverride
-    ? { ...selectedContent!, ...improvedOverride }
-    : selectedContent
 
   const hasResults = variations.length > 0 || isGenerating
   const hasThread = (threadObject?.tweets?.length ?? 0) > 0 || isGeneratingThread
