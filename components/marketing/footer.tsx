@@ -25,19 +25,19 @@ const COLS = [
   {
     heading: 'Company',
     items: [
-      { label: 'About',     href: '#'         },
-      { label: 'Changelog', href: '#'         },
-      { label: 'Blog',      href: '#'         },
-      { label: 'Contact',   href: '#contact'  },
+      { label: 'Changelog',  href: '/changelog' },
+      { label: 'System status', href: '/status' },
+      { label: 'Help center', href: '/dashboard/help' },
+      { label: 'Contact',    href: 'mailto:hello@postpilot.app' },
     ],
   },
   {
-    heading: 'Legal',
+    heading: 'Trust',
     items: [
-      { label: 'Privacy',  href: '#' },
-      { label: 'Terms',    href: '#' },
-      { label: 'Security', href: '#' },
-      { label: 'DPA',      href: '#' },
+      { label: 'Privacy',  href: '/privacy' },
+      { label: 'Terms',    href: '/terms' },
+      { label: 'Security', href: '/security' },
+      { label: 'Sub-processors', href: '/security#subprocessors' },
     ],
   },
 ]
@@ -55,10 +55,13 @@ export function Footer() {
               Your AI co-pilot for social and email. Six specialist agents that draft, schedule,
               and publish across every channel that matters.
             </p>
-            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1 text-[11px] font-medium text-muted-foreground">
+            <Link
+              href="/status"
+              className="mt-5 inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-muted/40"
+            >
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 pulse-dot text-emerald-500" />
               All systems normal
-            </div>
+            </Link>
           </div>
 
           {COLS.map((col) => (

@@ -1,5 +1,7 @@
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { MobileNav } from '@/components/dashboard/mobile-nav'
+import { TopBar } from '@/components/dashboard/top-bar'
+import { CommandPalette } from '@/components/dashboard/command-palette'
 
 export default function DashboardLayout({
   children,
@@ -18,6 +20,9 @@ export default function DashboardLayout({
         {/* Mobile Navigation */}
         <MobileNav />
 
+        {/* Desktop Top Bar */}
+        <TopBar />
+
         {/* Page Content */}
         <main className="relative flex-1 overflow-auto">
           {/* Subtle warm radial in top-right — gives the canvas depth */}
@@ -33,6 +38,9 @@ export default function DashboardLayout({
           </div>
         </main>
       </div>
+
+      {/* Global ⌘K palette */}
+      <CommandPalette />
     </div>
   )
 }

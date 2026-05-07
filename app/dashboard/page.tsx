@@ -84,10 +84,13 @@ export default function DashboardPage() {
 
   if (!mounted) return null
 
+  const hour = new Date().getHours()
+  const timeGreeting = hour < 5 ? 'Burning the midnight oil' : hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : hour < 21 ? 'Good evening' : 'Working late'
+
   return (
     <div className="flex flex-col min-h-full">
       <Header
-        title="Good morning ✦"
+        title={`${timeGreeting} ✦`}
         description="Your content studio is ready. What are we creating today?"
       />
 
@@ -223,6 +226,39 @@ export default function DashboardPage() {
                 </Link>
               </div>
             </div>
+
+            {/* Live activity feed */}
+            <Card className="border-border/60 shadow-sm">
+              <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-bold">Live activity</CardTitle>
+                <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  </span>
+                  Live
+                </span>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  { icon: '✅', text: 'Auto-Pilot published 3 posts', time: '2m', tone: 'emerald' },
+                  { icon: '💬', text: 'Maya Chen replied to your X post', time: '14m', tone: 'orange' },
+                  { icon: '🤖', text: 'Sarah drafted 2 posts for Friday', time: '1h', tone: 'violet' },
+                  { icon: '📈', text: 'New trend match: 96% relevance', time: '2h', tone: 'sky' },
+                ].map((a, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="text-lg shrink-0 mt-0.5">{a.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium leading-relaxed">{a.text}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{a.time} ago</p>
+                    </div>
+                  </div>
+                ))}
+                <Link href="/dashboard/inbox" className="block text-center text-[11px] font-semibold text-muted-foreground hover:text-foreground pt-1">
+                  Open inbox →
+                </Link>
+              </CardContent>
+            </Card>
 
             {/* Platform quick links */}
             <Card className="border-border/60 shadow-sm">
