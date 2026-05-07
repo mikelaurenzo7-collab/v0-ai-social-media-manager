@@ -481,12 +481,53 @@ export default function InboxPage() {
                       <Button variant="ghost" size="sm" className="h-7 text-xs px-2">📎</Button>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-muted-foreground">{reply.length} chars</span>
+                      {(() => {
+                        const limits: Record<Platform, number> = {
+                          twitter: 280,
+                          instagram: 2200,
+                          linkedin: 3000,
+                          facebook: 63206,
+                          tiktok: 2200,
+                          gmail: 50000,
+                          outlook: 50000,
+                        }
+                        const max = limits[selected.platform]
+                        const remaining = max - reply.length
+                        const warn = remaining < Math.max(20, max * 0.05)
+                        const over = remaining < 0
+                        return (
+                          <span
+                            className={cn(
+                              'text-[10px] tabular-nums',
+                              over
+                                ? 'text-rose-600 font-bold'
+                                : warn
+                                  ? 'text-amber-600 font-semibold'
+                                  : 'text-muted-foreground',
+                            )}
+                            aria-live="polite"
+                          >
+                            {over ? `${Math.abs(remaining)} over limit` : `${remaining} left`}
+                          </span>
+                        )
+                      })()}
                       <Button
                         size="sm"
                         className="h-8 text-xs px-4"
                         style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
-                        disabled={!reply.trim()}
+                        disabled={
+                          !reply.trim() ||
+                          reply.length >
+                            ({
+                              twitter: 280,
+                              instagram: 2200,
+                              linkedin: 3000,
+                              facebook: 63206,
+                              tiktok: 2200,
+                              gmail: 50000,
+                              outlook: 50000,
+                            } as Record<Platform, number>)[selected.platform]
+                        }
                         onClick={sendReply}
                       >
                         Send reply

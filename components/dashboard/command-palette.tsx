@@ -35,6 +35,7 @@ const NAV_ACTIONS: Action[] = [
   { id: 'analytics', label: 'Analytics', icon: '📊', href: '/dashboard/analytics', group: 'Navigate', shortcut: 'g a' },
   { id: 'trends', label: 'Trends & Discovery', icon: '🔥', href: '/dashboard/trends', group: 'Navigate', keywords: ['discovery', 'topics'] },
   { id: 'brand', label: 'Brand Kit', icon: '🎨', href: '/dashboard/brand', group: 'Navigate', keywords: ['voice', 'palette', 'hashtags'] },
+  { id: 'team', label: 'Team & Workspace', desc: 'Members, roles, invites, audit log', icon: '👥', href: '/dashboard/team', group: 'Account', keywords: ['workspace', 'members', 'roles', 'audit'] },
   { id: 'accounts', label: 'Accounts', icon: '🔌', href: '/dashboard/accounts', group: 'Account' },
   { id: 'settings', label: 'Settings', icon: '⚙️', href: '/dashboard/settings', group: 'Account' },
   { id: 'agents', label: 'AI Agents', icon: '🤖', href: '/dashboard/agents', group: 'Navigate' },
@@ -124,6 +125,30 @@ export function CommandPalette() {
                   <span className="text-[9px] uppercase tracking-widest text-orange-600">Pro</span>
                 </CommandShortcut>
               )}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+
+        <CommandSeparator />
+
+        <CommandGroup heading="Workspace shortcuts">
+          <CommandItem value="Invite a teammate" onSelect={() => go('/dashboard/team')}>
+            <span className="mr-1">✉️</span>
+            <span>Invite a teammate</span>
+            <span className="ml-2 text-xs text-muted-foreground">Members & roles</span>
+          </CommandItem>
+          <CommandItem value="Workspace audit log" onSelect={() => go('/dashboard/team')}>
+            <span className="mr-1">📜</span>
+            <span>Open audit log</span>
+          </CommandItem>
+          {AGENTS.map((agent) => (
+            <CommandItem
+              key={`customize-${agent.id}`}
+              value={`Customize ${agent.name}`}
+              onSelect={() => go(`/dashboard/agents/${agent.id}`)}
+            >
+              <span className="mr-1">⚙️</span>
+              <span>Customize {agent.name}</span>
             </CommandItem>
           ))}
         </CommandGroup>

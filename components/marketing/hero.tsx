@@ -210,7 +210,7 @@ export function Hero() {
               <div className="border-b lg:border-b-0 lg:border-r border-border/60 p-6 sm:p-7">
                 <div className="flex items-center gap-2.5">
                   <div className={`relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${current.hue} text-white text-[11px] font-semibold shadow-md`}>
-                    {current.agent.split(' ')[0].slice(0, 2)}
+                    {current.agent.replace(/\s+/g, '').slice(0, 2)}
                     <span className="absolute -right-0.5 -bottom-0.5 inline-flex h-3 w-3 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-card">
                       <span className="h-1.5 w-1.5 rounded-full bg-white" />
                     </span>

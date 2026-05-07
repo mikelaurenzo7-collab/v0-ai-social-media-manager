@@ -252,7 +252,14 @@ export default function TrendsPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-bold">{c.name}</p>
                       <span className="text-[10px] text-muted-foreground">· {c.lastPost}</span>
-                      <Badge className={cn('text-[10px] px-1.5 py-0 ml-auto', c.engagement.startsWith('+') ? 'bg-emerald-500/10 text-emerald-700 border-emerald-200' : '')}>
+                      <Badge
+                        className={cn(
+                          'text-[10px] px-1.5 py-0 ml-auto border',
+                          c.engagement?.startsWith('+') && 'bg-emerald-500/10 text-emerald-700 border-emerald-200',
+                          c.engagement?.startsWith('-') && 'bg-rose-500/10 text-rose-700 border-rose-200',
+                          !c.engagement?.startsWith('+') && !c.engagement?.startsWith('-') && 'bg-muted text-muted-foreground border-border/60',
+                        )}
+                      >
                         {c.engagement} vs avg
                       </Badge>
                     </div>

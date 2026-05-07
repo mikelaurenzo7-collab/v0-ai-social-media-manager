@@ -34,7 +34,7 @@ export function Features() {
             icon={<Sparkles className="h-5 w-5" />}
             title="Six specialist agents"
             kicker="Built for results"
-            description="Strategist, Viral, Voice, Community, Gmail, and Outlook — each tuned with deep platform smarts and shipping defaults you'd actually use."
+            description="X, Meta, LinkedIn, TikTok, Gmail, and Outlook agents — each tuned with deep channel smarts. Personas, voice, and permissions are fully customizable per workspace."
             visual={<AgentsTile />}
             featured
           />

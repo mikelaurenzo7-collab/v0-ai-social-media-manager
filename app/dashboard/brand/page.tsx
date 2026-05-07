@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Header } from '@/components/dashboard/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { toast } from 'sonner'
 
 interface VoiceDimension {
   id: string
@@ -35,12 +36,47 @@ const SAMPLE_SNIPPETS = [
   { name: 'Beta invite', body: 'Joining the beta means: weekly feedback calls, direct Slack with founders, lifetime 50% off.' },
 ]
 
+const BRAND_KIT_KEY = 'postpilot_brand_kit_v1'
+
 export default function BrandKitPage() {
   const [voiceDimensions, setVoiceDimensions] = useState<VoiceDimension[]>(INITIAL_VOICE_DIMENSIONS)
   const [voiceSamples, setVoiceSamples] = useState(
     'We don\'t do hype. We ship things that work, write about why we built them, and listen hard when people push back. We\'re for the makers who care about craft.',
   )
   const [audience, setAudience] = useState('Founders, indie hackers, and small marketing teams (1–20 people) who care about doing more with fewer tools.')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(BRAND_KIT_KEY)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as {
+        voiceDimensions?: VoiceDimension[]
+        voiceSamples?: string
+        audience?: string
+      }
+      if (Array.isArray(parsed.voiceDimensions)) setVoiceDimensions(parsed.voiceDimensions)
+      if (typeof parsed.voiceSamples === 'string') setVoiceSamples(parsed.voiceSamples)
+      if (typeof parsed.audience === 'string') setAudience(parsed.audience)
+    } catch {
+      // ignore corrupted storage
+    }
+  }, [])
+
+  function saveBrandKit() {
+    setSaving(true)
+    try {
+      localStorage.setItem(
+        BRAND_KIT_KEY,
+        JSON.stringify({ voiceDimensions, voiceSamples, audience }),
+      )
+      toast.success('Brand kit saved', { description: 'Your agents will pick this up on the next request.' })
+    } catch {
+      toast.error('Could not save — local storage blocked')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-full">
@@ -50,9 +86,11 @@ export default function BrandKitPage() {
         action={
           <Button
             size="sm"
+            onClick={saveBrandKit}
+            disabled={saving}
             style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
           >
-            Save brand kit
+            {saving ? 'Saving…' : 'Save brand kit'}
           </Button>
         }
       />

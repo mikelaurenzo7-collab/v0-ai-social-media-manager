@@ -227,16 +227,12 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Live activity feed */}
+            {/* Recent activity (sample data — wires up to real workspace events later) */}
             <Card className="border-border/60 shadow-sm">
               <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-bold">Live activity</CardTitle>
-                <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-600">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  </span>
-                  Live
+                <CardTitle className="text-sm font-bold">Recent activity</CardTitle>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Sample
                 </span>
               </CardHeader>
               <CardContent className="space-y-3">

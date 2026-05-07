@@ -27,7 +27,7 @@ const COLS = [
     items: [
       { label: 'Changelog',  href: '/changelog' },
       { label: 'System status', href: '/status' },
-      { label: 'Security',   href: '/security' },
+      { label: 'Help center', href: '/dashboard/help' },
       { label: 'Contact',    href: 'mailto:hello@postpilot.app' },
     ],
   },
@@ -70,16 +70,28 @@ export function Footer() {
                 {col.heading}
               </p>
               <ul className="mt-4 space-y-2.5">
-                {col.items.map((item) => (
-                  <li key={item.label}>
-                    <Link
-                      href={item.href}
-                      className="text-sm text-foreground/80 transition-colors hover:text-foreground"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
+                {col.items.map((item) => {
+                  const isInternal = item.href.startsWith('/') && !item.href.startsWith('//')
+                  return (
+                    <li key={item.label}>
+                      {isInternal ? (
+                        <Link
+                          href={item.href}
+                          className="text-sm text-foreground/80 transition-colors hover:text-foreground"
+                        >
+                          {item.label}
+                        </Link>
+                      ) : (
+                        <a
+                          href={item.href}
+                          className="text-sm text-foreground/80 transition-colors hover:text-foreground"
+                        >
+                          {item.label}
+                        </a>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           ))}

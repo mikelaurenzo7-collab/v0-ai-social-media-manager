@@ -765,10 +765,10 @@ export default function AutoPilotPage() {
               <div className="relative">
                 <p className="text-xs font-bold mb-1">Want smarter automations?</p>
                 <p className="text-[11px] text-white/60 mb-3 leading-relaxed">
-                  Talk to your Strategist Agent to fine-tune topics, posting cadence, and content goals.
+                  Open your LinkedIn Agent to fine-tune topics, posting cadence, and content goals.
                 </p>
-                <Link href="/dashboard/agents/strategist" className="inline-flex items-center gap-1.5 text-xs font-bold" style={{ color: '#FB923C' }}>
-                  Open Strategist Agent →
+                <Link href="/dashboard/agents/linkedin" className="inline-flex items-center gap-1.5 text-xs font-bold" style={{ color: '#FB923C' }}>
+                  Open LinkedIn Agent →
                 </Link>
               </div>
             </div>

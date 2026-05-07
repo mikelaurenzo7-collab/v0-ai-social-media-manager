@@ -203,23 +203,41 @@ interface AgentPlatformConfigProps {
 }
 
 export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
-  const [enabledPlatforms, setEnabledPlatforms] = useState<Set<SocialPlatformId>>(
-    new Set(['twitter', 'instagram', 'linkedin'] as SocialPlatformId[])
-  )
-  const [expandedPlatform, setExpandedPlatform] = useState<SocialPlatformId | null>('twitter')
+  // Each agent only owns the platforms in agent.platforms — scope the matrix to those.
+  const ownedSocial = SOCIAL_PLATFORM_IDS.filter((p) => agent.platforms.includes(p))
+  const advice = AGENT_PLATFORM_ADVICE[agent.id]
 
-  const advice = AGENT_PLATFORM_ADVICE[agent.id] ?? AGENT_PLATFORM_ADVICE['linkedin']
+  const [enabledPlatforms, setEnabledPlatforms] = useState<Set<SocialPlatformId>>(
+    new Set(ownedSocial),
+  )
+  const [expandedPlatform, setExpandedPlatform] = useState<SocialPlatformId | null>(
+    ownedSocial[0] ?? null,
+  )
 
   const togglePlatform = (platformId: SocialPlatformId) => {
-    setEnabledPlatforms(prev => {
+    setEnabledPlatforms((prev) => {
       const next = new Set(prev)
-      if (next.has(platformId)) {
-        next.delete(platformId)
-      } else {
-        next.add(platformId)
-      }
+      if (next.has(platformId)) next.delete(platformId)
+      else next.add(platformId)
       return next
     })
+  }
+
+  // Email-only agents (Gmail, Outlook) don't have a social platform matrix — render
+  // an explicit message that points to the right surfaces instead.
+  if (ownedSocial.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="rounded-2xl border border-border/60 bg-muted/20 p-8 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-2xl">✉️</div>
+          <h2 className="text-lg font-bold">{agent.name} is an email-channel agent</h2>
+          <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+            Email agents don&apos;t need social-platform configuration. Manage sending rules,
+            approval workflows, and rate limits from the <strong>Permissions</strong> tab.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -227,16 +245,17 @@ export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
       <div>
         <h2 className="text-lg font-bold text-foreground">Platform Configuration</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Configure how {agent.name} operates across each of your platforms. Toggle platforms on or off, then expand each one for agent-specific strategy.
+          {agent.name} owns {ownedSocial.length === 1 ? 'this channel' : 'these channels'}. Toggle on/off
+          and expand for channel-specific defaults.
         </p>
       </div>
 
       <div className="space-y-3">
-        {SOCIAL_PLATFORM_IDS.map((platformId) => {
+        {ownedSocial.map((platformId) => {
           const platform = PLATFORMS[platformId]
           const isEnabled = enabledPlatforms.has(platformId)
           const isExpanded = expandedPlatform === platformId && isEnabled
-          const platformAdvice = advice[platformId]
+          const platformAdvice = advice?.[platformId]
 
           return (
             <div
@@ -282,7 +301,7 @@ export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
               </div>
 
               {/* Expanded strategy panel */}
-              {isExpanded && (
+              {isExpanded && platformAdvice && (
                 <div className="border-t border-orange-100/80 px-5 pb-5 pt-4 space-y-5">
 
                   {/* Agent's headline strategy */}
