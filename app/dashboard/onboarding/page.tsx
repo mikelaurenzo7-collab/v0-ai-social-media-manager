@@ -130,6 +130,12 @@ export default function OnboardingPage() {
     } else {
       await persistStep(TOTAL_STEPS, true)
       setSubmitting(false)
+      // Tell the OnboardingGuard the verdict is settled — skip the next fetch.
+      try {
+        sessionStorage.setItem('postpilot_onboarding_complete', '1')
+      } catch {
+        /* sessionStorage unavailable */
+      }
       toast.success('Profile saved. Your agents will use this on every message.')
       router.replace('/dashboard')
     }

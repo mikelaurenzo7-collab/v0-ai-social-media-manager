@@ -8,6 +8,8 @@ import { publishSocialPost } from '@/lib/publishing/social'
 import { getConnection } from '@/lib/oauth/connections'
 import { getCurrentUserId } from '@/lib/oauth/session'
 import { getServerProfile } from '@/lib/user-profile-server'
+import { prisma } from '@/lib/prisma'
+import type { Prisma } from '@prisma/client'
 
 // Node runtime — required by googleapis (Gmail) + Microsoft Graph SDK (Outlook).
 export const runtime = 'nodejs'
@@ -629,38 +631,55 @@ const researchTool = {
   }),
 }
 
-// Schedule post tool — used across social agents to queue content
+// Schedule post tool — writes directly to the ScheduledPost table.
+// Doing this in-process instead of via internal fetch avoids cookie/auth roundtrips and is significantly faster.
 const schedulePostTool = {
   schedule_post: tool({
-    description: `Schedule a draft to publish at a future time on a specific platform. Use this when the user has approved a draft and wants it queued instead of published immediately. The user can review, edit, or cancel from the Calendar view.`,
+    description: `Schedule an approved draft to publish at a future time on a specific platform. Use this only after the user has explicitly approved the draft. The user can review, edit, or cancel from the Calendar view at /dashboard/calendar.`,
     inputSchema: z.object({
       platform: z.enum(['twitter', 'instagram', 'linkedin', 'facebook', 'tiktok', 'pinterest', 'snapchat']).describe('Which platform to schedule the post for'),
       text: z.string().min(1).describe('Final approved post body'),
       mediaUrls: z.array(z.string().url()).optional(),
-      scheduledAt: z.string().describe('ISO 8601 datetime, e.g. "2025-04-15T14:00:00Z"'),
+      scheduledAt: z.string().describe('ISO 8601 datetime in the future, e.g. "2025-04-15T14:00:00Z"'),
       timezone: z.string().optional().describe('IANA timezone (e.g. "America/Los_Angeles") for display purposes'),
     }),
     execute: async ({ platform, text, mediaUrls, scheduledAt, timezone }) => {
       try {
         const userId = await getCurrentUserId()
-        // Persist via the existing scheduled-posts API
-        const res = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'}/api/scheduled-posts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ platform, text, mediaUrls, scheduledAt, timezone, userId }),
-        })
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}))
-          throw new Error(err.error || 'Failed to schedule post')
+        if (!userId) {
+          return { success: false, platform, error: 'Not signed in. Ask the user to sign in before scheduling.' }
         }
-        const data = await res.json()
+
+        const when = new Date(scheduledAt)
+        if (Number.isNaN(when.getTime())) {
+          return { success: false, platform, error: 'Invalid scheduledAt datetime' }
+        }
+        if (when.getTime() <= Date.now()) {
+          return { success: false, platform, error: 'scheduledAt must be in the future' }
+        }
+
+        const metadata: Record<string, unknown> = {}
+        if (mediaUrls?.length) metadata.mediaUrls = mediaUrls
+        if (timezone) metadata.timezone = timezone
+
+        const post = await prisma.scheduledPost.create({
+          data: {
+            userId,
+            content: text,
+            platforms: [platform],
+            scheduledFor: when,
+            status: 'scheduled',
+            ...(Object.keys(metadata).length > 0 ? { metadata: metadata as Prisma.InputJsonValue } : {}),
+          },
+        })
+
         return {
           success: true,
-          scheduledId: data.id,
+          scheduledId: post.id,
           platform,
-          scheduledAt,
+          scheduledAt: post.scheduledFor.toISOString(),
           timezone: timezone ?? 'UTC',
-          note: `Post scheduled. The user can review or edit in /dashboard/calendar.`,
+          note: 'Post scheduled. The user can review, edit, or cancel from /dashboard/calendar.',
         }
       } catch (err) {
         return {
@@ -673,7 +692,7 @@ const schedulePostTool = {
   }),
 }
 
-// Analytics tool — pull post performance for a connected platform
+// Analytics tool — pulls performance for a connected platform from the PublishedPost table.
 const analyticsTool = {
   get_post_analytics: tool({
     description: `Pull recent post performance for a connected platform. Use this when the user asks "how did my posts do?", "what's working?", or "what should I post more of?". Returns engagement metrics for the user's recent posts.`,
@@ -684,23 +703,64 @@ const analyticsTool = {
     execute: async ({ platform, window }) => {
       try {
         const userId = await getCurrentUserId()
-        const res = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'}/api/analytics/posts?platform=${platform}&window=${window}&userId=${userId}`)
-        if (!res.ok) {
-          // Soft-fail with synthetic guidance so the agent can still reason
+        if (!userId) {
+          return { success: false, platform, window, error: 'Not signed in.' }
+        }
+
+        const days = window === '7d' ? 7 : window === '90d' ? 90 : 30
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+
+        const posts = await prisma.publishedPost.findMany({
+          where: { userId, platform, status: 'published', publishedAt: { gte: since } },
+          orderBy: { publishedAt: 'desc' },
+          take: 200,
+        })
+
+        if (posts.length === 0) {
           return {
-            success: false,
+            success: true,
             platform,
             window,
-            note: 'Analytics not available for this platform yet. Recommend the user check the Analytics dashboard for full insights.',
+            summary: { totalPosts: 0, totalEngagement: 0, totalImpressions: 0, avgEngagementPerPost: 0 },
+            topPosts: [],
+            note: 'No published posts in this window yet. Once the user publishes, analytics will populate automatically.',
           }
         }
-        const data = await res.json()
+
+        type EngMetadata = {
+          likes?: number; comments?: number; shares?: number; saves?: number
+          impressions?: number; views?: number
+        }
+
+        let totalEngagement = 0
+        let totalImpressions = 0
+        const ranked = posts.map((p) => {
+          const meta = (p.metadata as EngMetadata | null) ?? {}
+          const eng = (meta.likes ?? 0) + (meta.comments ?? 0) + (meta.shares ?? 0) + (meta.saves ?? 0)
+          const impr = meta.impressions ?? meta.views ?? 0
+          totalEngagement += eng
+          totalImpressions += impr
+          return {
+            id: p.id,
+            publishedAt: p.publishedAt,
+            excerpt: p.content.slice(0, 140),
+            engagement: eng,
+            impressions: impr,
+          }
+        })
+        ranked.sort((a, b) => b.engagement - a.engagement)
+
         return {
           success: true,
           platform,
           window,
-          summary: data.summary,
-          topPosts: data.topPosts,
+          summary: {
+            totalPosts: posts.length,
+            totalEngagement,
+            totalImpressions,
+            avgEngagementPerPost: Math.round(totalEngagement / posts.length),
+          },
+          topPosts: ranked.slice(0, 5),
           note: 'Use these metrics to recommend content angles, formats, and posting times that match what is already working.',
         }
       } catch (err) {

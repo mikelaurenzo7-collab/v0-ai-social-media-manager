@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-type PlatformId = 'twitter' | 'instagram' | 'linkedin' | 'tiktok' | 'facebook'
+type PlatformId = 'twitter' | 'instagram' | 'linkedin' | 'tiktok' | 'facebook' | 'pinterest' | 'snapchat'
 type PostStatus = 'published' | 'scheduled' | 'draft'
 
 interface CalendarPost {
@@ -19,6 +19,7 @@ interface CalendarPost {
   date: string   // YYYY-MM-DD
   time: string   // HH:MM
   status: PostStatus
+  source?: 'db' | 'seed' | 'local'
 }
 
 // ── Platform display config ────────────────────────────────────────────────────
@@ -29,6 +30,8 @@ const PLATFORM: Record<PlatformId, { label: string; abbr: string; color: string;
   linkedin:  { label: 'LinkedIn',  abbr: 'LI', color: '#0A66C2', bg: '#EFF6FF', text: '#0A66C2' },
   tiktok:    { label: 'TikTok',    abbr: 'TK', color: '#6366F1', bg: '#F0F0FF', text: '#6366F1' },
   facebook:  { label: 'Facebook',  abbr: 'FB', color: '#1877F2', bg: '#EEF2FF', text: '#1877F2' },
+  pinterest: { label: 'Pinterest', abbr: 'PN', color: '#E60023', bg: '#FFF1F2', text: '#E60023' },
+  snapchat:  { label: 'Snapchat',  abbr: 'SC', color: '#FFFC00', bg: '#FFFEE0', text: '#A8A300' },
 }
 
 // ── Mock scheduled posts for May 2026 ─────────────────────────────────────────
@@ -124,7 +127,23 @@ function DayPanel({
   const d = new Date(date + 'T12:00:00')
   const label = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    // DB-sourced posts have ids of the form `db-<scheduledPostId>-<platform>`
+    if (id.startsWith('db-')) {
+      const scheduledId = id.slice(3, id.lastIndexOf('-'))
+      try {
+        const res = await fetch(`/api/scheduled-posts/${scheduledId}`, { method: 'DELETE' })
+        if (!res.ok) throw new Error('Delete failed')
+        toast.success('Scheduled post cancelled')
+        // Optimistic UI — strip from local state
+        window.dispatchEvent(new CustomEvent('postpilot:scheduled-cancelled', { detail: { scheduledId } }))
+      } catch {
+        toast.error('Failed to cancel scheduled post')
+      }
+      return
+    }
+
+    // Local draft path
     try {
       const stored = localStorage.getItem('postpilot_scheduled')
       if (!stored) return
@@ -206,7 +225,7 @@ function DayPanel({
                       </span>
                     </div>
                   </div>
-                  {post.id.startsWith('u-') && (
+                  {(post.id.startsWith('u-') || post.id.startsWith('db-')) && (
                     <button
                       onClick={() => handleDelete(post.id)}
                       className="opacity-0 group-hover:opacity-100 flex h-6 w-6 items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
@@ -231,21 +250,69 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1)) // May 2026
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [userPosts, setUserPosts] = useState<CalendarPost[]>([])
+  const [dbPosts, setDbPosts] = useState<CalendarPost[]>([])
   const [platformFilter, setPlatformFilter] = useState<Set<PlatformId>>(
-    new Set(['twitter', 'instagram', 'linkedin', 'tiktok', 'facebook'])
+    new Set(['twitter', 'instagram', 'linkedin', 'tiktok', 'facebook', 'pinterest', 'snapchat'])
   )
 
   const TODAY = '2026-05-07'
 
+  // Local drafts (fallback for unauthenticated/dev)
   useEffect(() => {
     try {
       const stored = localStorage.getItem('postpilot_scheduled')
       if (stored) {
         const parsed: CalendarPost[] = JSON.parse(stored)
-        if (Array.isArray(parsed)) setUserPosts(parsed)
+        if (Array.isArray(parsed)) setUserPosts(parsed.map((p) => ({ ...p, source: 'local' })))
       }
     } catch {
       /* ignore */
+    }
+  }, [])
+
+  // Server-scheduled posts — anything the chat-route schedule_post tool created lives here.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/scheduled-posts?status=scheduled', { cache: 'no-store' })
+        if (!res.ok) return
+        const data = (await res.json()) as {
+          posts: Array<{
+            id: string
+            content: string
+            platforms: string[]
+            scheduledFor: string
+            status: 'scheduled' | 'published' | 'cancelled' | 'failed'
+          }>
+        }
+        if (cancelled) return
+        const flat: CalendarPost[] = []
+        for (const p of data.posts) {
+          const when = new Date(p.scheduledFor)
+          if (Number.isNaN(when.getTime())) continue
+          const date = `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}-${String(when.getDate()).padStart(2, '0')}`
+          const time = `${String(when.getHours()).padStart(2, '0')}:${String(when.getMinutes()).padStart(2, '0')}`
+          for (const platform of p.platforms) {
+            if (!(platform in PLATFORM)) continue
+            flat.push({
+              id: `db-${p.id}-${platform}`,
+              content: p.content,
+              platform: platform as PlatformId,
+              date,
+              time,
+              status: p.status === 'published' ? 'published' : 'scheduled',
+              source: 'db',
+            })
+          }
+        }
+        setDbPosts(flat)
+      } catch {
+        /* unauthenticated or offline — silently keep seed/local data */
+      }
+    })()
+    return () => {
+      cancelled = true
     }
   }, [])
 
@@ -256,8 +323,8 @@ export default function CalendarPage() {
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7
 
-  // All posts merged
-  const allPosts = [...SEED_POSTS, ...userPosts]
+  // All posts merged — DB scheduled posts win (the agents' schedule_post tool writes there)
+  const allPosts = [...SEED_POSTS, ...userPosts, ...dbPosts]
 
   // Build a map from date-key → posts
   const postsByDate = allPosts.reduce<Record<string, CalendarPost[]>>((acc, p) => {
