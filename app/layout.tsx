@@ -15,26 +15,26 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Lumina AI — The Most Successful, Professional & Flawless AI Social Media OS',
-  description: 'Enterprise-grade AI social media orchestrator with hyper-personal specialist agents, real OAuth posting, A/B testing, team collaboration, and breathtaking Cosmic Orbit design. Built for creators, agencies, and teams who demand maximum results.',
-  keywords: ['social media', 'AI agents', 'content creation', 'Instagram', 'X', 'LinkedIn', 'TikTok', 'YouTube', 'Facebook', 'automation', 'enterprise', 'A/B testing', 'team collaboration'],
-  authors: [{ name: 'Lumina AI' }],
+  title: 'PostPilot — Your AI Co-Pilot for Social Media',
+  description: 'Generate platform-perfect posts, threads, and captions for X, Instagram, LinkedIn, TikTok, and Facebook in seconds. Specialist AI agents, multi-variation drafts, and a calendar built for creators and teams.',
+  keywords: ['social media', 'AI content', 'post generator', 'X', 'Twitter', 'Instagram', 'LinkedIn', 'TikTok', 'Facebook', 'thread writer', 'content calendar', 'creator tools'],
+  authors: [{ name: 'PostPilot' }],
   openGraph: {
-    title: 'Lumina AI — The Most Successful, Professional & Flawless AI Social Media OS',
-    description: 'Hyper-personal AI agents, real OAuth posting, A/B testing, team features, and immersive Cosmic Orbit design. The category-defining social media OS for 2026.',
+    title: 'PostPilot — Your AI Co-Pilot for Social Media',
+    description: 'Specialist AI agents, multi-platform generation, and a content calendar that gets you posting consistently across every channel.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Lumina AI — The Most Successful, Professional & Flawless AI Social Media OS',
-    description: 'Enterprise AI social media orchestrator with specialist agents, A/B testing, and breathtaking design.',
+    title: 'PostPilot — Your AI Co-Pilot for Social Media',
+    description: 'Specialist AI agents, multi-platform generation, and a calendar that gets you posting consistently across every channel.',
   },
 }
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#6366f1' },
-    { media: '(prefers-color-scheme: dark)', color: '#818cf8' },
+    { media: '(prefers-color-scheme: light)', color: '#EA580C' },
+    { media: '(prefers-color-scheme: dark)', color: '#EA580C' },
   ],
   width: 'device-width',
   initialScale: 1,

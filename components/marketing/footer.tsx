@@ -7,22 +7,25 @@ export function Footer() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div
+                className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0 transition-transform group-hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+              >
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  className="h-5 w-5 text-primary-foreground"
+                  className="h-4.5 w-4.5 text-white"
                   stroke="currentColor"
-                  strokeWidth="2"
+                  strokeWidth="2.5"
                 >
-                  <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                 </svg>
               </div>
-              <span className="text-lg font-semibold">PostPilot</span>
+              <span className="text-lg font-bold">PostPilot</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-              Your AI co-pilot for social media. Create engaging content for X, Instagram, and Facebook in seconds.
+              Your AI co-pilot for social media. Create engaging content for X, Instagram, LinkedIn, TikTok, and Facebook in seconds.
             </p>
           </div>
 

@@ -11,19 +11,22 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0 transition-transform group-hover:scale-105"
+            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+          >
             <svg
               viewBox="0 0 24 24"
               fill="none"
-              className="h-5 w-5 text-primary-foreground"
+              className="h-4.5 w-4.5 text-white"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.5"
             >
-              <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
             </svg>
           </div>
-          <span className="text-xl font-semibold tracking-tight">PostPilot</span>
+          <span className="text-xl font-bold tracking-tight">PostPilot</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -31,11 +34,11 @@ export function Navbar() {
           <Link href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
             Features
           </Link>
+          <Link href="#how-it-works" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+            How it works
+          </Link>
           <Link href="#pricing" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
             Pricing
-          </Link>
-          <Link href="#about" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-            About
           </Link>
         </div>
 
@@ -80,18 +83,18 @@ export function Navbar() {
               Features
             </Link>
             <Link
+              href="#how-it-works"
+              className="block py-2 text-base text-muted-foreground hover:text-foreground"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              How it works
+            </Link>
+            <Link
               href="#pricing"
               className="block py-2 text-base text-muted-foreground hover:text-foreground"
               onClick={() => setMobileMenuOpen(false)}
             >
               Pricing
-            </Link>
-            <Link
-              href="#about"
-              className="block py-2 text-base text-muted-foreground hover:text-foreground"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              About
             </Link>
             <div className="pt-4 flex flex-col gap-2">
               <Button variant="outline" asChild className="w-full">
