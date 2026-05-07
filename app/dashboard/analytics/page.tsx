@@ -229,21 +229,22 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex min-h-full flex-col">
       <Header
+        eyebrow={PERIOD_LABELS[period]}
         title="Analytics"
-        description="Track your growth and engagement across every platform"
+        description="Track your growth and engagement across every platform."
         action={
-          <div className="flex items-center gap-2 rounded-xl border bg-muted/40 p-1">
+          <div className="flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 p-1 shadow-sm">
             {PERIODS.map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
                 className={cn(
-                  'rounded-lg px-4 py-1.5 text-xs font-bold transition-all duration-150',
+                  'rounded-full px-4 py-1 text-xs font-bold transition-all duration-150',
                   period === p
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'btn-gradient text-white'
+                    : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 {p}
@@ -253,28 +254,28 @@ export default function AnalyticsPage() {
         }
       />
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Date range label */}
-        <p className="text-xs text-muted-foreground -mt-2">{PERIOD_LABELS[period]}</p>
+      <div className="flex-1 space-y-6 overflow-y-auto px-6 pt-7 pb-14 md:px-10">
 
         {/* ── KPIs ─────────────────────────────────────────────────────────── */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: 'Total Reach',       value: fmt(kpi.reach),      delta: `+${kpi.reachDelta}%`,        icon: '📡' },
-            { label: 'Avg Engagement',    value: `${kpi.engagement}%`, delta: `+${kpi.engDelta}pp`,         icon: '💬' },
-            { label: 'Posts Published',   value: kpi.posts,            delta: `+${kpi.postsDelta} vs prior`, icon: '📝' },
-            { label: 'Followers Gained',  value: `+${kpi.followers}`,  delta: `+${kpi.followersDelta}%`,    icon: '📈' },
-          ].map((stat) => (
+            { label: 'Total reach',       value: fmt(kpi.reach),       delta: `+${kpi.reachDelta}%` },
+            { label: 'Avg engagement',    value: `${kpi.engagement}%`, delta: `+${kpi.engDelta}pp` },
+            { label: 'Posts published',   value: String(kpi.posts),    delta: `+${kpi.postsDelta} vs prior` },
+            { label: 'Followers gained',  value: `+${kpi.followers}`,  delta: `+${kpi.followersDelta}%` },
+          ].map((stat, i) => (
             <div
               key={stat.label}
-              className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm hover:shadow-md transition-shadow"
+              className="reveal-up rounded-2xl border border-border/60 bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
+              style={{ animationDelay: `${i * 60}ms` }}
             >
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</p>
-                <span className="text-xl">{stat.icon}</span>
-              </div>
-              <p className="text-3xl font-black tabular-nums">{stat.value}</p>
-              <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                {stat.label}
+              </p>
+              <p className="mt-2 font-display text-4xl leading-none tracking-tight tabular-nums text-foreground">
+                {stat.value}
+              </p>
+              <span className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
                 <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
                 </svg>
@@ -288,11 +289,13 @@ export default function AnalyticsPage() {
         <div className="grid gap-6 lg:grid-cols-3">
 
           {/* Area chart */}
-          <div className="lg:col-span-2 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
-            <div className="flex items-start justify-between mb-5">
+          <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm lg:col-span-2">
+            <div className="mb-5 flex items-start justify-between">
               <div>
-                <h3 className="text-sm font-bold">Engagement Rate Over Time</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">% of reached audience that engaged</p>
+                <h3 className="font-display text-xl leading-tight tracking-tight text-foreground">
+                  Engagement rate over time
+                </h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">% of reached audience that engaged</p>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap justify-end">
                 {(Object.keys(P)).map((p) => (
@@ -346,14 +349,16 @@ export default function AnalyticsPage() {
 
           {/* Platform performance */}
           <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
-            <h3 className="text-sm font-bold mb-1">Platform Performance</h3>
-            <p className="text-xs text-muted-foreground mb-5">Avg engagement rate per platform</p>
+            <h3 className="font-display text-xl leading-tight tracking-tight text-foreground">
+              Platform performance
+            </h3>
+            <p className="mb-5 mt-0.5 text-xs text-muted-foreground">Avg engagement rate per platform</p>
             <div className="space-y-4">
               {PLATFORM_BARS.map((pb) => (
                 <div key={pb.label} className="space-y-1.5">
                   <div className="flex justify-between text-xs">
-                    <span className="font-semibold">{pb.label}</span>
-                    <span className="font-black tabular-nums">{pb.engagement}%</span>
+                    <span className="font-semibold text-foreground">{pb.label}</span>
+                    <span className="font-display text-base leading-none tabular-nums text-foreground">{pb.engagement}%</span>
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
                     <div
@@ -373,8 +378,10 @@ export default function AnalyticsPage() {
 
           {/* Content type mix */}
           <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
-            <h3 className="text-sm font-bold mb-1">Content Type Performance</h3>
-            <p className="text-xs text-muted-foreground mb-5">What format drives the most engagement</p>
+            <h3 className="font-display text-xl leading-tight tracking-tight text-foreground">
+              Content type performance
+            </h3>
+            <p className="mb-5 mt-0.5 text-xs text-muted-foreground">What format drives the most engagement</p>
             <div className="space-y-3.5">
               {CONTENT_TYPES.map((ct) => (
                 <div key={ct.type} className="space-y-1">
@@ -397,29 +404,28 @@ export default function AnalyticsPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-5 rounded-xl p-3" style={{ background: 'oklch(0.652 0.214 36 / 0.06)', border: '1px solid oklch(0.652 0.214 36 / 0.15)' }}>
-              <p className="text-xs font-semibold" style={{ color: '#EA580C' }}>
-                💡 Videos earn 2.3× more engagement per post but you only post 11% video. Consider doubling down.
+            <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-primary/20 bg-primary/[0.06] p-3">
+              <svg className="mt-0.5 h-4 w-4 shrink-0 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+              </svg>
+              <p className="text-xs font-medium leading-relaxed text-primary">
+                Videos earn 2.3× more engagement per post but you only post 11% video. Consider doubling down.
               </p>
             </div>
           </div>
 
           {/* AI Insights */}
           <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-5">
-              <div
-                className="flex h-6 w-6 items-center justify-center rounded-lg shrink-0"
-                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
-              >
+            <div className="mb-5 flex items-center gap-2">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent shadow-sm">
                 <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                 </svg>
               </div>
-              <h3 className="text-sm font-bold">AI Insights</h3>
-              <span
-                className="ml-auto text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
-                style={{ background: 'oklch(0.652 0.214 36 / 0.15)', color: '#EA580C' }}
-              >
+              <h3 className="font-display text-xl leading-tight tracking-tight text-foreground">
+                AI insights
+              </h3>
+              <span className="ml-auto rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.15em] text-primary">
                 Claude
               </span>
             </div>
@@ -427,16 +433,16 @@ export default function AnalyticsPage() {
               {INSIGHTS.map((ins) => (
                 <div
                   key={ins.title}
-                  className="group rounded-xl border border-border/50 p-3.5 space-y-2 hover:border-border transition-all hover:shadow-sm"
+                  className="group space-y-2 rounded-xl border border-border/50 p-3.5 transition-all hover:border-border hover:shadow-sm"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-lg leading-none">{ins.icon}</span>
-                    <span className="text-xs font-bold">{ins.title}</span>
+                    <span className="text-sm font-semibold text-foreground">{ins.title}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{ins.body}</p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">{ins.body}</p>
                   <Link
                     href={ins.href}
-                    className="inline-flex items-center gap-1 text-xs font-semibold group-hover:gap-1.5 transition-all"
+                    className="inline-flex items-center gap-1 text-xs font-semibold transition-all group-hover:gap-1.5"
                     style={{ color: ins.color }}
                   >
                     {ins.cta}
@@ -452,13 +458,18 @@ export default function AnalyticsPage() {
 
         {/* ── Top performing posts ──────────────────────────────────────────── */}
         <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
+          <div className="mb-5 flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold">Top Performing Content</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Your best posts ranked by engagement rate</p>
+              <h3 className="font-display text-xl leading-tight tracking-tight text-foreground">
+                Top performing content
+              </h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">Your best posts ranked by engagement rate</p>
             </div>
-            <Link href="/dashboard/drafts" className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
-              All drafts →
+            <Link href="/dashboard/drafts" className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground">
+              All drafts
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
             </Link>
           </div>
           <div className="space-y-2">
@@ -468,27 +479,31 @@ export default function AnalyticsPage() {
               return (
                 <div
                   key={i}
-                  className="flex items-center gap-3 rounded-xl border border-border/50 bg-muted/20 px-4 py-3 hover:bg-muted/40 transition-colors group"
+                  className="group flex items-center gap-3 rounded-xl border border-border/50 bg-muted/20 px-4 py-3 transition-colors hover:bg-muted/40"
                 >
                   <span
-                    className="text-xs font-black w-5 shrink-0 tabular-nums"
-                    style={{ color: i === 0 ? '#EA580C' : i === 1 ? '#DB2777' : undefined }}
+                    className={cn(
+                      'w-6 shrink-0 font-display text-lg leading-none tabular-nums',
+                      i === 0 && 'text-primary',
+                      i === 1 && 'text-accent',
+                      i > 1 && 'text-muted-foreground',
+                    )}
                   >
-                    #{i + 1}
+                    {i + 1}
                   </span>
-                  <p className="flex-1 text-sm font-medium line-clamp-1 min-w-0">{post.content}</p>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <p className="line-clamp-1 min-w-0 flex-1 text-sm font-medium text-foreground">{post.content}</p>
+                  <div className="flex shrink-0 items-center gap-2">
                     <span
-                      className="hidden sm:inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold"
+                      className="hidden rounded-full px-2 py-0.5 text-[10px] font-bold sm:inline-flex"
                       style={{ background: badge?.bg, color: badge?.text }}
                     >
                       {post.platform}
                     </span>
-                    <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold hidden md:inline-flex', type)}>
+                    <span className={cn('hidden rounded-full px-2 py-0.5 text-[10px] font-bold md:inline-flex', type)}>
                       {post.type}
                     </span>
-                    <span className="text-xs font-black tabular-nums text-emerald-600">{post.eng}%</span>
-                    <span className="text-xs text-muted-foreground tabular-nums hidden lg:inline">{fmt(post.reach)}</span>
+                    <span className="font-display text-base leading-none tabular-nums text-emerald-600">{post.eng}%</span>
+                    <span className="hidden text-xs tabular-nums text-muted-foreground lg:inline">{fmt(post.reach)}</span>
                   </div>
                 </div>
               )

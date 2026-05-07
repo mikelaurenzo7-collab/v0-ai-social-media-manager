@@ -138,19 +138,21 @@ function DayPanel({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-lg overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 py-3"
-        style={{ background: 'linear-gradient(90deg, oklch(0.652 0.214 36 / 0.08) 0%, transparent 100%)', borderBottom: '1px solid hsl(var(--border))' }}
+        className="flex items-center justify-between border-b border-border/60 px-5 py-4"
+        style={{ background: 'linear-gradient(90deg, oklch(0.652 0.214 36 / 0.08) 0%, transparent 100%)' }}
       >
         <div>
-          <p className="text-sm font-bold">{label}</p>
-          <p className="text-xs text-muted-foreground">{posts.length} post{posts.length !== 1 ? 's' : ''} scheduled</p>
+          <p className="font-display text-lg leading-tight tracking-tight text-foreground">{label}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {posts.length} post{posts.length !== 1 ? 's' : ''} scheduled
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button asChild size="sm" className="text-xs h-7 px-3" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}>
-            <Link href={`/dashboard/create`}>+ Add Post</Link>
+          <Button asChild size="sm" className="btn-gradient h-7 rounded-full px-3 text-xs font-semibold">
+            <Link href="/dashboard/create">+ Add post</Link>
           </Button>
           <button
             onClick={onClose}
@@ -167,10 +169,14 @@ function DayPanel({
       <div className="p-4 space-y-2 max-h-72 overflow-y-auto">
         {posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <span className="text-3xl mb-2">🗓️</span>
-            <p className="text-sm font-medium">Nothing scheduled</p>
-            <p className="text-xs text-muted-foreground mt-1">Add your first post for this day</p>
-            <Button asChild size="sm" className="mt-3 text-xs" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}>
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-muted/30 text-muted-foreground">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+            </div>
+            <p className="font-display text-base leading-tight tracking-tight">Nothing scheduled</p>
+            <p className="mt-1 text-xs text-muted-foreground">Add your first post for this day</p>
+            <Button asChild size="sm" className="btn-gradient mt-3 h-8 rounded-full px-4 text-xs font-semibold">
               <Link href="/dashboard/create">Create a post</Link>
             </Button>
           </div>
@@ -535,68 +541,67 @@ export default function CalendarPage() {
             {/* Best times to post */}
             <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
-                <div
-                  className="flex h-5 w-5 items-center justify-center rounded-md shrink-0"
-                  style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
-                >
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-accent">
                   <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Best Times</h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Best times</h3>
               </div>
               <div className="space-y-2">
                 {BEST_TIMES.map((bt) => (
-                  <div key={bt.day + bt.time} className="flex items-center gap-2.5 rounded-xl bg-muted/30 p-2.5">
-                    <div className="text-center shrink-0 w-7">
-                      <p className="text-[10px] font-bold text-muted-foreground">{bt.day}</p>
+                  <div key={bt.day + bt.time} className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/30 p-2.5">
+                    <div className="w-8 shrink-0 text-center">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{bt.day}</p>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold">{bt.time}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold tabular-nums text-foreground">{bt.time}</p>
                       <p className="text-[10px] text-muted-foreground">{bt.platform}</p>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <div
-                        className="h-1.5 rounded-full"
-                        style={{ width: `${(bt.score / 100) * 40}px`, background: bt.score >= 90 ? '#EA580C' : '#DB2777' }}
-                      />
-                      <span className="text-[10px] font-bold tabular-nums" style={{ color: bt.score >= 90 ? '#EA580C' : '#DB2777' }}>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <div className="h-1 rounded-full bg-muted">
+                        <div
+                          className={cn('h-1 rounded-full', bt.score >= 90 ? 'bg-primary' : 'bg-accent')}
+                          style={{ width: `${(bt.score / 100) * 40}px` }}
+                        />
+                      </div>
+                      <span className={cn('text-[10px] font-bold tabular-nums', bt.score >= 90 ? 'text-primary' : 'text-accent')}>
                         {bt.score}
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
-              <p className="text-[10px] text-muted-foreground mt-3 text-center">
+              <p className="mt-3 text-center text-[10px] text-muted-foreground">
                 Scores based on your historical engagement
               </p>
             </div>
 
             {/* Quick create CTA */}
             <div
-              className="relative overflow-hidden rounded-2xl p-4 text-white"
-              style={{ background: 'linear-gradient(135deg, #1A1210 0%, #2C1A12 100%)' }}
+              className="relative isolate overflow-hidden rounded-2xl border border-sidebar-border/60 p-4 text-sidebar-foreground shadow-[0_20px_50px_-20px_oklch(0.135_0.018_48_/_0.45)]"
+              style={{
+                background: 'linear-gradient(135deg, oklch(0.155 0.018 48) 0%, oklch(0.20 0.022 35) 100%)',
+              }}
             >
               <div
-                className="pointer-events-none absolute top-0 right-0 h-20 w-20 rounded-full opacity-20 blur-xl"
-                style={{ background: 'radial-gradient(circle, #EA580C, transparent)' }}
+                aria-hidden
+                className="pointer-events-none absolute -top-12 -right-12 -z-10 h-32 w-32 rounded-full opacity-50 blur-3xl"
+                style={{ background: 'radial-gradient(circle, oklch(0.652 0.214 36 / 0.6), transparent 70%)' }}
               />
-              <div className="relative">
-                <p className="text-xs font-bold mb-1">Ready to fill the gaps?</p>
-                <p className="text-[11px] text-white/65 mb-3 leading-relaxed">
-                  Use your AI agents to generate a week&apos;s worth of content in minutes.
-                </p>
-                <Link
-                  href="/dashboard/agents"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold"
-                  style={{ color: '#FB923C' }}
-                >
-                  Open AI Agents
-                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
-                </Link>
-              </div>
+              <p className="font-display text-base leading-tight tracking-tight">Ready to fill the gaps?</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-sidebar-foreground/70">
+                Use your AI agents to generate a week&apos;s worth of content in minutes.
+              </p>
+              <Link
+                href="/dashboard/agents"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-orange-300 transition-colors hover:text-orange-200"
+              >
+                Open AI Agents
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
             </div>
 
           </div>
