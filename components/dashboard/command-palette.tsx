@@ -13,6 +13,7 @@ import {
   CommandShortcut,
 } from '@/components/ui/command'
 import { AGENTS } from '@/lib/agents'
+import { readPrefs, subscribePrefs } from '@/lib/preferences'
 
 interface Action {
   id: string
@@ -58,6 +59,12 @@ const NAV_ACTIONS: Action[] = [
 export function CommandPalette() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [copilotEnabled, setCopilotEnabled] = useState(true)
+
+  useEffect(() => {
+    setCopilotEnabled(readPrefs().copilotEnabled)
+    return subscribePrefs((p) => setCopilotEnabled(p.copilotEnabled))
+  }, [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -106,7 +113,9 @@ export function CommandPalette() {
         <CommandEmpty>No results.</CommandEmpty>
 
         {(['Navigate', 'Create', 'Account', 'Help'] as const).map((group) => {
-          const items = NAV_ACTIONS.filter((a) => a.group === group)
+          const items = NAV_ACTIONS
+            .filter((a) => a.group === group)
+            .filter((a) => copilotEnabled || a.id !== 'copilot')
           if (items.length === 0) return null
           return (
             <CommandGroup key={group} heading={group}>

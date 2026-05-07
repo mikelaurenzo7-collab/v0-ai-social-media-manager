@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { readPrefs, subscribePrefs } from '@/lib/preferences'
 
 /**
  * Global AI Co-Pilot drawer.
@@ -54,11 +55,26 @@ export function CopilotDrawer() {
   const [input, setInput] = useState('')
   const [turns, setTurns] = useState<ChatTurn[]>(STARTER_TURNS)
   const [busy, setBusy] = useState(false)
+  // Hydrate from prefs on mount + subscribe to changes so flipping the
+  // setting in /dashboard/settings takes effect immediately.
+  const [enabled, setEnabled] = useState(true)
+  const [hydrated, setHydrated] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const endRef = useRef<HTMLDivElement | null>(null)
 
-  // ⌘J / Ctrl+J global toggle
   useEffect(() => {
+    setEnabled(readPrefs().copilotEnabled)
+    setHydrated(true)
+    return subscribePrefs((p) => {
+      setEnabled(p.copilotEnabled)
+      if (!p.copilotEnabled) setOpen(false)
+    })
+  }, [])
+
+  // ⌘J / Ctrl+J global toggle. The handler short-circuits when the user
+  // has turned the Co-Pilot off in preferences.
+  useEffect(() => {
+    if (!enabled) return
     const onKey = (e: KeyboardEvent) => {
       if ((e.key === 'j' || e.key === 'J') && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
@@ -77,7 +93,7 @@ export function CopilotDrawer() {
       window.removeEventListener('copilot:open', onOpen)
       window.removeEventListener('copilot:toggle', onToggle)
     }
-  }, [open])
+  }, [open, enabled])
 
   useEffect(() => {
     if (open) {
@@ -178,6 +194,10 @@ export function CopilotDrawer() {
       send()
     }
   }
+
+  // Avoid an SSR/CSR mismatch: render nothing until we've read prefs once.
+  // Once hydrated, if the user turned Co-Pilot off, render nothing at all.
+  if (!hydrated || !enabled) return null
 
   if (!open) {
     return <CopilotFab onOpen={() => setOpen(true)} />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -8,8 +8,11 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/dashboard/header'
 import { TONES, CONTENT_TYPES } from '@/lib/constants/platforms'
+import { AGENTS } from '@/lib/agents'
+import { readPrefs, writePrefs, DEFAULT_PREFS, type UserPreferences } from '@/lib/preferences'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -27,6 +30,28 @@ export default function SettingsPage() {
   const [defaultTone, setDefaultTone] = useState('casual')
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [weeklyDigest, setWeeklyDigest] = useState(true)
+  const [prefs, setPrefs] = useState<UserPreferences>(DEFAULT_PREFS)
+
+  useEffect(() => {
+    setPrefs(readPrefs())
+  }, [])
+
+  function updatePrefs(patch: Partial<UserPreferences>) {
+    setPrefs((prev) => ({ ...prev, ...patch }))
+    writePrefs(patch)
+    if ('copilotEnabled' in patch) {
+      toast.success(
+        patch.copilotEnabled
+          ? 'Co-Pilot turned on'
+          : 'Co-Pilot turned off — agent-only mode',
+        {
+          description: patch.copilotEnabled
+            ? 'The drawer is back. Press ⌘J anytime.'
+            : 'You\'ll only see the agents you purchased.',
+        },
+      )
+    }
+  }
   const [brandVoice, setBrandVoice] = useState(
     'I write for founders and operators who want to grow online without the fluff. Direct, practical, and occasionally witty. Never corporate.'
   )
@@ -125,6 +150,70 @@ export default function SettingsPage() {
                 Save Profile
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        {/* ── Preferences ─────────────────────────────────────────── */}
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="text-base font-bold">Preferences</CardTitle>
+            <CardDescription>
+              Workspace-wide UI preferences. Saved per browser; server-synced
+              preferences land with the workspace persistence layer.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <PreferenceRow
+              title="AI Co-Pilot"
+              description={
+                <>
+                  The context-aware assistant in the bottom-right corner. When off, the
+                  Co-Pilot drawer, the FAB, and the <kbd className="rounded border border-border/60 bg-muted px-1 font-mono text-[10px]">⌘J</kbd> hotkey
+                  all go quiet — only the agents you opened on purpose run.
+                </>
+              }
+              badge={prefs.copilotEnabled ? null : 'Agent-only mode'}
+              checked={prefs.copilotEnabled}
+              onChange={(v) => updatePrefs({ copilotEnabled: v })}
+            />
+            <PreferenceRow
+              title="Sound effects"
+              description="Soft chimes on send, approve, and toast events."
+              checked={prefs.soundsEnabled}
+              onChange={(v) => updatePrefs({ soundsEnabled: v })}
+            />
+            <PreferenceRow
+              title="Reduce motion"
+              description="Disable non-essential transitions across the app."
+              checked={prefs.reduceMotion}
+              onChange={(v) => updatePrefs({ reduceMotion: v })}
+            />
+
+            <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-3 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">Default agent</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  Where ⌘K &quot;Quick draft&quot; sends you when no channel is implied.
+                </p>
+              </div>
+              <select
+                value={prefs.defaultAgentId}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setPrefs((p) => ({ ...p, defaultAgentId: value }))
+                  writePrefs({ defaultAgentId: value })
+                }}
+                aria-label="Default agent"
+                className="h-9 rounded-md border border-border/60 bg-background px-3 text-xs font-medium shrink-0"
+              >
+                <option value="">No preference (auto)</option>
+                {AGENTS.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </CardContent>
         </Card>
 
@@ -462,6 +551,42 @@ export default function SettingsPage() {
         </Card>
 
       </div>
+    </div>
+  )
+}
+
+function PreferenceRow({
+  title,
+  description,
+  badge,
+  checked,
+  onChange,
+}: {
+  title: string
+  description: React.ReactNode
+  badge?: string | null
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-3 flex items-start justify-between gap-4">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold">{title}</p>
+          {badge && (
+            <Badge className="text-[9px] px-1.5 py-0 bg-orange-500/10 text-orange-700 border-orange-200">
+              {badge}
+            </Badge>
+          )}
+        </div>
+        <p className="mt-0.5 text-[11px] text-muted-foreground leading-relaxed">{description}</p>
+      </div>
+      <Switch
+        checked={checked}
+        onCheckedChange={onChange}
+        aria-label={`Toggle ${title}`}
+        className="shrink-0 mt-1"
+      />
     </div>
   )
 }
