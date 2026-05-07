@@ -7,7 +7,7 @@ const COLS = [
     items: [
       { label: 'Features',  href: '/#features' },
       { label: 'Agents',    href: '/agents'   },
-      { label: 'Pricing',   href: '/#pricing' },
+      { label: 'Pricing',   href: '/pricing'  },
       { label: 'Live demo', href: '/dashboard/create' },
     ],
   },
@@ -35,6 +35,7 @@ const COLS = [
       { label: 'Roadmap',       href: '/roadmap' },
       { label: 'Changelog',     href: '/changelog' },
       { label: 'System status', href: '/status' },
+      { label: 'Press kit',     href: '/press' },
       { label: 'Contact',       href: 'mailto:hello@postpilot.app' },
     ],
   },

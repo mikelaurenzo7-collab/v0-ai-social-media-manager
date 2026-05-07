@@ -12,7 +12,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const marketing = [
     '',
     '/agents',
+    '/pricing',
     '/about',
+    '/press',
     '/roadmap',
     '/changelog',
     '/status',

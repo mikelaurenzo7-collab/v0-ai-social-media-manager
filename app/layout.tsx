@@ -76,6 +76,14 @@ export const metadata: Metadata = {
     type: 'website',
     siteName: 'PostPilot',
     locale: 'en_US',
+    images: [
+      {
+        url: '/api/og?eyebrow=PostPilot&title=One+AI+agent+per+channel.+Made+yours.&subtitle=X+%C2%B7+Meta+%C2%B7+LinkedIn+%C2%B7+TikTok+%C2%B7+Gmail+%C2%B7+Outlook',
+        width: 1200,
+        height: 630,
+        alt: 'PostPilot — one AI agent per channel',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
