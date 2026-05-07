@@ -149,11 +149,14 @@ const QUICK_ACTIONS: { label: string; tab: Tab; icon: React.ReactNode }[] = [
   },
 ]
 
-const MOCK_STATS = {
-  strategist: { chats: 24, workflows: 8, memories: 14, rating: '4.9' },
-  viral: { chats: 31, workflows: 5, memories: 9, rating: '4.8' },
-  voice: { chats: 18, workflows: 11, memories: 22, rating: '4.9' },
-  community: { chats: 42, workflows: 6, memories: 17, rating: '5.0' },
+const MOCK_STATS: Record<string, { chats: number; workflows: number; memories: number; rating: string }> = {
+  twitter:   { chats: 24, workflows: 8,  memories: 14, rating: '4.9' },
+  instagram: { chats: 42, workflows: 6,  memories: 17, rating: '5.0' },
+  linkedin:  { chats: 31, workflows: 5,  memories: 9,  rating: '4.8' },
+  facebook:  { chats: 9,  workflows: 2,  memories: 4,  rating: '4.7' },
+  tiktok:    { chats: 18, workflows: 11, memories: 22, rating: '4.9' },
+  gmail:     { chats: 12, workflows: 4,  memories: 7,  rating: '4.9' },
+  outlook:   { chats: 9,  workflows: 3,  memories: 5,  rating: '4.8' },
 }
 
 export default function AgentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -161,7 +164,7 @@ export default function AgentPage({ params }: { params: Promise<{ id: string }> 
   const agent = getAgentById(id)
   const [activeTab, setActiveTab] = useState<Tab>('Chat')
 
-  const stats = MOCK_STATS[agent.id as keyof typeof MOCK_STATS] ?? MOCK_STATS.strategist
+  const stats = MOCK_STATS[agent.id] ?? { chats: 0, workflows: 0, memories: 0, rating: '—' }
 
   return (
     <div className="flex h-screen overflow-hidden">
