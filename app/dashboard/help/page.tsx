@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Header } from '@/components/dashboard/header'
 import { Card, CardContent } from '@/components/ui/card'
@@ -71,6 +71,32 @@ const RESOURCES = [
 export default function HelpPage() {
   const [q, setQ] = useState('')
 
+  const query = q.trim().toLowerCase()
+  const isSearching = query.length > 0
+  const filteredCategories = useMemo(
+    () =>
+      isSearching
+        ? CATEGORIES.filter((c) =>
+            (c.title + ' ' + c.desc).toLowerCase().includes(query),
+          )
+        : CATEGORIES,
+    [isSearching, query],
+  )
+  const filteredPopular = useMemo(
+    () => (isSearching ? POPULAR.filter((p) => p.q.toLowerCase().includes(query)) : POPULAR),
+    [isSearching, query],
+  )
+  const filteredResources = useMemo(
+    () =>
+      isSearching
+        ? RESOURCES.filter((r) =>
+            (r.label + ' ' + r.desc).toLowerCase().includes(query),
+          )
+        : RESOURCES,
+    [isSearching, query],
+  )
+  const totalMatches = filteredCategories.length + filteredPopular.length + filteredResources.length
+
   return (
     <div className="flex flex-col min-h-full">
       <Header
@@ -115,7 +141,17 @@ export default function HelpPage() {
               />
             </div>
             <p className="mt-2 text-[11px] text-white/50">
-              Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono">⌘K</kbd> from anywhere to open this.
+              {isSearching ? (
+                <>
+                  {totalMatches === 0
+                    ? 'No matches — try fewer or different words.'
+                    : `${totalMatches} match${totalMatches === 1 ? '' : 'es'} for "${q.trim()}"`}
+                </>
+              ) : (
+                <>
+                  Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono">⌘K</kbd> from anywhere to open this.
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -123,10 +159,13 @@ export default function HelpPage() {
         {/* Categories */}
         <div>
           <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-3">
-            Browse by topic
+            {isSearching ? `Topics matching "${q.trim()}"` : 'Browse by topic'}
           </h3>
+          {filteredCategories.length === 0 && isSearching ? (
+            <p className="text-xs text-muted-foreground">No matching topics.</p>
+          ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {CATEGORIES.map((c) => (
+            {filteredCategories.map((c) => (
               <Card key={c.title} className="hover:shadow-md transition-all cursor-pointer hover:-translate-y-0.5 group">
                 <CardContent className="p-5">
                   <div className="flex items-start gap-3">
@@ -147,17 +186,22 @@ export default function HelpPage() {
               </Card>
             ))}
           </div>
+          )}
         </div>
 
         {/* Popular */}
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-3">
-              Popular questions
+              {isSearching ? `Articles matching "${q.trim()}"` : 'Popular questions'}
             </h3>
             <Card>
               <CardContent className="p-2">
-                {POPULAR.map((p) => (
+                {filteredPopular.length === 0 ? (
+                  <p className="px-4 py-6 text-center text-xs text-muted-foreground">
+                    No matching articles.
+                  </p>
+                ) : filteredPopular.map((p) => (
                   <button
                     key={p.q}
                     className="w-full flex items-center justify-between gap-4 rounded-xl px-4 py-3 text-left hover:bg-muted/60 transition-colors group"
@@ -178,8 +222,11 @@ export default function HelpPage() {
           {/* Resources + Contact */}
           <div className="space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-3">Resources</h3>
+            {filteredResources.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No matching resources.</p>
+            ) : (
             <div className="space-y-2">
-              {RESOURCES.map((r) => (
+              {filteredResources.map((r) => (
                 <Link key={r.label} href={r.href} className="block">
                   <div className="rounded-xl border border-border/60 bg-card p-3 hover:bg-muted/40 transition-colors">
                     <div className="flex items-start gap-3">
@@ -193,6 +240,7 @@ export default function HelpPage() {
                 </Link>
               ))}
             </div>
+            )}
 
             <div
               className="rounded-2xl p-5 text-white"

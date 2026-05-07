@@ -23,6 +23,8 @@ import { toast } from 'sonner'
 export function CreateContent() {
   const searchParams = useSearchParams()
   const editId = searchParams.get('edit')
+  const topicParam = searchParams.get('topic')
+  const toneParam = searchParams.get('tone')
 
   // Mode: 'post' or 'thread'
   const [mode, setMode] = useState<'post' | 'thread'>('post')
@@ -64,6 +66,20 @@ export function CreateContent() {
       // corrupt localStorage — ignore
     }
   }, [editId])
+
+  // Pre-fill from query params (?topic=… &tone=…) — used by Trends and Command Palette
+  useEffect(() => {
+    if (editId) return
+    if (topicParam) {
+      setPrompt((current) => (current ? current : `Write a post about: ${topicParam}`))
+    }
+    if (toneParam) {
+      const validTones = TONES.map((t) => t.id) as readonly string[]
+      if (validTones.includes(toneParam)) {
+        setTone(toneParam as ToneId)
+      }
+    }
+  }, [editId, topicParam, toneParam])
 
   // Selection + clipboard state
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null)
