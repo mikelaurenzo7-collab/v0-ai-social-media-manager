@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Agent } from '@/lib/agents'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Slider } from '@/components/ui/slider'
@@ -11,11 +12,27 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 
+interface PersonaConfig {
+  role: string
+  responsibilities: string
+  voice: string
+  rules: string
+}
+
+const EMPTY_PERSONA: PersonaConfig = {
+  role: '',
+  responsibilities: '',
+  voice: '',
+  rules: '',
+}
+
 export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 'settings' }) {
   const [memoryItems, setMemoryItems] = useState<{id: string, content: string, type: string}[]>([])
   const [creativity, setCreativity] = useState(50)
   const [tone, setTone] = useState(75)
   const [newItem, setNewItem] = useState('')
+  const [persona, setPersona] = useState<PersonaConfig>(EMPTY_PERSONA)
+  const [personaDirty, setPersonaDirty] = useState(false)
 
   useEffect(() => {
     // Memory read is isolated — a parse failure here won't affect creativity/tone
@@ -34,10 +51,7 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
           )
         setMemoryItems(isValid ? parsed : [])
       } else {
-        setMemoryItems([
-          { id: '1', content: 'Target audience: B2B Founders in SaaS', type: 'knowledge' },
-          { id: '2', content: 'Avoid using corporate jargon or buzzwords', type: 'style' },
-        ])
+        setMemoryItems([])
       }
     } catch {
       setMemoryItems([])
@@ -58,6 +72,22 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
       }
     } catch {
       // creativity/tone remain at useState defaults
+    }
+
+    // Persona read
+    try {
+      const savedPersona = localStorage.getItem(`agent_${agent.id}_persona`)
+      if (savedPersona) {
+        const parsed = JSON.parse(savedPersona) as Partial<PersonaConfig>
+        setPersona({
+          role: typeof parsed.role === 'string' ? parsed.role : '',
+          responsibilities: typeof parsed.responsibilities === 'string' ? parsed.responsibilities : '',
+          voice: typeof parsed.voice === 'string' ? parsed.voice : '',
+          rules: typeof parsed.rules === 'string' ? parsed.rules : '',
+        })
+      }
+    } catch {
+      // ignore — keep defaults
     }
   }, [agent.id])
 
@@ -96,10 +126,29 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
     localStorage.setItem(`agent_${agent.id}_tone`, val[0].toString())
   }
 
+  const updatePersona = <K extends keyof PersonaConfig>(key: K, value: PersonaConfig[K]) => {
+    setPersona((prev) => ({ ...prev, [key]: value }))
+    setPersonaDirty(true)
+  }
+
+  const handleSavePersona = () => {
+    localStorage.setItem(`agent_${agent.id}_persona`, JSON.stringify(persona))
+    setPersonaDirty(false)
+    toast.success(`${agent.name} Agent persona saved`)
+  }
+
+  const handleResetPersona = () => {
+    setPersona(EMPTY_PERSONA)
+    localStorage.removeItem(`agent_${agent.id}_persona`)
+    setPersonaDirty(false)
+    toast.info('Persona reset to defaults')
+  }
+
   const handleReset = () => {
     localStorage.removeItem(`agent_${agent.id}_memory`)
     localStorage.removeItem(`agent_${agent.id}_creativity`)
     localStorage.removeItem(`agent_${agent.id}_tone`)
+    localStorage.removeItem(`agent_${agent.id}_persona`)
     window.location.reload()
   }
 
@@ -109,14 +158,14 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
         <div className="space-y-2">
           <h2 className="text-2xl font-bold tracking-tight">Long-term Memory</h2>
           <p className="text-muted-foreground">
-            Teach {agent.name} about your brand, audience, and preferences. These insights persist across all chats.
+            Teach the {agent.name} Agent about your brand, audience, and preferences. These insights persist across all chats.
           </p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Add New Insight</CardTitle>
-            <CardDescription className="text-xs">Provide context {agent.name} should always remember.</CardDescription>
+            <CardDescription className="text-xs">Provide context the {agent.name} Agent should always remember.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">
@@ -133,29 +182,38 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
           </CardContent>
         </Card>
 
-        <div className="grid gap-4">
-          {memoryItems.map((item) => (
-            <div key={item.id} className="flex items-start gap-4 rounded-lg border bg-background p-4 shadow-sm group">
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[10px] uppercase">{item.type}</Badge>
-                  <span className="text-xs text-muted-foreground">Persisted</span>
+        {memoryItems.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border/60 p-8 text-center">
+            <p className="text-sm font-medium text-foreground">No memories yet</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Anything you save here becomes part of every conversation with this agent.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {memoryItems.map((item) => (
+              <div key={item.id} className="flex items-start gap-4 rounded-lg border bg-background p-4 shadow-sm group">
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-[10px] uppercase">{item.type}</Badge>
+                    <span className="text-xs text-muted-foreground">Persisted</span>
+                  </div>
+                  <p className="text-sm leading-relaxed">{item.content}</p>
                 </div>
-                <p className="text-sm leading-relaxed">{item.content}</p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="opacity-0 group-hover:opacity-100 h-8 w-8 text-destructive hover:bg-destructive/10"
+                  onClick={() => handleDeleteMemory(item.id)}
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="opacity-0 group-hover:opacity-100 h-8 w-8 text-destructive hover:bg-destructive/10"
-                onClick={() => handleDeleteMemory(item.id)}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </Button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     )
   }
@@ -163,75 +221,137 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">Agent Configuration</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Customize Persona</h2>
         <p className="text-muted-foreground">
-          Fine-tune {agent.name}&apos;s personality and operational parameters.
+          The {agent.name} Agent is named after the integration it connects to. Define its role, responsibilities, voice, and rules — they apply to every chat, draft, and scheduled run.
         </p>
       </div>
 
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Personality Sliders</CardTitle>
-            <CardDescription>Adjust how {agent.name} communicates with you.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-8">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Creativity vs. Precision</Label>
-                <span className="text-xs text-muted-foreground">{creativity > 70 ? 'Wild' : creativity < 30 ? 'Strict' : 'Balanced'}</span>
-              </div>
-              <Slider value={[creativity]} onValueChange={handleCreativityChange} max={100} step={1} />
-              <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-                <span>Facts only</span>
-                <span>Wildly Creative</span>
-              </div>
-            </div>
+      {/* Persona block */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Role &amp; Responsibilities</CardTitle>
+          <CardDescription>Tell the agent who it is for your account and what it owns.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="persona-role">Role title</Label>
+            <Input
+              id="persona-role"
+              placeholder={`e.g. Senior ${agent.name} ghostwriter, B2B founder voice`}
+              value={persona.role}
+              onChange={(e) => updatePersona('role', e.target.value)}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Default: <span className="font-medium text-foreground/80">{agent.role}</span>
+            </p>
+          </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Tone Intensity</Label>
-                <span className="text-xs text-muted-foreground">{tone > 70 ? 'Casual' : tone < 30 ? 'Formal' : 'Modern'}</span>
-              </div>
-              <Slider value={[tone]} onValueChange={handleToneChange} max={100} step={1} />
-              <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
-                <span>Formal</span>
-                <span>Highly Casual</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="space-y-2">
+            <Label htmlFor="persona-resp">Responsibilities</Label>
+            <Textarea
+              id="persona-resp"
+              placeholder="What this agent owns. e.g. Draft 3 posts per week. Reply to DMs in my voice. Always check the brand guide before publishing."
+              className="min-h-[110px]"
+              value={persona.responsibilities}
+              onChange={(e) => updatePersona('responsibilities', e.target.value)}
+            />
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Capabilities</CardTitle>
-            <CardDescription>Enable or disable specific skill modules for this agent.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {agent.capabilities.map((cap) => (
-              <div key={cap} className="flex items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <Label className="text-base">{cap}</Label>
-                  <p className="text-xs text-muted-foreground">Allow agent to use {cap.toLowerCase()} tools.</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+          <div className="space-y-2">
+            <Label htmlFor="persona-voice">Brand voice</Label>
+            <Textarea
+              id="persona-voice"
+              placeholder="Adjectives, phrases to use, phrases to avoid. e.g. Direct, dry-witty, no exclamation marks. Never use 'leverage' or 'unlock'."
+              className="min-h-[110px]"
+              value={persona.voice}
+              onChange={(e) => updatePersona('voice', e.target.value)}
+            />
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-            <CardDescription>Resetting will clear all memory and custom settings.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" onClick={handleReset} className="text-destructive hover:bg-destructive/10 border-destructive/20 w-full">
-              Reset {agent.name} to Defaults
+          <div className="space-y-2">
+            <Label htmlFor="persona-rules">Operating rules</Label>
+            <Textarea
+              id="persona-rules"
+              placeholder="Hard rules. e.g. Never publish without confirmation. Always include UTM parameters. Never reference competitors by name."
+              className="min-h-[110px]"
+              value={persona.rules}
+              onChange={(e) => updatePersona('rules', e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button variant="ghost" onClick={handleResetPersona} className="text-xs">
+              Reset persona
             </Button>
-          </CardContent>
-        </Card>
-      </div>
+            <Button onClick={handleSavePersona} disabled={!personaDirty}>
+              Save persona
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Personality Sliders</CardTitle>
+          <CardDescription>Quick tuning that layers on top of your written persona.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-8">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>Creativity vs. Precision</Label>
+              <span className="text-xs text-muted-foreground">{creativity > 70 ? 'Wild' : creativity < 30 ? 'Strict' : 'Balanced'}</span>
+            </div>
+            <Slider value={[creativity]} onValueChange={handleCreativityChange} max={100} step={1} />
+            <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+              <span>Facts only</span>
+              <span>Wildly Creative</span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>Tone Intensity</Label>
+              <span className="text-xs text-muted-foreground">{tone > 70 ? 'Casual' : tone < 30 ? 'Formal' : 'Modern'}</span>
+            </div>
+            <Slider value={[tone]} onValueChange={handleToneChange} max={100} step={1} />
+            <div className="flex justify-between text-[10px] text-muted-foreground uppercase tracking-widest font-medium">
+              <span>Formal</span>
+              <span>Highly Casual</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Default Capabilities</CardTitle>
+          <CardDescription>Toggle the default capability modules this agent starts with.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {agent.capabilities.map((cap) => (
+            <div key={cap} className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label className="text-base">{cap}</Label>
+                <p className="text-xs text-muted-foreground">Allow agent to use {cap.toLowerCase()} tools.</p>
+              </div>
+              <Switch defaultChecked />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+          <CardDescription>Resetting will clear all persona, memory, and tuning for this agent.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={handleReset} className="text-destructive hover:bg-destructive/10 border-destructive/20 w-full">
+            Reset {agent.name} Agent to defaults
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   )
 }

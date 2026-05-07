@@ -75,6 +75,7 @@ export function AgentChat({ agent }: { agent: Agent }) {
         creativity: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_creativity`) : null,
         tone: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_tone`) : null,
         memory: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_memory`) : null,
+        persona: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_persona`) : null,
       },
     }),
   })
@@ -107,19 +108,16 @@ export function AgentChat({ agent }: { agent: Agent }) {
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center max-w-md mx-auto space-y-6">
-            <div className={cn(
-              "flex h-20 w-20 items-center justify-center rounded-full text-3xl font-bold text-white shadow-2xl animate-in zoom-in duration-500",
-              agent.color === 'blue' ? 'bg-blue-500' :
-              agent.color === 'orange' ? 'bg-orange-500' :
-              agent.color === 'purple' ? 'bg-purple-500' :
-              'bg-green-500'
-            )}>
+            <div
+              className="flex h-20 w-20 items-center justify-center rounded-full text-3xl font-bold text-white shadow-2xl animate-in zoom-in duration-500"
+              style={{ background: agent.gradient }}
+            >
               {agent.avatar}
             </div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold tracking-tight">I&apos;m {agent.name}</h2>
+              <h2 className="text-2xl font-bold tracking-tight">{agent.name} Agent</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {agent.systemPrompt.split('.')[0]}. How can I help you today?
+                I&apos;m the default agent for your {agent.name} integration. Tell me your role, voice, and rules — or jump straight into a task below.
               </p>
             </div>
             <div className="grid grid-cols-1 gap-2 w-full">
@@ -156,13 +154,10 @@ export function AgentChat({ agent }: { agent: Agent }) {
             >
               <div className={cn('flex gap-3 max-w-[85%]', message.role === 'user' && 'flex-row-reverse')}>
                 {message.role === 'assistant' && (
-                  <div className={cn(
-                    "mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm",
-                    agent.color === 'blue' ? 'bg-blue-500' :
-                    agent.color === 'orange' ? 'bg-orange-500' :
-                    agent.color === 'purple' ? 'bg-purple-500' :
-                    'bg-green-500'
-                  )}>
+                  <div
+                    className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm"
+                    style={{ background: agent.gradient }}
+                  >
                     {agent.avatar}
                   </div>
                 )}
@@ -210,7 +205,7 @@ export function AgentChat({ agent }: { agent: Agent }) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={`Message ${agent.name}...`}
+              placeholder={`Message your ${agent.name} Agent...`}
               className="w-full resize-none rounded-2xl border bg-muted/50 px-4 py-3.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all min-h-[52px] max-h-[200px]"
               rows={1}
               disabled={isLoading}

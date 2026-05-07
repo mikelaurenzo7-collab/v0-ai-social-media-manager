@@ -6,22 +6,22 @@ import { Button } from '@/components/ui/button'
 import { ArrowRight, Sparkles, Play, ShieldCheck } from 'lucide-react'
 
 const ROTATION = [
-  { agent: 'Sarah',  role: 'Strategist',     hue: 'from-blue-500 to-indigo-500',
-    prompt: 'Plan a 7-day launch for our sustainable line',
-    out:    "Day 1 — tease the why. Day 2 — drop the hero shot. Day 3 — share the founder voice memo. Day 4–5 — early-access link. Day 6 — ugc reposts. Day 7 — open the floodgates." },
-  { agent: 'Casey',  role: 'Viral Specialist', hue: 'from-orange-500 to-amber-500',
-    prompt: 'Write a TikTok hook for: 5 productivity rules I broke',
-    out:    "I broke every productivity rule for 30 days. Rule #4 made me 3× more focused. Don\u2019t skip — wait for the green sticky note." },
-  { agent: 'Riley',  role: 'Voice Coach',     hue: 'from-purple-500 to-pink-500',
+  { agent: 'X',         slug: 'twitter',   role: 'X Agent',         hue: 'from-neutral-700 to-black',
+    prompt: 'Write a hook tweet for: 5 productivity rules I broke',
+    out:    "I broke every productivity rule for 30 days.\nRule #4 made me 3\u00d7 more focused.\nDon\u2019t skip \u2014 wait for the green sticky note." },
+  { agent: 'Instagram', slug: 'instagram', role: 'Instagram Agent', hue: 'from-purple-500 via-pink-500 to-orange-400',
+    prompt: 'Caption for our 10,000-customer milestone Reel',
+    out:    "10,000 customers later \u2014 I still cry-laughed in the car after the call with #6,142.\nBuilding means caring about every single one.\nSwipe to see the team that made it happen \u2192" },
+  { agent: 'LinkedIn',  slug: 'linkedin',  role: 'LinkedIn Agent',  hue: 'from-sky-500 to-blue-700',
     prompt: 'Make this LinkedIn post sound less corporate',
-    out:    "We hit 10k customers. I still cry-laughed in the car after the call with #6,142. Building means caring about every single one." },
-  { agent: 'Marcus', role: 'Community',       hue: 'from-emerald-500 to-teal-500',
-    prompt: 'A reply to: \u201cLove your brand but the price stings\u201d',
-    out:    "Hear you. We pay our makers 2\u00d7 industry rate \u2014 that\u2019s why. If it\u2019s out of reach today, we drop a 20% \u2018first piece\u2019 code in our newsletter once a month." },
-  { agent: 'Gina',   role: 'Gmail Outreach',  hue: 'from-red-500 to-rose-500',
+    out:    "We hit 10k customers.\nI still cry-laughed in the car after the call with #6,142.\nBuilding means caring about every single one." },
+  { agent: 'TikTok',    slug: 'tiktok',    role: 'TikTok Agent',    hue: 'from-cyan-400 via-black to-pink-500',
+    prompt: 'Script: 3-second hook for: my morning routine flop',
+    out:    "POV: you tried the 5 AM routine for 30 days.\nIt nearly broke you.\nThe one tweak that fixed everything \u2192" },
+  { agent: 'Gmail',     slug: 'gmail',     role: 'Gmail Agent',     hue: 'from-red-500 to-amber-500',
     prompt: 'Cold email to a founder I admire about partnership',
     out:    "subject: small idea, big fan\u2014\nshort version: love what you\u2019re building. one specific way we could collab in 15 min\u2014happy to send the deck if it\u2019s a fit?" },
-  { agent: 'Oliver', role: 'Outlook Business', hue: 'from-sky-500 to-blue-600',
+  { agent: 'Outlook',   slug: 'outlook',   role: 'Outlook Agent',   hue: 'from-sky-500 to-blue-600',
     prompt: 'Update the board on Q3 revenue',
     out:    "Subject: [Update] Q3 revenue + commentary\n\nHeadline: $4.2M (+38% YoY). Three drivers below, two risks I\u2019m watching, one ask." },
 ]
@@ -95,9 +95,9 @@ export function Hero() {
           {/* Subhead */}
           <p className="reveal-up mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
              style={{ animationDelay: '160ms' }}>
-            Six specialist agents draft, schedule, and publish across X, Instagram, LinkedIn, TikTok,
-            Facebook, Gmail, and Outlook — with real OAuth, real platform smarts, and copy you&apos;ll
-            actually want to send.
+            One agent per integration — X, Instagram, LinkedIn, Facebook, TikTok, Gmail, and Outlook.
+            Each one is named after the channel it operates. Customize role, voice, and rules after
+            you connect.
           </p>
 
           {/* CTAs */}
@@ -135,7 +135,7 @@ export function Hero() {
         <div className="reveal-up relative mx-auto mt-14 max-w-5xl" style={{ animationDelay: '420ms' }}>
           {/* Floating accent cards */}
           <FloatingChip
-            label={current.agent}
+            label={`${current.agent} Agent`}
             sub={current.role}
             className="absolute -left-3 -top-3 hidden md:flex"
             hue={current.hue}
@@ -163,7 +163,7 @@ export function Hero() {
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
               </div>
               <span className="ml-auto rounded-full bg-background/80 px-2.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-                postpilot.app/agents/{current.agent.toLowerCase()}
+                postpilot.app/agents/{current.slug}
               </span>
               <Sparkles className="ml-2 h-3.5 w-3.5 text-orange-500" />
             </div>
@@ -172,14 +172,14 @@ export function Hero() {
               {/* Left: prompt */}
               <div className="border-b lg:border-b-0 lg:border-r border-border/60 p-6 sm:p-7">
                 <div className="flex items-center gap-2.5">
-                  <div className={`relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${current.hue} text-white text-sm font-semibold shadow-md`}>
-                    {current.agent[0]}
+                  <div className={`relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${current.hue} text-white text-[11px] font-bold shadow-md`}>
+                    {current.agent.length <= 2 ? current.agent : current.agent.slice(0, 2)}
                     <span className="absolute -right-0.5 -bottom-0.5 inline-flex h-3 w-3 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-card">
                       <span className="h-1.5 w-1.5 rounded-full bg-white" />
                     </span>
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-foreground">{current.agent}</p>
+                    <p className="truncate text-sm font-semibold text-foreground">{current.agent} Agent</p>
                     <p className="truncate text-xs text-muted-foreground">{current.role}</p>
                   </div>
                 </div>

@@ -146,12 +146,12 @@ function FeatureCard({
 
 function AgentsTile() {
   const agents = [
-    { initial: 'S', hue: 'from-blue-500 to-indigo-500',  name: 'Sarah',   role: 'Strategy' },
-    { initial: 'C', hue: 'from-orange-500 to-amber-500', name: 'Casey',   role: 'Viral'    },
-    { initial: 'R', hue: 'from-purple-500 to-pink-500',  name: 'Riley',   role: 'Voice'    },
-    { initial: 'M', hue: 'from-emerald-500 to-teal-500', name: 'Marcus',  role: 'Community'},
-    { initial: 'G', hue: 'from-red-500 to-rose-500',     name: 'Gina',    role: 'Gmail'    },
-    { initial: 'O', hue: 'from-sky-500 to-blue-600',     name: 'Oliver',  role: 'Outlook'  },
+    { initial: 'X',  hue: 'from-neutral-700 to-black',                    name: 'X',         role: 'X Agent'         },
+    { initial: 'IG', hue: 'from-purple-500 via-pink-500 to-orange-400',   name: 'Instagram', role: 'Instagram Agent' },
+    { initial: 'in', hue: 'from-sky-500 to-blue-700',                     name: 'LinkedIn',  role: 'LinkedIn Agent'  },
+    { initial: 'TT', hue: 'from-cyan-400 via-black to-pink-500',          name: 'TikTok',    role: 'TikTok Agent'    },
+    { initial: 'M',  hue: 'from-red-500 to-amber-500',                    name: 'Gmail',     role: 'Gmail Agent'     },
+    { initial: 'OL', hue: 'from-sky-500 to-blue-600',                     name: 'Outlook',   role: 'Outlook Agent'   },
   ]
   return (
     <div className="grid grid-cols-3 gap-2">
@@ -162,7 +162,7 @@ function AgentsTile() {
           style={{ animationDelay: `${i * 80}ms` }}
         >
           <div className="flex items-center gap-2">
-            <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br ${a.hue} text-xs font-bold text-white shadow-sm`}>
+            <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br ${a.hue} text-[10px] font-bold text-white shadow-sm`}>
               {a.initial}
             </span>
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 pulse-dot text-emerald-500" />

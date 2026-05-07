@@ -117,7 +117,7 @@ const INSIGHTS = [
     title: 'TikTok is your engine',
     body: 'Your TikTok content averages 11.4% engagement — 2.2× your next-best platform. Shifting 2 more posts/week there could unlock significant reach.',
     cta: 'Optimize for TikTok',
-    href: '/dashboard/agents/viral',
+    href: '/dashboard/agents/tiktok',
     color: '#6366F1',
   },
   {

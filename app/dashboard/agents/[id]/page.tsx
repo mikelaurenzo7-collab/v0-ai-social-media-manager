@@ -193,7 +193,7 @@ export default function AgentPage({ params }: { params: Promise<{ id: string }> 
             <div className="relative">
               <div
                 className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-black text-white shadow-lg"
-                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                style={{ background: agent.gradient }}
               >
                 {agent.avatar}
               </div>
@@ -208,12 +208,7 @@ export default function AgentPage({ params }: { params: Promise<{ id: string }> 
 
             <div>
               <div className="flex items-center justify-center gap-2">
-                <h2 className="text-base font-bold text-white">{agent.name}</h2>
-                {agent.premium && (
-                  <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400">
-                    Pro
-                  </span>
-                )}
+                <h2 className="text-base font-bold text-white">{agent.name} Agent</h2>
               </div>
               <p className="mt-0.5 text-xs" style={{ color: '#EA580C' }}>{agent.role}</p>
               <p className="mt-0.5 flex items-center justify-center gap-1 text-[10px] text-white/40">

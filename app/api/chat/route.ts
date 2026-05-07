@@ -53,12 +53,13 @@ const POSTING_SCHEDULES: Record<string, { bestDays: string[]; bestTimes: string[
 }
 
 export async function POST(req: Request) {
-  const { messages, agentId, creativity, tone, memory } = (await req.json()) as {
+  const { messages, agentId, creativity, tone, memory, persona } = (await req.json()) as {
     messages: UIMessage[],
     agentId?: string,
     creativity?: number,
     tone?: number,
-    memory?: string
+    memory?: string,
+    persona?: string,
   }
   const modelMessages = await convertToModelMessages(messages)
 
@@ -85,9 +86,26 @@ export async function POST(req: Request) {
       }
     }
 
+    let personaContext = ""
+    if (persona) {
+      try {
+        const parsed = JSON.parse(persona) as Partial<{ role: string; responsibilities: string; voice: string; rules: string }>
+        const lines: string[] = []
+        if (parsed.role && parsed.role.trim()) lines.push(`Role: ${parsed.role.trim()}`)
+        if (parsed.responsibilities && parsed.responsibilities.trim()) lines.push(`Responsibilities:\n${parsed.responsibilities.trim()}`)
+        if (parsed.voice && parsed.voice.trim()) lines.push(`Brand voice:\n${parsed.voice.trim()}`)
+        if (parsed.rules && parsed.rules.trim()) lines.push(`Operating rules (must follow):\n${parsed.rules.trim()}`)
+        if (lines.length > 0) {
+          personaContext = `\n\nUSER-DEFINED PERSONA (authoritative — overrides defaults):\n${lines.join('\n\n')}`
+        }
+      } catch {
+        // malformed persona — skip
+      }
+    }
+
     const toneInstructions = tone ? `\n\nTONE ADJUSTMENT: Your tone should be ${tone > 70 ? 'highly casual and conversational' : tone < 30 ? 'strictly professional and formal' : 'balanced and modern'}.` : ""
 
-    systemPrompt = `${agent.systemPrompt}${toneInstructions}${memoryContext}\n\nIn addition to your platform-specific defaults, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating high-engagement hooks\n- Content calendars\n- Bio optimization\n\nThe user can customize your role, voice, and responsibilities at any time. Treat any persona instructions saved in memory as authoritative — they override the defaults above.\n\nFormat: Keep responses concise and on-brand for the connected platform. Use bold text for emphasis where helpful.`
+    systemPrompt = `${agent.systemPrompt}${personaContext}${toneInstructions}${memoryContext}\n\nIn addition to your platform-specific defaults, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating high-engagement hooks\n- Content calendars\n- Bio optimization\n\nIf a USER-DEFINED PERSONA is present above, treat it as authoritative — it overrides the defaults.\n\nFormat: Keep responses concise and on-brand for the connected platform. Use bold text for emphasis where helpful.`
 
     if (creativity) {
       // Map 0-100 to 0.0-1.0 temperature
