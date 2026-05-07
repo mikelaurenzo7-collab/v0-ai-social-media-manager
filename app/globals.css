@@ -4,6 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Core Cosmic Palette - Creative Genius Level */
   --background: oklch(0.985 0.002 247);
   --foreground: oklch(0.15 0.02 260);
   --card: oklch(1 0 0);
@@ -37,6 +38,21 @@
   --sidebar-accent-foreground: oklch(0.25 0.02 260);
   --sidebar-border: oklch(0.91 0.01 260);
   --sidebar-ring: oklch(0.55 0.24 264);
+
+  /* Creative Genius Additions - Cosmic & Purposeful */
+  --cosmic-bg: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0f0f2a 100%);
+  --cosmic-glow: 0 0 20px oklch(0.65 0.22 264 / 0.4);
+  --nebula-purple: oklch(0.6 0.25 290);
+  --nebula-cyan: oklch(0.7 0.2 200);
+  --nebula-gold: oklch(0.75 0.15 80);
+  --platform-x: #1DA1F2;
+  --platform-ig: #E1306C;
+  --platform-li: #0077B5;
+  --platform-tt: #000000;
+  --platform-yt: #FF0000;
+  --platform-fb: #1877F2;
+  --animation-cosmic: 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  --glass-blur: 20px;
 }
 
 .dark {
@@ -72,6 +88,10 @@
   --sidebar-accent-foreground: oklch(0.96 0.01 260);
   --sidebar-border: oklch(0.25 0.02 260);
   --sidebar-ring: oklch(0.65 0.22 264);
+
+  /* Creative Genius Dark Cosmic */
+  --cosmic-bg: linear-gradient(135deg, #05050f 0%, #0f0f25 50%, #0a0a1a 100%);
+  --cosmic-glow: 0 0 30px oklch(0.65 0.22 264 / 0.6);
 }
 
 @theme inline {
@@ -121,5 +141,45 @@
   }
   body {
     @apply bg-background text-foreground;
+    background: var(--cosmic-bg);
+    background-attachment: fixed;
+  }
+
+  /* Creative Genius: Glassmorphic Cards with Cosmic Glow */
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--cosmic-glow);
+    transition: transform var(--animation-cosmic), box-shadow var(--animation-cosmic);
+  }
+  .glass:hover {
+    transform: translateY(-2px) scale(1.005);
+    box-shadow: 0 0 40px oklch(0.65 0.22 264 / 0.5);
+  }
+
+  /* Platform-Specific Accents - Purposeful & Creative */
+  .platform-x { color: var(--platform-x); border-color: var(--platform-x); }
+  .platform-ig { color: var(--platform-ig); border-color: var(--platform-ig); }
+  .platform-li { color: var(--platform-li); border-color: var(--platform-li); }
+  .platform-tt { color: var(--platform-tt); border-color: var(--platform-tt); }
+  .platform-yt { color: var(--platform-yt); border-color: var(--platform-yt); }
+  .platform-fb { color: var(--platform-fb); border-color: var(--platform-fb); }
+
+  /* Purposeful Animations */
+  .cosmic-float {
+    animation: cosmic-float 4s ease-in-out infinite;
+  }
+  @keyframes cosmic-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .nebula-pulse {
+    animation: nebula-pulse 3s ease-in-out infinite;
+  }
+  @keyframes nebula-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
   }
 }
