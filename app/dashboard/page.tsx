@@ -16,19 +16,22 @@ const AI_TIPS = [
   'The best time to post on Instagram is when YOUR audience is active — check your insights.',
 ]
 
-const randomTip = AI_TIPS[Math.floor(Math.random() * AI_TIPS.length)]
-
 export default function DashboardPage() {
-  const [drafts, setDrafts] = useState<any[]>([])
-  const [threads, setThreads] = useState<any[]>([])
+  const [drafts, setDrafts] = useState<{ id: string; content: string; platforms: string[]; createdAt: string }[]>([])
+  const [threads, setThreads] = useState<{ id: string }[]>([])
   const [mounted, setMounted] = useState(false)
+  const [tip] = useState(() => AI_TIPS[Math.floor(Math.random() * AI_TIPS.length)])
 
   useEffect(() => {
     setMounted(true)
-    const storedDrafts = localStorage.getItem('postpilot_drafts')
-    const storedThreads = localStorage.getItem('postpilot_threads')
-    if (storedDrafts) setDrafts(JSON.parse(storedDrafts))
-    if (storedThreads) setThreads(JSON.parse(storedThreads))
+    try {
+      const storedDrafts = localStorage.getItem('postpilot_drafts')
+      const storedThreads = localStorage.getItem('postpilot_threads')
+      if (storedDrafts) setDrafts(JSON.parse(storedDrafts))
+      if (storedThreads) setThreads(JSON.parse(storedThreads))
+    } catch {
+      // corrupt localStorage — ignore
+    }
   }, [])
 
   if (!mounted) return null
@@ -68,20 +71,20 @@ export default function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Posts Created</CardDescription>
+              <CardDescription>Saved Drafts</CardDescription>
               <CardTitle className="text-3xl">{drafts.length}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">This month</p>
+              <p className="text-xs text-muted-foreground">Posts ready to publish</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Saved Drafts</CardDescription>
+              <CardDescription>Saved Threads</CardDescription>
               <CardTitle className="text-3xl">{threads.length}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">Ready to post</p>
+              <p className="text-xs text-muted-foreground">X/Twitter threads</p>
             </CardContent>
           </Card>
           <Card>
@@ -180,7 +183,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  &ldquo;{randomTip}&rdquo;
+                  &ldquo;{tip}&rdquo;
                 </p>
                 <Button asChild variant="link" className="mt-3 h-auto p-0 text-xs">
                   <Link href="/dashboard/create">Apply it now →</Link>

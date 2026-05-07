@@ -39,19 +39,29 @@ export function CreateContent() {
 
   // Pre-fill if editing
   useEffect(() => {
-    if (editId) {
+    if (!editId) return
+    try {
       const stored = localStorage.getItem('postpilot_drafts')
-      if (stored) {
-        const drafts = JSON.parse(stored)
-        const draft = drafts.find((d: any) => d.id === editId)
-        if (draft) {
-          setPrompt(draft.content)
-          setTone(draft.tone)
-          setContentType(draft.contentType)
-          setPlatforms(draft.platforms)
-          setMode('post')
-        }
+      if (!stored) return
+      type SavedDraft = {
+        id: string
+        content: string
+        tone: ToneId
+        contentType: ContentTypeId
+        platforms: PlatformId[]
+        createdAt: string
       }
+      const drafts = JSON.parse(stored) as SavedDraft[]
+      const draft = drafts.find((d) => d.id === editId)
+      if (draft) {
+        setPrompt(draft.content)
+        setTone(draft.tone)
+        setContentType(draft.contentType)
+        setPlatforms(draft.platforms)
+        setMode('post')
+      }
+    } catch {
+      // corrupt localStorage — ignore
     }
   }, [editId])
 
@@ -118,7 +128,12 @@ export function CreateContent() {
 
   const handleSaveDraft = useCallback(() => {
     if (!selectedContent) return
-    const existingDrafts = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
+    let existingDrafts: unknown[] = []
+    try {
+      existingDrafts = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
+    } catch {
+      existingDrafts = []
+    }
     const newDraft = {
       id: Date.now().toString(),
       content: selectedContent.content,
@@ -140,8 +155,16 @@ export function CreateContent() {
 
   const handleSaveThread = useCallback((thread: Partial<Thread>) => {
     if (!thread.tweets?.length) return
-    const existing = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
-    localStorage.setItem('postpilot_threads', JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing]))
+    let existing: unknown[] = []
+    try {
+      existing = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
+    } catch {
+      existing = []
+    }
+    localStorage.setItem(
+      'postpilot_threads',
+      JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing])
+    )
     toast.success('Thread saved!')
   }, [])
 
@@ -167,9 +190,10 @@ export function CreateContent() {
     setImprovedOverride(null)
   }, [])
 
-  const displayContent = improvedOverride
-    ? { ...selectedContent!, ...improvedOverride }
-    : selectedContent
+  const displayContent =
+    improvedOverride && selectedContent
+      ? { ...selectedContent, ...improvedOverride }
+      : selectedContent
 
   const hasResults = variations.length > 0 || isGenerating
   const hasThread = (threadObject?.tweets?.length ?? 0) > 0 || isGeneratingThread

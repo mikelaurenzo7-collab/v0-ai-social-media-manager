@@ -1,6 +1,14 @@
 import { streamObject } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
+import { z } from 'zod'
 import { contentVariationSchema } from '@/lib/schemas/content'
+
+const requestSchema = z.object({
+  prompt: z.string().min(1).max(2000),
+  tone: z.string(),
+  contentType: z.string(),
+  platforms: z.array(z.string()).min(1).max(5),
+})
 
 export const runtime = 'edge'
 
@@ -45,11 +53,12 @@ const PLATFORM_DEEP_GUIDES: Record<string, string> = {
 }
 
 export async function POST(req: Request) {
-  const { prompt, tone, contentType, platforms } = await req.json()
+  const body = await req.json()
+  const { prompt, tone, contentType, platforms } = requestSchema.parse(body)
 
-  const platformNames = (platforms as string[]).join(', ')
-  const platformGuides = (platforms as string[])
-    .map((p: string) => PLATFORM_DEEP_GUIDES[p])
+  const platformNames = platforms.join(', ')
+  const platformGuides = platforms
+    .map((p) => PLATFORM_DEEP_GUIDES[p])
     .filter(Boolean)
     .join('\n\n')
 

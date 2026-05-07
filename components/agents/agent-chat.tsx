@@ -76,16 +76,17 @@ export function AgentChat({ agent }: { agent: Agent }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSend = (e?: React.FormEvent) => {
-    if (e) e.preventDefault()
-    if (!input || !input.trim() || isLoading) return
-    handleSubmit(e as any)
+  const handleSend = (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault()
+    if (!input?.trim() || isLoading) return
+    handleSubmit(e)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      if (!input?.trim() || isLoading) return
+      handleSubmit()
     }
   }
 
@@ -183,7 +184,7 @@ export function AgentChat({ agent }: { agent: Agent }) {
       </div>
 
       <div className="border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
-        <form onSubmit={handleSend} className="max-w-4xl mx-auto flex items-end gap-3">
+        <form onSubmit={(e) => handleSend(e)} className="max-w-4xl mx-auto flex items-end gap-3">
           <div className="relative flex-1">
             <textarea
               value={input}

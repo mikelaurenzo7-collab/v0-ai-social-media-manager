@@ -55,29 +55,13 @@ export function ImproveDialog({
 
       if (!response.ok) throw new Error('Improve request failed')
 
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
-      let full = ''
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          // toTextStreamResponse returns plain UTF-8 text chunks
-          full += decoder.decode(value, { stream: true })
-        }
+      const { content, hashtags } = (await response.json()) as {
+        content: string
+        hashtags: string[]
       }
 
-      if (full.trim()) {
-        // Parse content and hashtags from the response
-        const lines = full.trim().split('\n\n')
-        const content = lines[0]?.trim() || full.trim()
-        const hashtagLine = lines[1]?.trim() || ''
-        const hashtags = hashtagLine
-          ? hashtagLine.split(' ').map((h) => h.replace(/^#/, '')).filter(Boolean)
-          : variation.hashtags
-
-        onImproved(content, hashtags)
+      if (content) {
+        onImproved(content, hashtags ?? variation.hashtags)
         setOpen(false)
         setFeedback('')
         toast.success('Content improved!')

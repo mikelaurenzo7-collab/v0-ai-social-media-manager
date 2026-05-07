@@ -18,15 +18,18 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
   const [newItem, setNewItem] = useState('')
 
   useEffect(() => {
-    // Load from localStorage
-    const savedMemory = localStorage.getItem(`agent_${agent.id}_memory`)
-    if (savedMemory) {
-      setMemoryItems(JSON.parse(savedMemory))
-    } else {
-      setMemoryItems([
-        { id: '1', content: 'Target audience: B2B Founders in SaaS', type: 'knowledge' },
-        { id: '2', content: 'Avoid using corporate jargon or buzzwords', type: 'style' },
-      ])
+    try {
+      const savedMemory = localStorage.getItem(`agent_${agent.id}_memory`)
+      if (savedMemory) {
+        setMemoryItems(JSON.parse(savedMemory))
+      } else {
+        setMemoryItems([
+          { id: '1', content: 'Target audience: B2B Founders in SaaS', type: 'knowledge' },
+          { id: '2', content: 'Avoid using corporate jargon or buzzwords', type: 'style' },
+        ])
+      }
+    } catch {
+      setMemoryItems([])
     }
 
     const savedCreativity = localStorage.getItem(`agent_${agent.id}_creativity`)
@@ -43,7 +46,7 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
 
   const handleAddMemory = () => {
     if (!newItem.trim()) return
-    const updated = [...memoryItems, { id: Math.random().toString(), content: newItem, type: 'knowledge' }]
+    const updated = [...memoryItems, { id: crypto.randomUUID(), content: newItem, type: 'knowledge' }]
     saveMemory(updated)
     setNewItem('')
     toast.success("Memory updated")
