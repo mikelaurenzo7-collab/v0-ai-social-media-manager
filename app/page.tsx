@@ -3,6 +3,8 @@ import { Hero } from '@/components/marketing/hero'
 import { LogoCloud } from '@/components/marketing/logo-cloud'
 import { Features } from '@/components/marketing/features'
 import { AgentsShowcase } from '@/components/marketing/agents-showcase'
+import { HowItWorks } from '@/components/marketing/how-it-works'
+import { Testimonials } from '@/components/marketing/testimonials'
 import { Pricing } from '@/components/marketing/pricing'
 import { FAQ } from '@/components/marketing/faq'
 import { CTABanner } from '@/components/marketing/cta-banner'
@@ -16,7 +18,9 @@ export default function HomePage() {
         <Hero />
         <LogoCloud />
         <Features />
+        <HowItWorks />
         <AgentsShowcase />
+        <Testimonials />
         <Pricing />
         <FAQ />
         <CTABanner />
