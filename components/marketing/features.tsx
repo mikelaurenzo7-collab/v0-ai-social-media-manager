@@ -159,7 +159,7 @@ function AgentsTile() {
         <div
           key={a.name}
           className="rounded-xl border border-border/70 bg-card/80 p-3 backdrop-blur transition-transform group-hover:scale-[1.01]"
-          style={{ animationDelay: `${i * 80}ms` }}
+          style={{ transitionDelay: `${i * 80}ms` }}
         >
           <div className="flex items-center gap-2">
             <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br ${a.hue} text-xs font-bold text-white shadow-sm`}>

@@ -28,7 +28,6 @@ export default function BrandKitPage() {
     'We don\'t do hype. We ship things that work, write about why we built them, and listen hard when people push back. We\'re for the makers who care about craft.',
   )
   const [audience, setAudience] = useState('Founders, indie hackers, and small marketing teams (1–20 people) who care about doing more with fewer tools.')
-  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     try {
@@ -48,7 +47,6 @@ export default function BrandKitPage() {
   }, [])
 
   function saveBrandKit() {
-    setSaving(true)
     try {
       localStorage.setItem(
         BRAND_KIT_KEY,
@@ -57,8 +55,6 @@ export default function BrandKitPage() {
       toast.success('Brand kit saved', { description: 'Agents will use it on the next chat or generation in this browser.' })
     } catch {
       toast.error('Could not save — local storage blocked')
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -71,10 +67,9 @@ export default function BrandKitPage() {
           <Button
             size="sm"
             onClick={saveBrandKit}
-            disabled={saving}
             style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
           >
-            {saving ? 'Saving…' : 'Save brand kit'}
+            Save brand kit
           </Button>
         }
       />

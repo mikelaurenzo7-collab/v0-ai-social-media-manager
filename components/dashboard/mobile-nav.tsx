@@ -45,6 +45,24 @@ const navigation = [
     ),
   },
   {
+    name: 'Approvals',
+    href: '/dashboard/approvals',
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+  {
+    name: 'Library',
+    href: '/dashboard/library',
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5a.75.75 0 01.75-.75h15a.75.75 0 01.75.75v15a.75.75 0 01-.75.75h-15a.75.75 0 01-.75-.75v-15zM7.5 8.25h9m-9 3.75h9m-9 3.75h6" />
+      </svg>
+    ),
+  },
+  {
     name: 'Trends',
     href: '/dashboard/trends',
     icon: (

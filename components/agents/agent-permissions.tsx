@@ -133,6 +133,19 @@ export function AgentPermissions({ agent }: { agent: Agent }) {
         </Button>
       </div>
 
+      <div
+        className="rounded-xl border border-amber-300/50 bg-amber-50/40 dark:bg-amber-500/5 px-4 py-3 flex items-start gap-3"
+        role="note"
+      >
+        <span className="text-base shrink-0 mt-0.5">⚠️</span>
+        <p className="text-xs leading-relaxed text-amber-900 dark:text-amber-200/90">
+          <strong>Preview persistence.</strong> These settings save in your browser today and act as
+          UI-side guidance for chats originating from this device. Server-side enforcement
+          (workspace-scoped, shared with teammates and Auto-Pilot, audit-logged) ships next. For
+          authoritative approval workflows in the meantime, use Approvals on the workspace.
+        </p>
+      </div>
+
       {/* Posting mode */}
       <Card>
         <CardHeader>
@@ -200,6 +213,10 @@ export function AgentPermissions({ agent }: { agent: Agent }) {
                       type="button"
                       aria-pressed={on}
                       onClick={() => {
+                        if (on && p.approvers.length === 1) {
+                          toast.error('At least one approver is required in approval mode')
+                          return
+                        }
                         update(
                           'approvers',
                           on ? p.approvers.filter((x) => x !== opt) : [...p.approvers, opt],

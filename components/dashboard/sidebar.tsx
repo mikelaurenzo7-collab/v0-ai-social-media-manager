@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { WorkspaceSwitcher } from '@/components/dashboard/workspace-switcher'
 
 interface NavItem {
   name: string
@@ -51,11 +52,31 @@ const sections: NavSection[] = [
         ),
       },
       {
+        name: 'Approvals',
+        href: '/dashboard/approvals',
+        badge: 'NEW',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+      },
+      {
         name: 'Calendar',
         href: '/dashboard/calendar',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+          </svg>
+        ),
+      },
+      {
+        name: 'Library',
+        href: '/dashboard/library',
+        badge: 'NEW',
+        icon: (
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.5a.75.75 0 01.75-.75h15a.75.75 0 01.75.75v15a.75.75 0 01-.75.75h-15a.75.75 0 01-.75-.75v-15zM7.5 8.25h9m-9 3.75h9m-9 3.75h6" />
           </svg>
         ),
       },
@@ -152,6 +173,7 @@ const sections: NavSection[] = [
 export function Sidebar() {
   const pathname = usePathname()
   const isCreateActive = pathname === '/dashboard/create' || pathname.startsWith('/dashboard/create/')
+  const isHelpActive = pathname === '/dashboard/help' || pathname.startsWith('/dashboard/help/')
 
   return (
     <aside className="flex h-screen w-60 flex-col" style={{ background: 'oklch(0.135 0.018 48)' }}>
@@ -259,10 +281,10 @@ export function Sidebar() {
             href="/dashboard/help"
             className={cn(
               'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-150',
-              pathname.startsWith('/dashboard/help') ? 'text-orange-400' : 'hover:text-white/90'
+              isHelpActive ? 'text-orange-400' : 'hover:text-white/90'
             )}
             style={
-              pathname.startsWith('/dashboard/help')
+              isHelpActive
                 ? { background: 'oklch(0.652 0.214 36 / 0.15)' }
                 : { color: 'oklch(0.55 0.012 52)' }
             }
@@ -277,22 +299,7 @@ export function Sidebar() {
 
       {/* Bottom section */}
       <div className="p-3 space-y-2" style={{ borderTop: '1px solid oklch(0.22 0.016 48)' }}>
-        {/* User row */}
-        <div
-          className="flex items-center gap-3 px-3 py-2 rounded-xl"
-          style={{ background: 'oklch(0.185 0.016 48)' }}
-        >
-          <div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
-          >
-            D
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="truncate text-xs font-semibold text-white">Demo User</p>
-            <p className="truncate text-[10px]" style={{ color: 'oklch(0.42 0.012 52)' }}>Free · 25 generations left</p>
-          </div>
-        </div>
+        <WorkspaceSwitcher />
 
         {/* Upgrade CTA */}
         <Link

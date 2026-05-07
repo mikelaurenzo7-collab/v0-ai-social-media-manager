@@ -7,6 +7,10 @@ import { publishSocialPost } from '@/lib/publishing/social'
 import { getConnection } from '@/lib/oauth/connections'
 import { getCurrentUserId } from '@/lib/oauth/session'
 import { brandKitToSystemPrefix, type BrandKit } from '@/lib/brand-kit'
+import {
+  customizationToPromptSuffix,
+  type AgentCustomization,
+} from '@/lib/agent-customization'
 
 // Node runtime — required by googleapis (Gmail) + Microsoft Graph SDK (Outlook).
 export const runtime = 'nodejs'
@@ -54,18 +58,21 @@ const POSTING_SCHEDULES: Record<string, { bestDays: string[]; bestTimes: string[
 }
 
 export async function POST(req: Request) {
-  const { messages, agentId, creativity, tone, memory, brandKit } = (await req.json()) as {
-    messages: UIMessage[],
-    agentId?: string,
-    creativity?: number,
-    tone?: number,
-    memory?: string,
-    brandKit?: BrandKit | null,
-  }
+  const { messages, agentId, creativity, tone, memory, brandKit, customization } =
+    (await req.json()) as {
+      messages: UIMessage[]
+      agentId?: string
+      creativity?: number
+      tone?: number
+      memory?: string
+      brandKit?: BrandKit | null
+      customization?: AgentCustomization | null
+    }
   const brandKitPrefix = brandKitToSystemPrefix(brandKit ?? null)
+  const customizationSuffix = customizationToPromptSuffix(customization ?? null)
   const modelMessages = await convertToModelMessages(messages)
 
-  let systemPrompt = defaultSystemPrompt + brandKitPrefix
+  let systemPrompt = defaultSystemPrompt + brandKitPrefix + customizationSuffix
   let temperature = 0.7
 
   if (agentId) {
@@ -90,7 +97,19 @@ export async function POST(req: Request) {
 
     const toneInstructions = tone ? `\n\nTONE ADJUSTMENT: Your tone should be ${tone > 70 ? 'highly casual and conversational' : tone < 30 ? 'strictly professional and formal' : 'balanced and modern'}.` : ""
 
-    systemPrompt = `${agent.systemPrompt}${toneInstructions}${memoryContext}${brandKitPrefix}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
+    // If the user overrode the system prompt in Customize, use that instead of
+    // the platform default. The display name (also overridable) is woven into
+    // the prompt so the model can introduce itself by the workspace's chosen name.
+    const customSystemPrompt = customization?.systemPrompt?.trim()
+    const persona = customSystemPrompt && customSystemPrompt.length > 0
+      ? customSystemPrompt
+      : agent.systemPrompt
+    const displayName = customization?.displayName?.trim()
+    const namedPersona = displayName
+      ? `You are now operating as "${displayName}". ${persona}`
+      : persona
+
+    systemPrompt = `${namedPersona}${toneInstructions}${memoryContext}${brandKitPrefix}${customizationSuffix}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
 
     if (creativity) {
       // Map 0-100 to 0.0-1.0 temperature
@@ -470,71 +489,48 @@ function buildEmailTools(channel: 'gmail' | 'outlook') {
   }
 }
 
-const AGENT_TOOLS = {
-  viral: {
-    analyze_virality: tool({
-      description: 'Analyze the virality potential of a post and give it a score.',
-      inputSchema: z.object({
-        content: z.string(),
-      }),
-      execute: async ({ content }) => {
-        const { object } = await generateObject({
-          model: anthropic('claude-3-5-haiku-20241022'),
-          schema: z.object({
-            score: z.number().min(1).max(100),
-            reasoning: z.string(),
-            improvement: z.string(),
-          }),
-          prompt: `Analyze this content for virality potential: ${content}`,
-        })
-        return object
-      },
+/**
+ * Build a publish-to-platform tool scoped to one or more channels. Each social
+ * agent (X, Meta, LinkedIn, TikTok) gets only the platforms it actually owns —
+ * a hard guard against an agent trying to post somewhere it shouldn't.
+ */
+function buildPublishTool(allowed: ReadonlyArray<'twitter' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok'>) {
+  return tool({
+    description:
+      "Publish a short post to the user's connected account on this channel. Only call after the user has explicitly approved the post.",
+    inputSchema: z.object({
+      platform: z.enum(allowed as ['twitter', ...('twitter' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok')[]]),
+      text: z.string().min(1),
+      mediaUrls: z.array(z.string().url()).optional(),
     }),
-  },
-  strategist: {
-    strategic_alignment: tool({
-      description: 'Check if a post aligns with brand pillars and long-term goals.',
-      inputSchema: z.object({
-        content: z.string(),
-        pillars: z.array(z.string()),
-      }),
-      execute: async ({ content, pillars }) => {
-        const { object } = await generateObject({
-          model: anthropic('claude-3-5-haiku-20241022'),
-          schema: z.object({
-            alignmentScore: z.number().min(1).max(10),
-            pillarMatches: z.array(z.string()),
-            feedback: z.string(),
-          }),
-          prompt: `Check alignment for this content: ${content} against pillars: ${pillars.join(', ')}`,
-        })
-        return object
-      },
-    }),
-  },
-  community: {
-    publish_to_platform: tool({
-      description:
-        "Publish a short post to the user's connected social account. Only call after the user has explicitly approved the post and chosen a platform.",
-      inputSchema: z.object({
-        platform: z.enum(['twitter', 'linkedin', 'facebook', 'instagram', 'tiktok']),
-        text: z.string().min(1),
-        mediaUrls: z.array(z.string().url()).optional(),
-      }),
-      execute: async ({ platform, text, mediaUrls }) => {
-        try {
-          const userId = await getCurrentUserId()
-          const result = await publishSocialPost(userId, platform, { text, mediaUrls })
-          return { ...result, platform }
-        } catch (err) {
-          return {
-            success: false,
-            platform,
-            error: err instanceof Error ? err.message : 'Publish failed',
-          }
+    execute: async ({ platform, text, mediaUrls }) => {
+      try {
+        const userId = await getCurrentUserId()
+        const result = await publishSocialPost(userId, platform, { text, mediaUrls })
+        return { ...result, platform }
+      } catch (err) {
+        return {
+          success: false,
+          platform,
+          error: err instanceof Error ? err.message : 'Publish failed',
         }
-      },
-    }),
+      }
+    },
+  })
+}
+
+const AGENT_TOOLS = {
+  x: {
+    publish_to_platform: buildPublishTool(['twitter']),
+  },
+  meta: {
+    publish_to_platform: buildPublishTool(['instagram', 'facebook']),
+  },
+  linkedin: {
+    publish_to_platform: buildPublishTool(['linkedin']),
+  },
+  tiktok: {
+    publish_to_platform: buildPublishTool(['tiktok']),
   },
   gmail: buildEmailTools('gmail'),
   outlook: buildEmailTools('outlook'),

@@ -28,6 +28,8 @@ interface Action {
 const NAV_ACTIONS: Action[] = [
   { id: 'dash', label: 'Dashboard', icon: '🏠', href: '/dashboard', group: 'Navigate', shortcut: 'g d' },
   { id: 'inbox', label: 'Inbox', desc: 'Replies, mentions, DMs', icon: '📬', href: '/dashboard/inbox', group: 'Navigate', shortcut: 'g i' },
+  { id: 'approvals', label: 'Approvals', desc: 'Drafts pending your sign-off', icon: '✅', href: '/dashboard/approvals', group: 'Navigate', shortcut: 'g v', keywords: ['approve', 'review', 'pending'] },
+  { id: 'library', label: 'Asset Library', desc: 'Images, video, templates', icon: '🖼️', href: '/dashboard/library', group: 'Navigate', shortcut: 'g l', keywords: ['assets', 'media', 'images', 'templates'] },
   { id: 'create', label: 'Create content', icon: '✨', href: '/dashboard/create', group: 'Create', shortcut: 'c' },
   { id: 'autopilot', label: 'Auto-Pilot', icon: '⚡', href: '/dashboard/autopilot', group: 'Create' },
   { id: 'drafts', label: 'Drafts', icon: '📝', href: '/dashboard/drafts', group: 'Navigate', shortcut: 'g f' },

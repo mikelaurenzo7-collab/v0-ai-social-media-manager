@@ -178,6 +178,16 @@ const PLATFORM_FILTERS: { id: Platform | 'all'; label: string }[] = [
   { id: 'outlook', label: 'Outlook' },
 ]
 
+const PLATFORM_CHAR_LIMITS: Record<Platform, number> = {
+  twitter: 280,
+  instagram: 2200,
+  linkedin: 3000,
+  facebook: 63206,
+  tiktok: 2200,
+  gmail: 50000,
+  outlook: 50000,
+}
+
 const SENTIMENT_STYLE: Record<Sentiment, { dot: string; label: string }> = {
   positive: { dot: 'bg-emerald-500', label: 'Positive' },
   neutral: { dot: 'bg-slate-400', label: 'Neutral' },
@@ -482,16 +492,7 @@ export default function InboxPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {(() => {
-                        const limits: Record<Platform, number> = {
-                          twitter: 280,
-                          instagram: 2200,
-                          linkedin: 3000,
-                          facebook: 63206,
-                          tiktok: 2200,
-                          gmail: 50000,
-                          outlook: 50000,
-                        }
-                        const max = limits[selected.platform]
+                        const max = PLATFORM_CHAR_LIMITS[selected.platform]
                         const remaining = max - reply.length
                         const warn = remaining < Math.max(20, max * 0.05)
                         const over = remaining < 0
@@ -517,16 +518,7 @@ export default function InboxPage() {
                         style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
                         disabled={
                           !reply.trim() ||
-                          reply.length >
-                            ({
-                              twitter: 280,
-                              instagram: 2200,
-                              linkedin: 3000,
-                              facebook: 63206,
-                              tiktok: 2200,
-                              gmail: 50000,
-                              outlook: 50000,
-                            } as Record<Platform, number>)[selected.platform]
+                          reply.length > PLATFORM_CHAR_LIMITS[selected.platform]
                         }
                         onClick={sendReply}
                       >

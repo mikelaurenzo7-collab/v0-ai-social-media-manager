@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { AGENT_CUSTOMIZATION_KEY } from '@/lib/agent-customization'
 
 interface AgentCustomization {
   displayName: string
@@ -31,7 +32,9 @@ const VOICE_PRESETS = [
 ] as const
 
 export function AgentCustomize({ agent }: { agent: Agent }) {
-  const storageKey = `agent_${agent.id}_customization_v1`
+  // Note: keyed only by agent id today. When workspace-scoped persistence
+  // ships, switch to AGENT_CUSTOMIZATION_KEY(`${workspaceId}:${agent.id}`).
+  const storageKey = AGENT_CUSTOMIZATION_KEY(agent.id)
 
   const defaults: AgentCustomization = {
     displayName: agent.name,
@@ -93,7 +96,7 @@ export function AgentCustomize({ agent }: { agent: Agent }) {
         <div>
           <h2 className="text-xl font-bold">Customize {agent.name}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Rewrite the persona, voice, and instructions. Saved per-workspace.
+            Rewrite the persona, voice, and instructions. Sent with every chat request.
           </p>
         </div>
         <div className="flex items-center gap-2">

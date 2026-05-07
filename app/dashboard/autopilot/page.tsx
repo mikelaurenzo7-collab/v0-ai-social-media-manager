@@ -51,9 +51,9 @@ const SEED_AUTOMATIONS: Automation[] = [
   {
     id: 'a1',
     name: 'Daily LinkedIn Thought Leadership',
-    agentId: 'strategist',
-    agentAvatar: '🎯',
-    agentColor: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
+    agentId: 'linkedin',
+    agentAvatar: 'in',
+    agentColor: 'linear-gradient(135deg, #0EA5E9 0%, #1D4ED8 100%)',
     platform: 'linkedin',
     schedule: 'Mon–Fri · 8:30 AM',
     topic: 'creator economy, content strategy, growth mindset',
@@ -66,9 +66,9 @@ const SEED_AUTOMATIONS: Automation[] = [
   {
     id: 'a2',
     name: 'TikTok Hook Machine',
-    agentId: 'viral',
-    agentAvatar: '⚡',
-    agentColor: 'linear-gradient(135deg, #EA580C 0%, #EAB308 100%)',
+    agentId: 'tiktok',
+    agentAvatar: 'TT',
+    agentColor: 'linear-gradient(135deg, #D946EF 0%, #E11D48 100%)',
     platform: 'tiktok',
     schedule: 'Mon, Wed, Fri · 5:00 PM',
     topic: 'viral hooks, productivity, mindset shifts',
@@ -80,10 +80,10 @@ const SEED_AUTOMATIONS: Automation[] = [
   },
   {
     id: 'a3',
-    name: 'Weekly Twitter Thread',
-    agentId: 'voice',
-    agentAvatar: '🎙️',
-    agentColor: 'linear-gradient(135deg, #A855F7 0%, #DB2777 100%)',
+    name: 'Weekly X Thread',
+    agentId: 'x',
+    agentAvatar: 'X',
+    agentColor: 'linear-gradient(135deg, #18181B 0%, #3F3F46 100%)',
     platform: 'twitter',
     schedule: 'Sundays · 10:00 AM',
     topic: 'deep dives, long-form insights, personal stories',
@@ -96,9 +96,9 @@ const SEED_AUTOMATIONS: Automation[] = [
   {
     id: 'a4',
     name: 'Instagram Story + Caption',
-    agentId: 'community',
-    agentAvatar: '🤝',
-    agentColor: 'linear-gradient(135deg, #22C55E 0%, #0EA5E9 100%)',
+    agentId: 'meta',
+    agentAvatar: 'M',
+    agentColor: 'linear-gradient(135deg, #EC4899 0%, #F43F5E 100%)',
     platform: 'instagram',
     schedule: 'Daily · 12:00 PM',
     topic: 'community building, audience engagement, user stories',
@@ -111,28 +111,28 @@ const SEED_AUTOMATIONS: Automation[] = [
 ]
 
 const FEED_POOL: Omit<FeedItem, 'id' | 'ts'>[] = [
-  { type: 'analyzing', agent: 'Viral Agent',       message: 'Scanning TikTok trending topics for high-velocity hooks…',              platform: 'tiktok' },
-  { type: 'generating', agent: 'Viral Agent',      message: 'Drafting hook: "Stop optimizing for reach. Do this instead:"',          platform: 'tiktok' },
-  { type: 'success',   agent: 'Viral Agent',       message: 'Hook scored 9.2/10 — queued for 5:00 PM today',                         platform: 'tiktok' },
-  { type: 'analyzing', agent: 'Strategist Agent',  message: 'Checking LinkedIn engagement window for optimal post time…',            platform: 'linkedin' },
-  { type: 'generating', agent: 'Strategist Agent', message: 'Drafting LinkedIn post on "The creator plateau problem"',               platform: 'linkedin' },
-  { type: 'scheduled', agent: 'Strategist Agent',  message: 'Scheduled to LinkedIn · Tomorrow 8:30 AM',                             platform: 'linkedin' },
-  { type: 'published', agent: 'Community Agent',   message: 'Published to Instagram · "The real reason your engagement is dropping"', platform: 'instagram' },
-  { type: 'analyzing', agent: 'Voice Coach',       message: 'Analyzing top-performing threads from the past 30 days…',              platform: 'twitter' },
-  { type: 'generating', agent: 'Voice Coach',      message: 'Writing Sunday thread: "7 rules I follow that most creators ignore"',  platform: 'twitter' },
-  { type: 'success',   agent: 'Community Agent',   message: 'Instagram caption optimized · Engagement score: 8.1/10',               platform: 'instagram' },
-  { type: 'published', agent: 'Strategist Agent',  message: 'Published to LinkedIn · "Building in public is the most underrated growth strategy"', platform: 'linkedin' },
-  { type: 'analyzing', agent: 'Viral Agent',       message: 'Running virality analysis on scheduled TikTok content…',              platform: 'tiktok' },
-  { type: 'scheduled', agent: 'Community Agent',   message: 'Scheduled Instagram post · This Friday 6:00 PM (peak window)',         platform: 'instagram' },
-  { type: 'generating', agent: 'Strategist Agent', message: 'Adapting top LinkedIn post for Twitter thread format…',                platform: 'twitter' },
-  { type: 'published', agent: 'Viral Agent',       message: 'Published to TikTok · Reached 8,400 in first 2 hours',                platform: 'tiktok' },
+  { type: 'analyzing',  agent: 'TikTok Agent',   message: 'Scanning TikTok trending topics for high-velocity hooks…',              platform: 'tiktok' },
+  { type: 'generating', agent: 'TikTok Agent',   message: 'Drafting hook: "Stop optimizing for reach. Do this instead:"',          platform: 'tiktok' },
+  { type: 'success',    agent: 'TikTok Agent',   message: 'Hook scored 9.2/10 — queued for 5:00 PM today',                         platform: 'tiktok' },
+  { type: 'analyzing',  agent: 'LinkedIn Agent', message: 'Checking LinkedIn engagement window for optimal post time…',            platform: 'linkedin' },
+  { type: 'generating', agent: 'LinkedIn Agent', message: 'Drafting LinkedIn post on "The creator plateau problem"',               platform: 'linkedin' },
+  { type: 'scheduled',  agent: 'LinkedIn Agent', message: 'Scheduled to LinkedIn · Tomorrow 8:30 AM',                              platform: 'linkedin' },
+  { type: 'published',  agent: 'Meta Agent',     message: 'Published to Instagram · "The real reason your engagement is dropping"', platform: 'instagram' },
+  { type: 'analyzing',  agent: 'X Agent',        message: 'Analyzing top-performing threads from the past 30 days…',               platform: 'twitter' },
+  { type: 'generating', agent: 'X Agent',        message: 'Writing Sunday thread: "7 rules I follow that most creators ignore"',  platform: 'twitter' },
+  { type: 'success',    agent: 'Meta Agent',     message: 'Instagram caption optimized · Engagement score: 8.1/10',                platform: 'instagram' },
+  { type: 'published',  agent: 'LinkedIn Agent', message: 'Published to LinkedIn · "Building in public is the most underrated growth strategy"', platform: 'linkedin' },
+  { type: 'analyzing',  agent: 'TikTok Agent',   message: 'Running virality analysis on scheduled TikTok content…',                platform: 'tiktok' },
+  { type: 'scheduled',  agent: 'Meta Agent',     message: 'Scheduled Instagram post · This Friday 6:00 PM (peak window)',          platform: 'instagram' },
+  { type: 'generating', agent: 'X Agent',        message: 'Adapting top LinkedIn post for Twitter thread format…',                 platform: 'twitter' },
+  { type: 'published',  agent: 'TikTok Agent',   message: 'Published to TikTok · Reached 8,400 in first 2 hours',                 platform: 'tiktok' },
 ]
 
 const AGENT_STATUS = [
-  { id: 'viral',      name: 'Viral Agent',       avatar: '⚡', color: 'linear-gradient(135deg, #EA580C 0%, #EAB308 100%)', status: 'active', lastRan: '45 min ago',  nextRun: 'Today 5:00 PM', postsWeek: 6 },
-  { id: 'strategist', name: 'Strategist Agent',  avatar: '🎯', color: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)', status: 'active', lastRan: '2 hrs ago',   nextRun: 'Tomorrow 8:30 AM', postsWeek: 5 },
-  { id: 'community',  name: 'Community Agent',   avatar: '🤝', color: 'linear-gradient(135deg, #22C55E 0%, #0EA5E9 100%)', status: 'active', lastRan: '3 hrs ago',   nextRun: 'Today 12:00 PM', postsWeek: 7 },
-  { id: 'voice',      name: 'Voice Coach',       avatar: '🎙️', color: 'linear-gradient(135deg, #A855F7 0%, #DB2777 100%)', status: 'idle',   lastRan: '6 days ago',  nextRun: 'Sunday 10:00 AM', postsWeek: 1 },
+  { id: 'tiktok',   name: 'TikTok Agent',   avatar: 'TT', color: 'linear-gradient(135deg, #D946EF 0%, #E11D48 100%)', status: 'active', lastRan: '45 min ago',  nextRun: 'Today 5:00 PM',     postsWeek: 6 },
+  { id: 'linkedin', name: 'LinkedIn Agent', avatar: 'in', color: 'linear-gradient(135deg, #0EA5E9 0%, #1D4ED8 100%)', status: 'active', lastRan: '2 hrs ago',   nextRun: 'Tomorrow 8:30 AM',  postsWeek: 5 },
+  { id: 'meta',     name: 'Meta Agent',     avatar: 'M',  color: 'linear-gradient(135deg, #EC4899 0%, #F43F5E 100%)', status: 'active', lastRan: '3 hrs ago',   nextRun: 'Today 12:00 PM',    postsWeek: 7 },
+  { id: 'x',        name: 'X Agent',        avatar: 'X',  color: 'linear-gradient(135deg, #18181B 0%, #3F3F46 100%)', status: 'idle',   lastRan: '6 days ago',  nextRun: 'Sunday 10:00 AM',   postsWeek: 1 },
 ]
 
 // ── Feed item component ────────────────────────────────────────────────────────
@@ -193,10 +193,10 @@ function CreateAutomationModal({ onClose, onCreated }: { onClose: () => void; on
   const [isCreating, setIsCreating] = useState(false)
 
   const agentOptions = [
-    { id: 'viral',      name: 'Viral Agent',      avatar: '⚡', desc: 'Hooks, virality, TikTok',   color: 'linear-gradient(135deg, #EA580C 0%, #EAB308 100%)' },
-    { id: 'strategist', name: 'Strategist Agent', avatar: '🎯', desc: 'LinkedIn, thought leadership', color: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' },
-    { id: 'community',  name: 'Community Agent',  avatar: '🤝', desc: 'Engagement, Instagram',      color: 'linear-gradient(135deg, #22C55E 0%, #0EA5E9 100%)' },
-    { id: 'voice',      name: 'Voice Coach',      avatar: '🎙️', desc: 'Threads, long-form, Twitter', color: 'linear-gradient(135deg, #A855F7 0%, #DB2777 100%)' },
+    { id: 'x',        name: 'X Agent',        avatar: 'X',  desc: 'Threads, hooks, replies on X',  color: 'linear-gradient(135deg, #18181B 0%, #3F3F46 100%)' },
+    { id: 'meta',     name: 'Meta Agent',     avatar: 'M',  desc: 'Instagram & Facebook',          color: 'linear-gradient(135deg, #EC4899 0%, #F43F5E 100%)' },
+    { id: 'linkedin', name: 'LinkedIn Agent', avatar: 'in', desc: 'Long-form, thought leadership', color: 'linear-gradient(135deg, #0EA5E9 0%, #1D4ED8 100%)' },
+    { id: 'tiktok',   name: 'TikTok Agent',   avatar: 'TT', desc: 'Scripts, hooks, on-screen text', color: 'linear-gradient(135deg, #D946EF 0%, #E11D48 100%)' },
   ]
 
   const scheduleLabels = { daily: 'Daily', '3x': 'Mon · Wed · Fri', weekly: 'Weekly (Sundays)' }

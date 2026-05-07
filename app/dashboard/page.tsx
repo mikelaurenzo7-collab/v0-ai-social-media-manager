@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/dashboard/header'
+import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
 import { PlatformIcon } from '@/components/create/platform-selector'
 
 const AI_TIPS = [
@@ -95,6 +96,9 @@ export default function DashboardPage() {
       />
 
       <div className="p-6 space-y-7">
+
+        {/* ── Onboarding checklist (auto-hides when complete) ─────────────── */}
+        <OnboardingChecklist />
 
         {/* ── Hero: Quick Actions ─────────────────────────────────────────── */}
         <div className="grid gap-4 sm:grid-cols-3">
