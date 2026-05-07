@@ -362,7 +362,13 @@ export function CreateContent() {
                   onClick={mode === 'thread' ? handleGenerateThread : handleGenerate}
                   disabled={!prompt.trim() || (mode === 'post' ? isGenerating : isGeneratingThread)}
                   size="lg"
-                  className="sm:w-auto"
+                  className="sm:w-auto font-semibold"
+                  style={{ 
+                    background: !prompt.trim() || (mode === 'post' ? isGenerating : isGeneratingThread) 
+                      ? undefined 
+                      : 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)',
+                    border: 'none'
+                  }}
                 >
                   {(mode === 'post' ? isGenerating : isGeneratingThread) ? (
                     <>
