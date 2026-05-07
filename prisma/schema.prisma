@@ -138,6 +138,26 @@ model PublishedPost {
   @@index([connectionId])
 }
 
+model ScheduledPost {
+  id           String   @id @default(cuid())
+  userId       String
+  platform     String
+  text         String   @db.Text
+  mediaUrls    String[] @default([])
+  scheduledAt  DateTime
+  timezone     String?
+  status       String   @default("scheduled") // scheduled, published, cancelled, failed
+  agentId      String?  // which agent scheduled this
+  error        String?  @db.Text
+  publishedAt  DateTime?
+  externalId   String?  // ID on the platform once published
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([userId])
+  @@index([scheduledAt])
+  @@index([userId, status])
+}
+
 model VerificationToken {
   identifier String
   token      String   @unique
