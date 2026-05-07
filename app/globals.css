@@ -5,49 +5,40 @@
 
 :root {
   /* ── Warm Creator Palette ─────────────────────────────────────────────── */
-  /* Background: warm linen off-white */
   --background: oklch(0.979 0.006 68);
   --foreground: oklch(0.175 0.022 48);
 
-  /* Cards: pure white with warm cast */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.175 0.022 48);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.175 0.022 48);
 
-  /* Primary: creator orange */
   --primary: oklch(0.652 0.214 36);
   --primary-foreground: oklch(0.99 0 0);
 
-  /* Secondary: warm cream */
   --secondary: oklch(0.952 0.009 62);
   --secondary-foreground: oklch(0.265 0.022 48);
 
-  /* Muted: soft warm gray */
   --muted: oklch(0.952 0.009 62);
   --muted-foreground: oklch(0.545 0.022 52);
 
-  /* Accent: rose/coral pop */
   --accent: oklch(0.588 0.238 352);
   --accent-foreground: oklch(0.99 0 0);
 
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.99 0 0);
 
-  /* Borders: warm beige */
   --border: oklch(0.898 0.012 62);
   --input: oklch(0.898 0.012 62);
   --ring: oklch(0.652 0.214 36);
 
-  /* Charts */
   --chart-1: oklch(0.652 0.214 36);
   --chart-2: oklch(0.588 0.238 352);
   --chart-3: oklch(0.74 0.16 78);
   --chart-4: oklch(0.62 0.175 162);
   --chart-5: oklch(0.7 0.18 22);
 
-  /* Radii — slightly rounder for a warm, approachable feel */
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 
   /* ── Sidebar: dark espresso ──────────────────────────────────────────── */
   --sidebar: oklch(0.135 0.018 48);
@@ -60,25 +51,37 @@
   --sidebar-ring: oklch(0.652 0.214 36);
 
   /* ── Brand Tokens ────────────────────────────────────────────────────── */
-  --creator-orange: #EA580C;
-  --creator-pink:   #DB2777;
-  --creator-gradient: linear-gradient(135deg, #EA580C 0%, #DB2777 100%);
-  --creator-glow-orange: 0 0 24px oklch(0.652 0.214 36 / 0.35);
-  --creator-glow-pink:   0 0 24px oklch(0.588 0.238 352 / 0.35);
-  --creator-warm-shadow: 0 1px 3px oklch(0.175 0.022 48 / 0.06),
-                         0 4px 12px oklch(0.175 0.022 48 / 0.08);
+  --brand-orange:   #EA580C;
+  --brand-pink:     #DB2777;
+  --brand-amber:    #F59E0B;
+  --brand-coral:    #FB7185;
+  --brand-espresso: oklch(0.135 0.018 48);
+
+  --brand-gradient:        linear-gradient(135deg, #EA580C 0%, #DB2777 100%);
+  --brand-gradient-soft:   linear-gradient(135deg, #FFB37A 0%, #FFA1B8 100%);
+  --brand-gradient-warm:   linear-gradient(135deg, #F59E0B 0%, #EA580C 50%, #DB2777 100%);
+
+  --shadow-sm:   0 1px 2px oklch(0.175 0.022 48 / 0.05);
+  --shadow-md:   0 1px 3px oklch(0.175 0.022 48 / 0.06), 0 4px 12px oklch(0.175 0.022 48 / 0.08);
+  --shadow-lg:   0 10px 30px -8px oklch(0.175 0.022 48 / 0.18), 0 4px 12px oklch(0.175 0.022 48 / 0.06);
+  --shadow-glow: 0 0 0 1px oklch(0.652 0.214 36 / 0.18), 0 8px 32px oklch(0.652 0.214 36 / 0.32);
 
   /* Platform colors */
-  --platform-x:  #000000;
-  --platform-ig: #E1306C;
-  --platform-li: #0A66C2;
-  --platform-tt: #000000;
-  --platform-fb: #1877F2;
+  --platform-x:        #000000;
+  --platform-twitter:  #000000;
+  --platform-ig:       #E1306C;
+  --platform-li:       #0A66C2;
+  --platform-tt:       #000000;
+  --platform-fb:       #1877F2;
+  --platform-gmail:    #EA4335;
+  --platform-outlook:  #0078D4;
 
-  --animation-smooth: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-base:   250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-slow:   450ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-spring: 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Dark mode — warm dark espresso UI */
 .dark {
   --background: oklch(0.13 0.018 48);
   --foreground: oklch(0.96 0.005 62);
@@ -117,6 +120,7 @@
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-display: 'Instrument Serif', 'Geist', serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -141,10 +145,11 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 3px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 12px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -160,15 +165,23 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
   body {
     @apply bg-background text-foreground;
-    /* Subtle warm texture */
-    background-image: radial-gradient(
-      ellipse 80% 60% at 50% -10%,
-      oklch(0.652 0.214 36 / 0.04) 0%,
-      transparent 70%
-    );
+    background-image:
+      radial-gradient(ellipse 60% 40% at 15% 0%,  oklch(0.652 0.214 36 / 0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 85% 0%,  oklch(0.588 0.238 352 / 0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 50% at 50% 110%, oklch(0.74 0.16 78 / 0.04) 0%, transparent 70%);
     background-attachment: fixed;
+  }
+
+  ::selection {
+    background: oklch(0.652 0.214 36 / 0.25);
+    color: oklch(0.175 0.022 48);
   }
 
   :focus-visible {
@@ -186,53 +199,141 @@
   }
 }
 
-/* ── Warm Creator Utility Classes ──────────────────────────────────────────── */
+/* ── Premium Utility Classes ───────────────────────────────────────────── */
 @layer components {
-  /* Gradient text */
   .gradient-text {
-    background: var(--creator-gradient);
+    background: var(--brand-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    color: transparent;
   }
 
-  /* Gradient button */
+  .gradient-text-warm {
+    background: var(--brand-gradient-warm);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .gradient-text-animate {
+    background: linear-gradient(110deg, #F59E0B, #EA580C, #DB2777, #FB7185, #EA580C);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-flow 6s ease-in-out infinite;
+  }
+  @keyframes gradient-flow {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+
   .btn-gradient {
-    background: var(--creator-gradient);
+    background: var(--brand-gradient);
     color: #fff;
     font-weight: 600;
-    transition: opacity var(--animation-smooth), transform var(--animation-smooth);
+    transition: opacity var(--motion-base), transform var(--motion-base), box-shadow var(--motion-base);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 6px 18px oklch(0.652 0.214 36 / 0.3);
   }
   .btn-gradient:hover {
-    opacity: 0.9;
     transform: translateY(-1px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 10px 30px oklch(0.652 0.214 36 / 0.4);
   }
   .btn-gradient:active {
-    transform: scale(0.98);
+    transform: scale(0.98) translateY(0);
   }
 
-  /* Warm card with shadow */
   .card-warm {
     background: var(--card);
     color: var(--card-foreground);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    box-shadow: var(--creator-warm-shadow);
+    box-shadow: var(--shadow-md);
+    transition: box-shadow var(--motion-base), transform var(--motion-base), border-color var(--motion-base);
+  }
+  .card-warm:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: oklch(0.85 0.014 62);
   }
 
-  /* Creator glow on orange elements */
-  .glow-orange {
-    box-shadow: var(--creator-glow-orange);
+  .glass {
+    background: oklch(1 0 0 / 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+            backdrop-filter: saturate(180%) blur(14px);
+    border: 1px solid oklch(0.96 0.005 62 / 0.7);
   }
 
-  /* Platform accents */
-  .platform-x  { color: var(--platform-x); }
-  .platform-ig { color: var(--platform-ig); }
-  .platform-li { color: var(--platform-li); }
-  .platform-tt { color: var(--platform-tt); }
-  .platform-fb { color: var(--platform-fb); }
+  .glass-dark {
+    background: oklch(0.135 0.018 48 / 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+            backdrop-filter: saturate(180%) blur(14px);
+    border: 1px solid oklch(0.245 0.016 48 / 0.6);
+  }
 
-  /* Shimmer loading skeleton */
+  /* Animated conic gradient border (popular pricing card, featured agent) */
+  .border-gradient {
+    position: relative;
+    background: var(--card);
+    border-radius: var(--radius);
+  }
+  .border-gradient::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: conic-gradient(from var(--angle, 0deg), #EA580C, #DB2777, #F59E0B, #EA580C);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    animation: spin-border 6s linear infinite;
+    pointer-events: none;
+  }
+  @property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  @keyframes spin-border {
+    to { --angle: 360deg; }
+  }
+
+  .pulse-dot::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.4;
+    animation: pulse-ring 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  @keyframes pulse-ring {
+    0%   { transform: scale(0.8); opacity: 0.6; }
+    80%, 100% { transform: scale(2);   opacity: 0; }
+  }
+
+  .marquee {
+    display: flex;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .marquee-track {
+    display: flex;
+    flex-shrink: 0;
+    min-width: 100%;
+    animation: marquee 30s linear infinite;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-100%); }
+  }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+
   .loading-skeleton {
     background: linear-gradient(
       90deg,
@@ -248,12 +349,63 @@
     100% { background-position: -200% 0; }
   }
 
-  /* Gentle float for hero elements */
   .float-gentle {
-    animation: float-gentle 5s ease-in-out infinite;
+    animation: float-gentle 6s ease-in-out infinite;
   }
   @keyframes float-gentle {
     0%, 100% { transform: translateY(0px); }
-    50%       { transform: translateY(-6px); }
+    50%       { transform: translateY(-8px); }
+  }
+
+  .reveal-up {
+    animation: reveal-up 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes reveal-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, oklch(0.175 0.022 48 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(0.175 0.022 48 / 0.05) 1px, transparent 1px);
+    background-size: 36px 36px;
+  }
+  .bg-grid-dark {
+    background-image:
+      linear-gradient(to right, oklch(1 0 0 / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(1 0 0 / 0.04) 1px, transparent 1px);
+    background-size: 36px 36px;
+  }
+
+  .bg-dots {
+    background-image: radial-gradient(oklch(0.175 0.022 48 / 0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  .platform-x       { color: var(--platform-x); }
+  .platform-twitter { color: var(--platform-twitter); }
+  .platform-ig      { color: var(--platform-ig); }
+  .platform-li      { color: var(--platform-li); }
+  .platform-tt      { color: var(--platform-tt); }
+  .platform-fb      { color: var(--platform-fb); }
+  .platform-gmail   { color: var(--platform-gmail); }
+  .platform-outlook { color: var(--platform-outlook); }
+
+  .tabular { font-variant-numeric: tabular-nums; }
+}
+
+@media (pointer: fine) {
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.175 0.022 48 / 0.18);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.175 0.022 48 / 0.32);
+    background-clip: padding-box;
   }
 }

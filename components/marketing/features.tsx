@@ -1,95 +1,228 @@
-import { Card, CardContent } from '@/components/ui/card'
-
-const features = [
-  {
-    title: 'AI-Powered Generation',
-    description: 'Generate engaging posts, captions, and hashtags optimized for each platform with a single prompt.',
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Multi-Platform Support',
-    description: 'Create content for X, Instagram, and Facebook simultaneously. Each post is tailored to platform-specific best practices.',
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 6.878V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0118 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 004.5 9v.878m13.5-3A2.25 2.25 0 0119.5 9v.878m0 0a2.246 2.246 0 00-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0121 12v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6c0-.98.626-1.813 1.5-2.122" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Multiple Variations',
-    description: 'Get 3 unique content variations for every prompt. Pick your favorite or mix and match elements.',
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Tone & Style Control',
-    description: 'Choose from professional, casual, witty, or inspirational tones. Match your brand voice perfectly.',
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Real-Time Previews',
-    description: 'See exactly how your content will look on each platform before you post. No surprises.',
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Save & Organize',
-    description: 'Save your best content to drafts. Build a library of ready-to-post content for any occasion.',
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-      </svg>
-    ),
-  },
-]
+import {
+  Sparkles,
+  Lock,
+  Zap,
+  CalendarClock,
+  GitBranch,
+  Inbox,
+  Workflow,
+  BarChart3,
+} from 'lucide-react'
 
 export function Features() {
   return (
-    <section id="features" className="py-20 sm:py-28">
+    <section id="features" className="relative py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-            Everything you need to create great content
+          <p className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
+            <Sparkles className="h-3 w-3 text-orange-500" />
+            What&apos;s in the box
+          </p>
+          <h2 className="mt-4 text-balance font-display text-4xl tracking-tight sm:text-5xl">
+            Everything you need <span className="gradient-text">to ship daily.</span>
           </h2>
           <p className="mt-4 text-pretty text-lg text-muted-foreground">
-            PostPilot combines powerful AI with intuitive design to make social media content 
-            creation effortless.
+            Drafts, scheduling, real OAuth publishing, A/B variations, and analytics — all in one
+            calm, deeply-considered workspace.
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <Card key={feature.title} className="border-border/50 transition-colors hover:border-border">
-              <CardContent className="pt-6">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-semibold">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {feature.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Bento grid */}
+        <div className="mt-14 grid gap-4 md:grid-cols-6 md:grid-rows-2">
+          <FeatureCard
+            className="md:col-span-3 md:row-span-2"
+            icon={<Sparkles className="h-5 w-5" />}
+            title="Six specialist agents"
+            kicker="Built for results"
+            description="Strategist, Viral, Voice, Community, Gmail, and Outlook — each tuned with deep platform smarts and shipping defaults you'd actually use."
+            visual={<AgentsTile />}
+            featured
+          />
+          <FeatureCard
+            className="md:col-span-3"
+            icon={<Lock className="h-5 w-5" />}
+            title="Real OAuth, encrypted"
+            kicker="Secure by default"
+            description="One-click connect to X, Instagram, LinkedIn, Facebook, TikTok, Gmail, and Outlook. Tokens are AES-256-GCM encrypted at rest with auto-refresh."
+            visual={<LockTile />}
+          />
+          <FeatureCard
+            className="md:col-span-3"
+            icon={<Zap className="h-5 w-5" />}
+            title="A/B variations on tap"
+            kicker="Ship more, faster"
+            description="Generate 3–5 takes per prompt. Pick a winner, save the rest as drafts, queue the best for your peak hour."
+            visual={<VariationsTile />}
+          />
+          <FeatureCard
+            className="md:col-span-2"
+            icon={<CalendarClock className="h-4 w-4" />}
+            title="Smart scheduling"
+            description="Suggested send-times based on your historical engagement and platform best practices."
+          />
+          <FeatureCard
+            className="md:col-span-2"
+            icon={<Workflow className="h-4 w-4" />}
+            title="Auto-Pilot recipes"
+            description="Repeating playbooks: weekly thread, daily Outlook digest, monthly Gmail check-in. Set once, forget responsibly."
+          />
+          <FeatureCard
+            className="md:col-span-2"
+            icon={<BarChart3 className="h-4 w-4" />}
+            title="Honest analytics"
+            description="Engagement, replies, and open rates side-by-side. No vanity metrics."
+          />
         </div>
       </div>
     </section>
+  )
+}
+
+function FeatureCard({
+  className = '',
+  icon,
+  kicker,
+  title,
+  description,
+  visual,
+  featured,
+}: {
+  className?: string
+  icon: React.ReactNode
+  kicker?: string
+  title: string
+  description: string
+  visual?: React.ReactNode
+  featured?: boolean
+}) {
+  return (
+    <div
+      className={`group relative overflow-hidden rounded-3xl border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
+        featured ? 'border-foreground/12' : 'border-border/70'
+      } ${className}`}
+    >
+      {featured && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-px opacity-60 [mask-image:linear-gradient(to_bottom,white,transparent_60%)]"
+          style={{
+            background:
+              'radial-gradient(ellipse 60% 50% at 70% 0%, rgba(234,88,12,0.18), transparent 60%)',
+          }}
+        />
+      )}
+
+      <div className="relative flex h-full flex-col">
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${
+              featured
+                ? 'bg-gradient-to-br from-orange-500 to-pink-600 text-white shadow-md'
+                : 'bg-muted/60 text-foreground/80'
+            }`}
+          >
+            {icon}
+          </span>
+          {kicker && (
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              {kicker}
+            </span>
+          )}
+        </div>
+        <h3 className="mt-4 font-display text-2xl leading-tight tracking-tight text-foreground">
+          {title}
+        </h3>
+        <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+
+        {visual && <div className="mt-6 flex-1">{visual}</div>}
+      </div>
+    </div>
+  )
+}
+
+/* ── Inline visuals (kept simple, no external deps) ───────────────────── */
+
+function AgentsTile() {
+  const agents = [
+    { initial: 'S', hue: 'from-blue-500 to-indigo-500',  name: 'Sarah',   role: 'Strategy' },
+    { initial: 'C', hue: 'from-orange-500 to-amber-500', name: 'Casey',   role: 'Viral'    },
+    { initial: 'R', hue: 'from-purple-500 to-pink-500',  name: 'Riley',   role: 'Voice'    },
+    { initial: 'M', hue: 'from-emerald-500 to-teal-500', name: 'Marcus',  role: 'Community'},
+    { initial: 'G', hue: 'from-red-500 to-rose-500',     name: 'Gina',    role: 'Gmail'    },
+    { initial: 'O', hue: 'from-sky-500 to-blue-600',     name: 'Oliver',  role: 'Outlook'  },
+  ]
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {agents.map((a, i) => (
+        <div
+          key={a.name}
+          className="rounded-xl border border-border/70 bg-card/80 p-3 backdrop-blur transition-transform group-hover:scale-[1.01]"
+          style={{ animationDelay: `${i * 80}ms` }}
+        >
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br ${a.hue} text-xs font-bold text-white shadow-sm`}>
+              {a.initial}
+            </span>
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 pulse-dot text-emerald-500" />
+          </div>
+          <p className="mt-2 text-xs font-semibold text-foreground">{a.name}</p>
+          <p className="text-[10px] text-muted-foreground">{a.role}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function LockTile() {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-muted/30 p-4">
+      <div className="grid grid-cols-4 gap-2">
+        {['X', 'IG', 'LI', 'TT', 'FB', 'GM', 'OL', '+'].map((p) => (
+          <div
+            key={p}
+            className="flex h-10 items-center justify-center rounded-lg bg-card text-[11px] font-bold text-foreground/80 ring-1 ring-border/60"
+          >
+            {p}
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+        <Inbox className="h-3 w-3" />
+        Tokens encrypted at rest · auto-refresh
+      </div>
+    </div>
+  )
+}
+
+function VariationsTile() {
+  return (
+    <div className="space-y-2">
+      {['A · 1.2k likes', 'B · 894 likes', 'C · 312 likes'].map((label, i) => (
+        <div
+          key={label}
+          className="flex items-center gap-2 rounded-xl border border-border/70 bg-card/80 p-2.5"
+        >
+          <span
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${
+              i === 0
+                ? 'bg-gradient-to-br from-orange-500 to-pink-600 text-white shadow-md'
+                : 'bg-muted/60 text-foreground/70'
+            }`}
+          >
+            {String.fromCharCode(65 + i)}
+          </span>
+          <div className="min-w-0 flex-1">
+            <span className="block h-1.5 rounded-full bg-foreground/15" />
+            <span className="mt-1 block h-1.5 w-3/4 rounded-full bg-foreground/10" />
+          </div>
+          <span className="text-[10px] font-semibold text-muted-foreground">{label}</span>
+          {i === 0 && (
+            <GitBranch className="ml-1 h-3.5 w-3.5 text-orange-500" />
+          )}
+        </div>
+      ))}
+    </div>
   )
 }

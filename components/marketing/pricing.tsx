@@ -1,161 +1,179 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { Check, Sparkles } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
-const plans = [
+interface Plan {
+  name: string
+  description: string
+  price: number
+  features: string[]
+  cta: string
+  highlight?: boolean
+}
+
+const PLANS: Plan[] = [
   {
     name: 'Free',
-    description: 'Perfect for getting started',
-    price: '$0',
-    period: 'forever',
+    description: 'For testing the waters',
+    price: 0,
     features: [
-      '25 AI generations per month',
-      'All 3 platforms (X, Instagram, Facebook)',
-      '3 content variations per prompt',
-      'Save up to 10 drafts',
-      'Basic tone options',
+      '25 generations / month',
+      '1 connected account per platform',
+      'All 6 specialist agents',
+      '3 variations per prompt',
+      '10 saved drafts',
     ],
-    cta: 'Get Started',
-    popular: false,
+    cta: 'Start free',
   },
   {
     name: 'Pro',
-    description: 'For creators who post regularly',
-    price: '$19',
-    period: 'per month',
+    description: 'For creators &amp; founders',
+    price: 19,
     features: [
-      'Unlimited AI generations',
-      'All 3 platforms',
-      '5 content variations per prompt',
-      'Unlimited drafts',
-      'Advanced tone & style options',
-      'Hashtag optimization',
-      'Priority support',
+      'Unlimited generations',
+      'All 8 channels (incl. Gmail + Outlook)',
+      '5 variations per prompt',
+      'Smart scheduling + Auto-Pilot',
+      'Honest analytics',
+      'Priority email support',
     ],
-    cta: 'Start Free Trial',
-    popular: true,
+    cta: 'Start 7-day Pro trial',
+    highlight: true,
   },
   {
     name: 'Team',
-    description: 'For agencies and businesses',
-    price: '$49',
-    period: 'per month',
+    description: 'For agencies &amp; teams',
+    price: 49,
     features: [
       'Everything in Pro',
-      'Up to 5 team members',
+      'Up to 5 seats',
       'Multiple brand profiles',
-      'Content approval workflow',
-      'Analytics dashboard',
-      'API access',
+      'Approval workflows',
+      'Shared draft library',
       'Dedicated support',
     ],
-    cta: 'Contact Sales',
-    popular: false,
+    cta: 'Talk to sales',
   },
 ]
 
 export function Pricing() {
-  const [annual, setAnnual] = useState(false)
+  const [annual, setAnnual] = useState(true)
 
   return (
-    <section id="pricing" className="py-20 sm:py-28 bg-muted/30">
+    <section id="pricing" className="relative py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-            Simple, transparent pricing
+          <p className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
+            Pricing
+          </p>
+          <h2 className="mt-4 text-balance font-display text-4xl tracking-tight sm:text-5xl">
+            Simple. Honest. <span className="gradient-text">Worth it.</span>
           </h2>
           <p className="mt-4 text-pretty text-lg text-muted-foreground">
-            Start free and scale as you grow. No hidden fees.
+            Start free, upgrade when you&apos;re shipping daily. No surprise overages.
           </p>
         </div>
 
-        {/* Billing Toggle */}
-        <div className="mt-10 flex items-center justify-center gap-3">
-          <span className={`text-sm ${!annual ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-            Monthly
-          </span>
-          <button
-            onClick={() => setAnnual(!annual)}
-            className={`relative h-6 w-11 rounded-full transition-colors ${annual ? 'bg-primary' : 'bg-muted'}`}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                annual ? 'left-[22px]' : 'left-0.5'
-              }`}
-            />
-          </button>
-          <span className={`text-sm ${annual ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-            Annual
-            <Badge variant="secondary" className="ml-2">Save 20%</Badge>
-          </span>
-        </div>
-
-        {/* Pricing Cards */}
-        <div className="mt-12 grid gap-6 lg:grid-cols-3 lg:gap-8">
-          {plans.map((plan) => (
-            <Card
-              key={plan.name}
-              className={`relative flex flex-col ${
-                plan.popular ? 'border-primary shadow-lg ring-1 ring-primary' : 'border-border/50'
+        {/* Billing toggle */}
+        <div className="mt-10 flex items-center justify-center">
+          <div className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-card/70 p-1 backdrop-blur">
+            <button
+              onClick={() => setAnnual(false)}
+              className={`relative rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+                !annual ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="px-3 py-1">Most Popular</Badge>
-                </div>
-              )}
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl">{plan.name}</CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <div className="mt-2 mb-6">
-                  <span className="text-4xl font-bold">
-                    {annual && plan.price !== '$0' 
-                      ? `$${Math.round(parseInt(plan.price.slice(1)) * 0.8)}` 
-                      : plan.price}
-                  </span>
-                  {plan.price !== '$0' && (
-                    <span className="text-muted-foreground">/{annual ? 'month, billed annually' : plan.period}</span>
-                  )}
-                  {plan.price === '$0' && (
-                    <span className="text-muted-foreground ml-1">{plan.period}</span>
-                  )}
-                </div>
-                <ul className="space-y-3">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm">
-                      <svg
-                        className="mt-0.5 h-4 w-4 shrink-0 text-primary"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth="2"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  asChild
-                  variant={plan.popular ? 'default' : 'outline'}
-                  className="w-full"
-                >
-                  <Link href="/signup">{plan.cta}</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+              Monthly
+            </button>
+            <button
+              onClick={() => setAnnual(true)}
+              className={`relative rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+                annual ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Annual
+              <span className="ml-1.5 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">
+                –20%
+              </span>
+            </button>
+          </div>
         </div>
+
+        {/* Plan cards */}
+        <div className="mx-auto mt-12 grid max-w-5xl gap-6 lg:grid-cols-3">
+          {PLANS.map((plan) => {
+            const monthly = annual ? Math.round(plan.price * 0.8) : plan.price
+            return (
+              <div
+                key={plan.name}
+                className={`relative flex flex-col rounded-3xl p-7 ${
+                  plan.highlight
+                    ? 'border-gradient'
+                    : 'border border-border/70 bg-card'
+                }`}
+              >
+                {plan.highlight && (
+                  <span className="absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-foreground px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-background">
+                    <Sparkles className="h-3 w-3" />
+                    Most popular
+                  </span>
+                )}
+                <div className="relative">
+                  <h3 className="font-display text-3xl tracking-tight">{plan.name}</h3>
+                  <p
+                    className="mt-1 text-sm text-muted-foreground"
+                    dangerouslySetInnerHTML={{ __html: plan.description }}
+                  />
+                  <div className="mt-6 flex items-baseline gap-1">
+                    <span className="font-display text-5xl tabular tracking-tight">${monthly}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {plan.price === 0 ? '/forever' : annual ? '/mo · billed annually' : '/mo'}
+                    </span>
+                  </div>
+
+                  <ul className="mt-7 space-y-3">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2.5 text-sm">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                        <span className="text-foreground/85">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    href="/signup"
+                    className={`mt-8 inline-flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold transition-all ${
+                      plan.highlight
+                        ? 'btn-gradient'
+                        : 'border border-border bg-card text-foreground hover:bg-muted/40'
+                    }`}
+                  >
+                    {plan.cta}
+                  </Link>
+
+                  {plan.highlight && (
+                    <div className="mt-4 flex items-center justify-center">
+                      <Badge className="bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/15 border-emerald-500/20">
+                        Cancel anytime
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <p className="mt-10 text-center text-xs text-muted-foreground">
+          Prices in USD. Annual plans billed yearly. Need an enterprise SLA?{' '}
+          <Link href="#contact" className="font-medium text-foreground underline-offset-4 hover:underline">
+            Talk to us
+          </Link>
+          .
+        </p>
       </div>
     </section>
   )

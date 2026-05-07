@@ -3,207 +3,329 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { ArrowRight, Sparkles, Play, ShieldCheck } from 'lucide-react'
 
-const demoPrompts = [
-  "Launching our new sustainable product line",
-  "Sharing 5 productivity tips for remote workers",
-  "Celebrating 10,000 followers milestone",
-  "Announcing our summer sale event",
-]
-
-const demoOutputs = [
-  {
-    content: "Big news! We&apos;re launching our new sustainable product line. Crafted with care for both you and the planet.",
-    hashtags: ["Sustainable", "EcoFriendly", "NewLaunch"],
-  },
-  {
-    content: "5 productivity hacks that changed how I work remotely: 1. Time blocking 2. No-meeting mornings 3. The 2-minute rule...",
-    hashtags: ["Productivity", "RemoteWork", "WorkFromHome"],
-  },
-  {
-    content: "10,000 of you! This community means everything. Thank you for believing in what we do.",
-    hashtags: ["Milestone", "ThankYou", "Community"],
-  },
-  {
-    content: "Summer is here and so are the deals! Up to 50% off everything. Don&apos;t miss out!",
-    hashtags: ["SummerSale", "Deals", "ShopNow"],
-  },
+const ROTATION = [
+  { agent: 'Sarah',  role: 'Strategist',     hue: 'from-blue-500 to-indigo-500',
+    prompt: 'Plan a 7-day launch for our sustainable line',
+    out:    "Day 1 — tease the why. Day 2 — drop the hero shot. Day 3 — share the founder voice memo. Day 4–5 — early-access link. Day 6 — ugc reposts. Day 7 — open the floodgates." },
+  { agent: 'Casey',  role: 'Viral Specialist', hue: 'from-orange-500 to-amber-500',
+    prompt: 'Write a TikTok hook for: 5 productivity rules I broke',
+    out:    "I broke every productivity rule for 30 days. Rule #4 made me 3× more focused. Don\u2019t skip — wait for the green sticky note." },
+  { agent: 'Riley',  role: 'Voice Coach',     hue: 'from-purple-500 to-pink-500',
+    prompt: 'Make this LinkedIn post sound less corporate',
+    out:    "We hit 10k customers. I still cry-laughed in the car after the call with #6,142. Building means caring about every single one." },
+  { agent: 'Marcus', role: 'Community',       hue: 'from-emerald-500 to-teal-500',
+    prompt: 'A reply to: \u201cLove your brand but the price stings\u201d',
+    out:    "Hear you. We pay our makers 2\u00d7 industry rate \u2014 that\u2019s why. If it\u2019s out of reach today, we drop a 20% \u2018first piece\u2019 code in our newsletter once a month." },
+  { agent: 'Gina',   role: 'Gmail Outreach',  hue: 'from-red-500 to-rose-500',
+    prompt: 'Cold email to a founder I admire about partnership',
+    out:    "subject: small idea, big fan\u2014\nshort version: love what you\u2019re building. one specific way we could collab in 15 min\u2014happy to send the deck if it\u2019s a fit?" },
+  { agent: 'Oliver', role: 'Outlook Business', hue: 'from-sky-500 to-blue-600',
+    prompt: 'Update the board on Q3 revenue',
+    out:    "Subject: [Update] Q3 revenue + commentary\n\nHeadline: $4.2M (+38% YoY). Three drivers below, two risks I\u2019m watching, one ask." },
 ]
 
 export function Hero() {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [displayedPrompt, setDisplayedPrompt] = useState('')
-  const [isTyping, setIsTyping] = useState(true)
-  const [showOutput, setShowOutput] = useState(false)
+  const [idx, setIdx] = useState(0)
+  const [typed, setTyped] = useState('')
+  const [phase, setPhase] = useState<'typing' | 'thinking' | 'reveal'>('typing')
 
   useEffect(() => {
-    const prompt = demoPrompts[currentIndex]
-    let charIndex = 0
-    setIsTyping(true)
-    setShowOutput(false)
-    setDisplayedPrompt('')
+    const item = ROTATION[idx]
+    let cancelled = false
+    setTyped('')
+    setPhase('typing')
 
-    const typingInterval = setInterval(() => {
-      if (charIndex < prompt.length) {
-        setDisplayedPrompt(prompt.slice(0, charIndex + 1))
-        charIndex++
-      } else {
-        clearInterval(typingInterval)
-        setIsTyping(false)
-        setTimeout(() => setShowOutput(true), 500)
-        setTimeout(() => {
-          setCurrentIndex((prev) => (prev + 1) % demoPrompts.length)
-        }, 4000)
+    let i = 0
+    const typeInterval = setInterval(() => {
+      if (cancelled) return
+      i++
+      setTyped(item.prompt.slice(0, i))
+      if (i >= item.prompt.length) {
+        clearInterval(typeInterval)
+        setPhase('thinking')
+        setTimeout(() => !cancelled && setPhase('reveal'), 700)
+        setTimeout(() => !cancelled && setIdx((p) => (p + 1) % ROTATION.length), 4800)
       }
-    }, 50)
+    }, 36)
 
-    return () => clearInterval(typingInterval)
-  }, [currentIndex])
+    return () => {
+      cancelled = true
+      clearInterval(typeInterval)
+    }
+  }, [idx])
 
-  const currentOutput = demoOutputs[currentIndex]
+  const current = ROTATION[idx]
 
   return (
-    <section className="relative overflow-hidden">
-      {/* Subtle gradient background */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-0 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/4 rounded-full bg-primary/8 blur-3xl" />
+    <section className="relative isolate overflow-hidden">
+      {/* Aurora backdrop */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-40 left-1/2 h-[680px] w-[1100px] -translate-x-1/2">
+          <div className="h-full w-full opacity-70 [mask-image:radial-gradient(closest-side,white,transparent)]"
+               style={{
+                 background:
+                   'radial-gradient(35% 35% at 30% 35%, rgba(234,88,12,0.32), transparent 60%),' +
+                   'radial-gradient(35% 35% at 70% 30%, rgba(219,39,119,0.28), transparent 60%),' +
+                   'radial-gradient(45% 45% at 50% 70%, rgba(245,158,11,0.18), transparent 65%)',
+               }} />
+        </div>
+        <div className="absolute inset-x-0 top-0 h-[640px] bg-grid opacity-[0.5] [mask-image:linear-gradient(180deg,black,transparent)]" />
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
+      <div className="mx-auto max-w-7xl px-4 pt-10 pb-12 sm:px-6 sm:pt-16 sm:pb-20 lg:px-8 lg:pt-24">
         <div className="mx-auto max-w-3xl text-center">
-          {/* Badge */}
-          <Badge variant="secondary" className="mb-6 px-4 py-1.5 text-sm font-medium">
-            AI-Powered Content Creation
-          </Badge>
+          {/* Eyebrow pill */}
+          <div className="reveal-up inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3.5 py-1 text-xs font-medium text-foreground/80 shadow-sm backdrop-blur">
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-orange-500 pulse-dot text-orange-500" />
+            <span>Now with Gmail &amp; Outlook agents</span>
+            <span className="text-muted-foreground/70">·</span>
+            <span className="text-muted-foreground">v2026.05</span>
+          </div>
 
           {/* Headline */}
-          <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            Your AI Co-Pilot for{' '}
-            <span className="text-primary">Social Media</span>
+          <h1 className="reveal-up mt-6 text-balance font-display text-[2.75rem] leading-[1.04] tracking-tight sm:text-6xl lg:text-7xl"
+              style={{ animationDelay: '60ms' }}>
+            Your AI co-pilot
+            <br className="hidden sm:block" />
+            <span className="gradient-text-animate">for social and email</span>
           </h1>
 
-          {/* Subheadline */}
-          <p className="mt-6 text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Stop staring at blank screens. PostPilot generates engaging, platform-optimized 
-            content for X, Instagram, and Facebook in seconds. Perfect for influencers, 
-            businesses, and creators.
+          {/* Subhead */}
+          <p className="reveal-up mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
+             style={{ animationDelay: '160ms' }}>
+            Six specialist agents draft, schedule, and publish across X, Instagram, LinkedIn, TikTok,
+            Facebook, Gmail, and Outlook — with real OAuth, real platform smarts, and copy you&apos;ll
+            actually want to send.
           </p>
 
-          {/* CTA Buttons */}
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button size="lg" asChild className="min-w-[180px]">
-              <Link href="/signup">Start Creating Free</Link>
+          {/* CTAs */}
+          <div className="reveal-up mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
+               style={{ animationDelay: '240ms' }}>
+            <Button size="lg" asChild className="btn-gradient h-12 rounded-full px-7 text-sm font-semibold">
+              <Link href="/signup" className="inline-flex items-center gap-2">
+                Start creating free
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
-            <Button size="lg" variant="outline" asChild className="min-w-[180px]">
-              <Link href="/dashboard/create">Try the Demo</Link>
+            <Button size="lg" variant="outline" asChild className="h-12 rounded-full px-6 text-sm font-medium border-border/80">
+              <Link href="/dashboard/create" className="inline-flex items-center gap-2">
+                <Play className="h-3.5 w-3.5 fill-current" />
+                See it in action
+              </Link>
             </Button>
           </div>
 
-          {/* Social Proof */}
-          <p className="mt-8 text-sm text-muted-foreground">
-            No credit card required. Free forever plan available.
-          </p>
-        </div>
-
-        {/* Platform Logos */}
-        <div className="mt-12 flex items-center justify-center gap-8 opacity-60">
-          {/* X (Twitter) */}
-          <div className="flex items-center gap-2">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-            </svg>
-            <span className="text-sm font-medium">X</span>
-          </div>
-          {/* Instagram */}
-          <div className="flex items-center gap-2">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-            </svg>
-            <span className="text-sm font-medium">Instagram</span>
-          </div>
-          {/* Facebook */}
-          <div className="flex items-center gap-2">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-            </svg>
-            <span className="text-sm font-medium">Facebook</span>
+          {/* Trust line */}
+          <div className="reveal-up mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground"
+               style={{ animationDelay: '320ms' }}>
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+              SOC 2-ready · Tokens encrypted at rest
+            </span>
+            <span aria-hidden>·</span>
+            <span>No credit card</span>
+            <span aria-hidden>·</span>
+            <span>7-day Pro trial</span>
           </div>
         </div>
 
-        {/* Interactive Demo Preview */}
-        <div className="relative mt-16 sm:mt-20">
-          <div className="relative mx-auto max-w-4xl overflow-hidden rounded-xl border bg-card shadow-2xl">
-            {/* Window Chrome */}
-            <div className="flex items-center gap-2 border-b bg-muted/50 px-4 py-3">
+        {/* Hero demo — agent terminal */}
+        <div className="reveal-up relative mx-auto mt-14 max-w-5xl" style={{ animationDelay: '420ms' }}>
+          {/* Floating accent cards */}
+          <FloatingChip
+            label={current.agent}
+            sub={current.role}
+            className="absolute -left-3 -top-3 hidden md:flex"
+            hue={current.hue}
+          />
+          <FloatingChip
+            label="Posted"
+            sub="Just now · X · LinkedIn"
+            className="absolute -right-2 top-12 hidden lg:flex"
+            hue="from-emerald-500 to-teal-600"
+            indicator
+          />
+          <FloatingChip
+            label="92% engagement"
+            sub="vs your last 30 days"
+            className="absolute -right-4 -bottom-3 hidden md:flex"
+            hue="from-amber-500 to-orange-600"
+          />
+
+          <div className="relative overflow-hidden rounded-[28px] border border-border/70 bg-card/95 shadow-[0_30px_80px_-30px_rgba(234,88,12,0.35)] backdrop-blur">
+            {/* Window chrome */}
+            <div className="flex items-center gap-2 border-b border-border/60 bg-muted/30 px-4 py-2.5">
               <div className="flex gap-1.5">
-                <div className="h-3 w-3 rounded-full bg-red-400" />
-                <div className="h-3 w-3 rounded-full bg-yellow-400" />
-                <div className="h-3 w-3 rounded-full bg-green-400" />
+                <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
+                <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/80" />
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
               </div>
-              <div className="flex-1 text-center">
-                <span className="text-sm text-muted-foreground">PostPilot - AI Content Generator</span>
-              </div>
+              <span className="ml-auto rounded-full bg-background/80 px-2.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                postpilot.app/agents/{current.agent.toLowerCase()}
+              </span>
+              <Sparkles className="ml-2 h-3.5 w-3.5 text-orange-500" />
             </div>
-            
-            <div className="p-6 sm:p-8">
-              <div className="grid gap-6 lg:grid-cols-2">
-                {/* Input Side */}
-                <div className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    <div className="rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">X</div>
-                    <div className="rounded-full bg-primary/20 px-3 py-1 text-xs font-medium text-primary">Instagram</div>
-                    <div className="rounded-full bg-primary/20 px-3 py-1 text-xs font-medium text-primary">Facebook</div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Your idea</label>
-                    <div className="min-h-[80px] rounded-lg border bg-background p-3 text-sm">
-                      <span>{displayedPrompt}</span>
-                      {isTyping && <span className="inline-block w-0.5 h-4 bg-primary animate-pulse ml-0.5" />}
-                    </div>
-                  </div>
 
-                  <div className="flex gap-2">
-                    <div className="rounded-md border bg-muted/50 px-3 py-1.5 text-xs">Casual</div>
-                    <div className="rounded-md border bg-muted/50 px-3 py-1.5 text-xs">Promotional</div>
+            <div className="grid gap-0 lg:grid-cols-[1fr_1.15fr]">
+              {/* Left: prompt */}
+              <div className="border-b lg:border-b-0 lg:border-r border-border/60 p-6 sm:p-7">
+                <div className="flex items-center gap-2.5">
+                  <div className={`relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${current.hue} text-white text-sm font-semibold shadow-md`}>
+                    {current.agent[0]}
+                    <span className="absolute -right-0.5 -bottom-0.5 inline-flex h-3 w-3 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-card">
+                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                    </span>
                   </div>
-
-                  <div className={`h-9 w-32 rounded-lg bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground transition-opacity ${isTyping ? 'opacity-50' : 'opacity-100'}`}>
-                    {isTyping ? 'Typing...' : showOutput ? 'Generated!' : 'Generate'}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">{current.agent}</p>
+                    <p className="truncate text-xs text-muted-foreground">{current.role}</p>
                   </div>
                 </div>
 
-                {/* Output Side */}
-                <div className={`space-y-3 transition-all duration-500 ${showOutput ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                  <label className="text-xs font-medium text-muted-foreground">AI Generated Post</label>
-                  <div className="rounded-lg border bg-background p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="h-8 w-8 rounded-full bg-primary/20 flex-shrink-0" />
-                      <div className="space-y-2 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold">Your Brand</span>
-                          <span className="text-xs text-muted-foreground">@yourbrand</span>
-                        </div>
-                        <p className="text-sm leading-relaxed">{currentOutput.content}</p>
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          {currentOutput.hashtags.map((tag) => (
-                            <span key={tag} className="text-xs text-primary">#{tag}</span>
-                          ))}
-                        </div>
+                <label className="mt-6 block text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Your prompt
+                </label>
+                <div className="mt-2 min-h-[88px] rounded-xl border border-border/70 bg-background/70 p-3.5 font-mono text-sm leading-relaxed text-foreground">
+                  <span>{typed}</span>
+                  {phase === 'typing' && <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-orange-500 align-middle" />}
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  <Chip>Casual</Chip>
+                  <Chip>Witty</Chip>
+                  <Chip variant="muted">Professional</Chip>
+                  <Chip variant="muted">Inspiring</Chip>
+                </div>
+
+                <div className="mt-5 flex items-center gap-2">
+                  <button className={`btn-gradient inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold ${phase !== 'reveal' ? 'opacity-90' : ''}`}>
+                    <Sparkles className="h-3 w-3" />
+                    {phase === 'typing' ? 'Listening…' : phase === 'thinking' ? 'Thinking…' : 'Generated'}
+                  </button>
+                  <span className="text-[11px] text-muted-foreground">⌘ + Return</span>
+                </div>
+              </div>
+
+              {/* Right: result feed */}
+              <div className="relative bg-gradient-to-br from-muted/30 to-background p-6 sm:p-7">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Live output
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 pulse-dot text-emerald-500 relative" />
+                    <span className="text-[10px] font-medium text-emerald-700">Streaming</span>
+                  </div>
+                </div>
+
+                <div
+                  key={idx + '-' + phase}
+                  className={`mt-3 rounded-2xl border border-border/60 bg-card p-4 shadow-sm transition-all ${
+                    phase === 'reveal' ? 'opacity-100 translate-y-0' : 'opacity-50 translate-y-2'
+                  }`}
+                  style={{ transitionDuration: '450ms' }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="h-8 w-8 shrink-0 rounded-full bg-gradient-to-br from-orange-500 to-pink-600" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground">Your Brand</span>
+                        <span className="text-xs text-muted-foreground">@yourbrand · 2s</span>
                       </div>
+                      <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-foreground/90">
+                        {current.out}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <div className="rounded-md border px-3 py-1.5 text-xs hover:bg-muted transition-colors cursor-pointer">Copy</div>
-                    <div className="rounded-md border px-3 py-1.5 text-xs hover:bg-muted transition-colors cursor-pointer">Save Draft</div>
+                  <div className="mt-3 flex items-center gap-3 border-t border-border/60 pt-3 text-[11px] text-muted-foreground">
+                    <span>♥ 1.2k</span>
+                    <span>↻ 312</span>
+                    <span>💬 84</span>
+                    <span className="ml-auto rounded-full bg-emerald-500/10 px-2 py-0.5 font-medium text-emerald-700">
+                      score 92
+                    </span>
                   </div>
+                </div>
+
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <ResultCardMini label="Variation A" />
+                  <ResultCardMini label="Variation B" muted />
+                  <ResultCardMini label="Variation C" muted />
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Rotation indicator */}
+          <div className="mt-4 flex items-center justify-center gap-1.5">
+            {ROTATION.map((_, i) => (
+              <span
+                key={i}
+                className={`h-1 rounded-full transition-all duration-500 ${
+                  i === idx ? 'w-8 bg-foreground' : 'w-1 bg-border'
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>
     </section>
+  )
+}
+
+function FloatingChip({
+  label,
+  sub,
+  className = '',
+  hue,
+  indicator,
+}: {
+  label: string
+  sub: string
+  className?: string
+  hue: string
+  indicator?: boolean
+}) {
+  return (
+    <div className={`z-10 inline-flex items-center gap-2.5 rounded-2xl border border-border/70 bg-card px-3 py-2 shadow-lg float-gentle ${className}`}>
+      <span className={`relative h-7 w-7 shrink-0 rounded-lg bg-gradient-to-br ${hue}`}>
+        {indicator && (
+          <span className="absolute inset-0 m-auto h-2 w-2 rounded-full bg-white" />
+        )}
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-foreground leading-none">{label}</p>
+        <p className="mt-1 text-[10px] text-muted-foreground leading-none">{sub}</p>
+      </div>
+    </div>
+  )
+}
+
+function Chip({ children, variant = 'active' }: { children: React.ReactNode; variant?: 'active' | 'muted' }) {
+  return (
+    <span
+      className={
+        variant === 'active'
+          ? 'inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-0.5 text-[11px] font-medium text-orange-700'
+          : 'inline-flex items-center rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground'
+      }
+    >
+      {children}
+    </span>
+  )
+}
+
+function ResultCardMini({ label, muted }: { label: string; muted?: boolean }) {
+  return (
+    <div className={`rounded-xl border border-border/60 bg-card/80 p-2.5 ${muted ? 'opacity-60' : ''}`}>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+      <div className="mt-2 space-y-1">
+        <span className="block h-1.5 rounded-full bg-foreground/15" />
+        <span className="block h-1.5 w-4/5 rounded-full bg-foreground/10" />
+        <span className="block h-1.5 w-3/5 rounded-full bg-foreground/10" />
+      </div>
+    </div>
   )
 }

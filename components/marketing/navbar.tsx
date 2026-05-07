@@ -1,104 +1,95 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
+import { Logo } from '@/components/brand/logo'
+import { ArrowRight, Menu, X } from 'lucide-react'
+
+const NAV = [
+  { href: '#features', label: 'Features' },
+  { href: '#agents',   label: 'Agents'   },
+  { href: '#pricing',  label: 'Pricing'  },
+  { href: '#faq',      label: 'FAQ'      },
+]
 
 export function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled ? 'border-b border-border/60 glass' : 'border-b border-transparent'
+      }`}
+    >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              className="h-5 w-5 text-primary-foreground"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </div>
-          <span className="text-xl font-semibold tracking-tight">PostPilot</span>
+        <Link href="/" className="flex items-center" aria-label="PostPilot home">
+          <Logo size={28} wordmark wordmarkClassName="text-[1.45rem]" />
         </Link>
 
-        {/* Desktop Navigation */}
         <div className="hidden items-center gap-8 md:flex">
-          <Link href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-            Features
-          </Link>
-          <Link href="#pricing" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-            Pricing
-          </Link>
-          <Link href="#about" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-            About
-          </Link>
+          {NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="group relative text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {item.label}
+              <span className="pointer-events-none absolute -bottom-1 left-0 h-px w-full origin-left scale-x-0 bg-gradient-to-r from-orange-500 to-pink-600 transition-transform duration-300 group-hover:scale-x-100" />
+            </Link>
+          ))}
         </div>
 
-        {/* CTA Buttons */}
-        <div className="hidden items-center gap-3 md:flex">
-          <Button variant="ghost" asChild>
+        <div className="hidden items-center gap-2 md:flex">
+          <Button variant="ghost" size="sm" asChild>
             <Link href="/login">Sign in</Link>
           </Button>
-          <Button asChild>
-            <Link href="/signup">Get Started</Link>
+          <Button asChild size="sm" className="btn-gradient h-9 px-4 rounded-full">
+            <Link href="/signup" className="inline-flex items-center gap-1.5">
+              Start free
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </Button>
         </div>
 
-        {/* Mobile menu button */}
         <button
           type="button"
-          className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-expanded={open}
+          className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          onClick={() => setOpen((v) => !v)}
         >
-          <span className="sr-only">Open menu</span>
-          {mobileMenuOpen ? (
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-          )}
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </nav>
 
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border/40 bg-background">
+      {open && (
+        <div className="md:hidden border-t border-border/60 glass">
           <div className="space-y-1 px-4 py-4">
-            <Link
-              href="#features"
-              className="block py-2 text-base text-muted-foreground hover:text-foreground"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Features
-            </Link>
-            <Link
-              href="#pricing"
-              className="block py-2 text-base text-muted-foreground hover:text-foreground"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Pricing
-            </Link>
-            <Link
-              href="#about"
-              className="block py-2 text-base text-muted-foreground hover:text-foreground"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              About
-            </Link>
-            <div className="pt-4 flex flex-col gap-2">
+            {NAV.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="block py-2.5 text-base font-medium text-foreground/80 hover:text-foreground"
+              >
+                {item.label}
+              </Link>
+            ))}
+            <div className="pt-3 flex flex-col gap-2">
               <Button variant="outline" asChild className="w-full">
                 <Link href="/login">Sign in</Link>
               </Button>
-              <Button asChild className="w-full">
-                <Link href="/signup">Get Started</Link>
+              <Button asChild className="w-full btn-gradient">
+                <Link href="/signup">Start free</Link>
               </Button>
             </div>
           </div>
