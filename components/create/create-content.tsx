@@ -13,6 +13,7 @@ import { PlatformSelector } from '@/components/create/platform-selector'
 import { VariationCards } from '@/components/create/variation-cards'
 import { PlatformPreview } from '@/components/create/platform-preview'
 import { AIAssistant } from '@/components/create/ai-assistant'
+import { AIMediaStudio } from '@/components/create/ai-media-studio'
 import { ImproveDialog } from '@/components/create/improve-dialog'
 import { ThreadView } from '@/components/create/thread-view'
 import { contentVariationSchema, type ContentVariation } from '@/lib/schemas/content'
@@ -69,6 +70,8 @@ export function CreateContent() {
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [showAssistant, setShowAssistant] = useState(false)
+  const [showMediaStudio, setShowMediaStudio] = useState(false)
+  const [attachedMedia, setAttachedMedia] = useState<{ type: 'image' | 'video'; url: string } | null>(null)
 
   // Declare improvedOverride before experimental_useObject so onFinish can reference setImprovedOverride
   const [improvedOverride, setImprovedOverride] = useState<{
@@ -234,31 +237,88 @@ export function CreateContent() {
       <div className="flex flex-1 overflow-hidden">
         {/* Main Content */}
         <div className="flex-1 overflow-auto p-6 space-y-6">
-          {/* Mode Toggle */}
-          <div className="flex gap-2">
+          {/* Mode Toggle + AI Media */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex gap-2">
+              <Button
+                variant={mode === 'post' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMode('post')}
+                className="gap-1.5"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                </svg>
+                Post
+              </Button>
+              <Button
+                variant={mode === 'thread' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setMode('thread')}
+                className="gap-1.5"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+                Thread
+              </Button>
+            </div>
             <Button
-              variant={mode === 'post' ? 'default' : 'outline'}
+              variant={showMediaStudio ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setMode('post')}
+              onClick={() => setShowMediaStudio(!showMediaStudio)}
               className="gap-1.5"
+              style={showMediaStudio ? { background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)', border: 'none' } : undefined}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
               </svg>
-              Post
-            </Button>
-            <Button
-              variant={mode === 'thread' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setMode('thread')}
-              className="gap-1.5"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
-              Thread
+              AI Media
             </Button>
           </div>
+
+          {/* AI Media Studio (collapsible) */}
+          {showMediaStudio && (
+            <AIMediaStudio
+              onImageSelect={(url) => setAttachedMedia({ type: 'image', url })}
+              onVideoSelect={(url) => setAttachedMedia({ type: 'video', url })}
+            />
+          )}
+
+          {/* Attached Media Preview */}
+          {attachedMedia && (
+            <Card className="border-dashed border-2 border-purple-200 bg-purple-50/50">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                  <div className="relative shrink-0 w-24 h-24 rounded-lg overflow-hidden border border-border/60">
+                    {attachedMedia.type === 'image' ? (
+                      <img src={attachedMedia.url} alt="Attached" className="h-full w-full object-cover" />
+                    ) : (
+                      <video src={attachedMedia.url} className="h-full w-full object-cover" muted />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-purple-700">
+                      AI-Generated {attachedMedia.type === 'image' ? 'Image' : 'Video'} Attached
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      This media will be included when you publish your post.
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAttachedMedia(null)}
+                    className="shrink-0 text-muted-foreground hover:text-destructive"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Platform Selection (only for post mode) */}
           {mode === 'post' && (

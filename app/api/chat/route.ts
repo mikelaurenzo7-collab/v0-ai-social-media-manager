@@ -510,12 +510,58 @@ function buildSocialPublishTool(platform: 'twitter' | 'instagram' | 'linkedin' |
   }
 }
 
+// Image generation tool (available to all agents)
+const imageGenerationTool = {
+  generate_image: tool({
+    description: `Generate an AI image for social media posts. Use this when the user asks you to create, generate, or make an image for their content. Returns a URL to the generated image.`,
+    inputSchema: z.object({
+      prompt: z.string().min(1).describe('Detailed description of the image to generate'),
+      aspectRatio: z.enum(['square', 'portrait', 'landscape']).default('square').describe('Image aspect ratio: square (1:1 for Instagram/Facebook), portrait (9:16 for Stories/Reels/TikTok), landscape (16:9 for X/LinkedIn/YouTube)'),
+      style: z.string().optional().describe('Optional style modifier like "cinematic", "vibrant", "minimal", "vintage", "neon"'),
+    }),
+    execute: async ({ prompt, aspectRatio, style }) => {
+      try {
+        const response = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'}/api/generate-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, aspectRatio, model: 'fast', numImages: 1, style }),
+        })
+        
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || 'Image generation failed')
+        }
+        
+        const data = await response.json()
+        const imageUrl = data.images?.[0]?.url
+        
+        if (!imageUrl) {
+          throw new Error('No image URL returned')
+        }
+        
+        return {
+          success: true,
+          imageUrl,
+          prompt: data.prompt,
+          aspectRatio,
+          note: 'Image generated successfully. The user can preview it and use it in their post.',
+        }
+      } catch (err) {
+        return {
+          success: false,
+          error: err instanceof Error ? err.message : 'Image generation failed',
+        }
+      }
+    },
+  }),
+}
+
 const AGENT_TOOLS = {
-  twitter: buildSocialPublishTool('twitter', 'X (Twitter)'),
-  instagram: buildSocialPublishTool('instagram', 'Instagram'),
-  linkedin: buildSocialPublishTool('linkedin', 'LinkedIn'),
-  facebook: buildSocialPublishTool('facebook', 'Facebook'),
-  tiktok: buildSocialPublishTool('tiktok', 'TikTok'),
-  gmail: buildEmailTools('gmail'),
-  outlook: buildEmailTools('outlook'),
+  twitter: { ...buildSocialPublishTool('twitter', 'X (Twitter)'), ...imageGenerationTool },
+  instagram: { ...buildSocialPublishTool('instagram', 'Instagram'), ...imageGenerationTool },
+  linkedin: { ...buildSocialPublishTool('linkedin', 'LinkedIn'), ...imageGenerationTool },
+  facebook: { ...buildSocialPublishTool('facebook', 'Facebook'), ...imageGenerationTool },
+  tiktok: { ...buildSocialPublishTool('tiktok', 'TikTok'), ...imageGenerationTool },
+  gmail: { ...buildEmailTools('gmail'), ...imageGenerationTool },
+  outlook: { ...buildEmailTools('outlook'), ...imageGenerationTool },
 }

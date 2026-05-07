@@ -46,10 +46,61 @@ function AlignmentResult({ result }: { result: Record<string, unknown> }) {
   )
 }
 
+function GeneratedImageResult({ result }: { result: Record<string, unknown> }) {
+  const imageUrl = result.imageUrl as string
+  const success = result.success as boolean
+  
+  if (!success) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+        <p className="text-sm font-medium text-red-700">Image generation failed</p>
+        <p className="text-xs text-red-600 mt-1">{result.error as string}</p>
+      </div>
+    )
+  }
+  
+  return (
+    <div className="rounded-xl border bg-purple-500/5 p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-bold uppercase tracking-widest text-purple-600">AI Generated Image</span>
+        <span className="text-[10px] font-medium text-purple-500 bg-purple-100 px-1.5 py-0.5 rounded-full">
+          {result.aspectRatio as string}
+        </span>
+      </div>
+      <div className="relative rounded-lg overflow-hidden border border-purple-200">
+        <img src={imageUrl} alt="Generated" className="w-full max-h-64 object-contain bg-black/5" />
+      </div>
+      <div className="flex gap-2">
+        <a
+          href={imageUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-purple-100 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-200 transition-colors"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          Download
+        </a>
+        <button
+          onClick={() => navigator.clipboard.writeText(imageUrl)}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-purple-100 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-200 transition-colors"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z" />
+          </svg>
+          Copy URL
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function ToolResult({ toolName, result }: { toolName: string; result: unknown }) {
   const r = result as Record<string, unknown>
   if (toolName === 'analyze_virality') return <ViralityScore result={r} />
   if (toolName === 'strategic_alignment') return <AlignmentResult result={r} />
+  if (toolName === 'generate_image') return <GeneratedImageResult result={r} />
   return (
     <div className="rounded-lg border bg-muted/30 p-3 text-xs">
       <p className="font-bold mb-1">Tool: {toolName}</p>
