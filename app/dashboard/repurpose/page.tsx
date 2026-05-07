@@ -181,7 +181,7 @@ function OutputCard({
       const raw = localStorage.getItem('postpilot_drafts')
       const existing: SavedDraft[] = raw ? JSON.parse(raw) : []
       const platforms: PlatformId[] = cfg.key === 'newsletter'
-        ? ['twitter']
+        ? []
         : [cfg.key as PlatformId]
       const newDraft = {
         id: `d-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -384,8 +384,11 @@ export default function RepurposePage() {
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200)
 
     try {
-      const voiceRaw = localStorage.getItem('postpilot_brand_voice')
-      const voiceSettings = voiceRaw ? JSON.parse(voiceRaw) : undefined
+      let voiceSettings: Record<string, unknown> | undefined
+      try {
+        const voiceRaw = localStorage.getItem('postpilot_brand_voice')
+        if (voiceRaw) voiceSettings = JSON.parse(voiceRaw)
+      } catch { /* ignore malformed voice data */ }
 
       const res = await fetch('/api/repurpose', {
         method: 'POST',

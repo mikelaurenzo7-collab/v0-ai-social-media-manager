@@ -12,6 +12,7 @@ const requestSchema = z.object({
       energy: z.number().min(0).max(100).optional(),
       depth: z.number().min(0).max(100).optional(),
       humor: z.number().min(0).max(100).optional(),
+      niche: z.number().min(0).max(100).optional(),
       archetypes: z.array(z.string()).optional(),
     })
     .optional(),
@@ -68,9 +69,17 @@ export async function POST(req: Request) {
 
   const { content, voiceSettings } = parsed.data
 
-  const voiceContext = voiceSettings
-    ? `Voice settings: ${voiceSettings.formal !== undefined ? `${voiceSettings.formal < 50 ? 'casual' : 'formal'} tone` : ''}, ${voiceSettings.energy !== undefined ? `${voiceSettings.energy > 60 ? 'high energy' : 'measured pace'}` : ''}, ${voiceSettings.archetypes?.length ? `archetypes: ${voiceSettings.archetypes.join(', ')}` : ''}.`
-    : ''
+  let voiceContext = ''
+  if (voiceSettings) {
+    const parts: string[] = []
+    if (voiceSettings.formal !== undefined) parts.push(voiceSettings.formal < 50 ? 'casual tone' : 'formal tone')
+    if (voiceSettings.energy !== undefined) parts.push(voiceSettings.energy > 60 ? 'high energy' : 'measured pace')
+    if (voiceSettings.depth  !== undefined) parts.push(voiceSettings.depth  > 60 ? 'analytical depth' : 'accessible style')
+    if (voiceSettings.humor  !== undefined) parts.push(voiceSettings.humor  > 55 ? 'playful wit' : 'serious tone')
+    if (voiceSettings.niche  !== undefined) parts.push(voiceSettings.niche  > 55 ? 'niche audience focus' : 'broad appeal')
+    if (voiceSettings.archetypes?.length)   parts.push(`writing archetypes: ${voiceSettings.archetypes.join(', ')}`)
+    if (parts.length) voiceContext = `Voice settings: ${parts.join(', ')}.`
+  }
 
   try {
     const { object } = await generateObject({
