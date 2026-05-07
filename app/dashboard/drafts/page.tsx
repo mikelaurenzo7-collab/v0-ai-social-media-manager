@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { Header } from '@/components/dashboard/header'
 import { PlatformIcon } from '@/components/create/platform-selector'
 import { PLATFORMS, TONES, type PlatformId, type ToneId } from '@/lib/constants/platforms'
@@ -37,6 +38,8 @@ export default function DraftsPage() {
   const [threads, setThreads] = useState<ThreadDraft[]>([])
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabId>('posts')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [platformFilter, setPlatformFilter] = useState<PlatformId | 'all'>('all')
 
   useEffect(() => {
     const storedDrafts = localStorage.getItem('postpilot_drafts')
@@ -106,6 +109,26 @@ export default function DraftsPage() {
 
   const getToneName = (toneId: ToneId) => TONES.find((t) => t.id === toneId)?.name ?? toneId
 
+  // Filtered drafts based on search and platform
+  const filteredDrafts = useMemo(() => {
+    return drafts.filter((draft) => {
+      const matchesSearch = searchQuery === '' || 
+        draft.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        draft.hashtags.some(h => h.toLowerCase().includes(searchQuery.toLowerCase()))
+      const matchesPlatform = platformFilter === 'all' || draft.platforms.includes(platformFilter)
+      return matchesSearch && matchesPlatform
+    })
+  }, [drafts, searchQuery, platformFilter])
+
+  const filteredThreads = useMemo(() => {
+    return threads.filter((thread) => {
+      const matchesSearch = searchQuery === '' || 
+        thread.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        thread.tweets.some(t => t.content.toLowerCase().includes(searchQuery.toLowerCase()))
+      return matchesSearch
+    })
+  }, [threads, searchQuery])
+
   return (
     <div className="flex flex-col">
       <Header
@@ -127,41 +150,124 @@ export default function DraftsPage() {
       />
 
       <div className="p-6 space-y-6">
-        {/* Custom tab bar */}
-        <div
-          className="inline-flex items-center gap-0.5 rounded-lg p-1"
-          style={{ background: 'oklch(0.93 0.008 68)' }}
-        >
-          {TABS.map((tab) => {
-            const label = tab === 'posts' ? `Posts (${drafts.length})` : `Threads (${threads.length})`
-            return (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={cn(
-                  'h-8 rounded-md px-5 text-sm font-medium transition-all duration-200',
-                  activeTab === tab ? 'text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                )}
-                style={
-                  activeTab === tab
-                    ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
-                    : undefined
-                }
-              >
-                {label}
-              </button>
-            )
-          })}
+        {/* Search and Filter Bar */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          {/* Custom tab bar */}
+          <div
+            className="inline-flex items-center gap-0.5 rounded-lg p-1 shrink-0"
+            style={{ background: 'oklch(0.93 0.008 68)' }}
+          >
+            {TABS.map((tab) => {
+              const count = tab === 'posts' ? filteredDrafts.length : filteredThreads.length
+              const total = tab === 'posts' ? drafts.length : threads.length
+              const label = `${tab === 'posts' ? 'Posts' : 'Threads'} (${count}${count !== total ? `/${total}` : ''})`
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={cn(
+                    'h-8 rounded-md px-5 text-sm font-medium transition-all duration-200',
+                    activeTab === tab ? 'text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  style={
+                    activeTab === tab
+                      ? { background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }
+                      : undefined
+                  }
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Search and Platform Filter */}
+          <div className="flex items-center gap-2 flex-1 max-w-md">
+            <div className="relative flex-1">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+              <Input
+                placeholder="Search drafts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {activeTab === 'posts' && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPlatformFilter('all')}
+                  className={cn(
+                    'h-9 w-9 flex items-center justify-center rounded-lg border transition-all',
+                    platformFilter === 'all'
+                      ? 'border-orange-200 bg-orange-50 text-orange-600'
+                      : 'border-border/60 text-muted-foreground hover:text-foreground'
+                  )}
+                  title="All platforms"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                  </svg>
+                </button>
+                {(['twitter', 'instagram', 'linkedin', 'tiktok'] as const).map((platform) => (
+                  <button
+                    key={platform}
+                    onClick={() => setPlatformFilter(platformFilter === platform ? 'all' : platform)}
+                    className={cn(
+                      'h-9 w-9 flex items-center justify-center rounded-lg border transition-all',
+                      platformFilter === platform
+                        ? 'border-orange-200 bg-orange-50'
+                        : 'border-border/60 hover:border-border'
+                    )}
+                    title={PLATFORMS[platform]?.name ?? platform}
+                  >
+                    <PlatformIcon platform={platform} className={cn('h-4 w-4', platformFilter === platform ? '' : 'opacity-50')} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Posts tab */}
         {activeTab === 'posts' && (
           drafts.length === 0 ? (
             <EmptyState title="No posts yet" description="Create your first post and save it as a draft to see it here." />
+          ) : filteredDrafts.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                  <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium">No matching drafts</p>
+                <p className="mt-1 text-xs text-muted-foreground">Try adjusting your search or filters</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => { setSearchQuery(''); setPlatformFilter('all'); }}
+                >
+                  Clear filters
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {drafts.map((draft) => (
+              {filteredDrafts.map((draft) => (
                 <Card key={draft.id} className="flex flex-col border-border/60 hover:border-orange-200 hover:shadow-md transition-all duration-200">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
@@ -241,9 +347,29 @@ export default function DraftsPage() {
         {activeTab === 'threads' && (
           threads.length === 0 ? (
             <EmptyState title="No threads yet" description="Create your first thread and save it to see it here." />
+          ) : filteredThreads.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                  <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium">No matching threads</p>
+                <p className="mt-1 text-xs text-muted-foreground">Try adjusting your search</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => setSearchQuery('')}
+                >
+                  Clear search
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {threads.map((thread) => (
+              {filteredThreads.map((thread) => (
                 <Card key={thread.id} className="flex flex-col border-border/60 hover:border-orange-200 hover:shadow-md transition-all duration-200">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">

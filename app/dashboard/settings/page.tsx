@@ -20,6 +20,19 @@ const POSTING_FREQUENCIES = [
   { id: 'custom', label: 'Custom', desc: 'Set your own schedule' },
 ]
 
+const TIMEZONES = [
+  { id: 'America/Los_Angeles', label: 'Pacific Time (PT)', offset: 'UTC-8/UTC-7' },
+  { id: 'America/Denver', label: 'Mountain Time (MT)', offset: 'UTC-7/UTC-6' },
+  { id: 'America/Chicago', label: 'Central Time (CT)', offset: 'UTC-6/UTC-5' },
+  { id: 'America/New_York', label: 'Eastern Time (ET)', offset: 'UTC-5/UTC-4' },
+  { id: 'Europe/London', label: 'London (GMT/BST)', offset: 'UTC+0/UTC+1' },
+  { id: 'Europe/Paris', label: 'Central Europe (CET)', offset: 'UTC+1/UTC+2' },
+  { id: 'Asia/Dubai', label: 'Dubai (GST)', offset: 'UTC+4' },
+  { id: 'Asia/Singapore', label: 'Singapore (SGT)', offset: 'UTC+8' },
+  { id: 'Asia/Tokyo', label: 'Tokyo (JST)', offset: 'UTC+9' },
+  { id: 'Australia/Sydney', label: 'Sydney (AEST)', offset: 'UTC+10/UTC+11' },
+]
+
 const BRAND_KEYWORDS = ['SaaS', 'Productivity', 'Remote work', 'Startups']
 
 export default function SettingsPage() {
@@ -35,6 +48,7 @@ export default function SettingsPage() {
   const [brandKeywords, setBrandKeywords] = useState<string[]>(BRAND_KEYWORDS)
   const [newKeyword, setNewKeyword] = useState('')
   const [hashtagStyle, setHashtagStyle] = useState<'minimal' | 'moderate' | 'heavy'>('minimal')
+  const [timezone, setTimezone] = useState('America/New_York')
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
@@ -333,8 +347,50 @@ export default function SettingsPage() {
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              This helps agents like Sarah build more accurate content calendars for you.
+              AI agents use this to build more accurate content calendars for you.
             </p>
+          </CardContent>
+        </Card>
+
+        {/* ── Timezone ──────────────────────────────────────────── */}
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle className="text-base font-bold">Timezone</CardTitle>
+            <CardDescription>Set your timezone for accurate scheduling and analytics.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Your Timezone</Label>
+              <Select value={timezone} onValueChange={setTimezone}>
+                <SelectTrigger className="w-full sm:w-[320px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIMEZONES.map((tz) => (
+                    <SelectItem key={tz.id} value={tz.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{tz.label}</span>
+                        <span className="text-xs text-muted-foreground">({tz.offset})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                All scheduled posts and analytics will use this timezone.
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">Current time: </span>
+                {new Date().toLocaleTimeString('en-US', { 
+                  timeZone: timezone, 
+                  hour: '2-digit', 
+                  minute: '2-digit',
+                  hour12: true 
+                })} ({TIMEZONES.find(t => t.id === timezone)?.label})
+              </p>
+            </div>
           </CardContent>
         </Card>
 
