@@ -7,6 +7,7 @@ import { sendEmailViaGmail, sendEmailViaOutlook } from '@/lib/publishing/email'
 import { publishSocialPost } from '@/lib/publishing/social'
 import { getConnection } from '@/lib/oauth/connections'
 import { getCurrentUserId } from '@/lib/oauth/session'
+import { getServerProfile } from '@/lib/user-profile-server'
 
 // Node runtime — required by googleapis (Gmail) + Microsoft Graph SDK (Outlook).
 export const runtime = 'nodejs'
@@ -69,9 +70,22 @@ export async function POST(req: Request) {
   let temperature = 0.7
   // (userProfileContext is appended below once parsed)
 
-  // User profile context — applies to ALL agents (and the default strategist)
+  // User profile context — applies to ALL agents (and the default strategist).
+  // Server-trusted: Neon (UserProfile table) wins. The client-passed blob is
+  // only a fallback for unauthenticated/dev sessions where there's no userId.
   let userProfileContext = ""
-  if (userProfile) {
+  let serverProfile: Partial<UserProfile> | null = null
+  try {
+    const userId = await getCurrentUserId()
+    if (userId) {
+      serverProfile = await getServerProfile(userId)
+    }
+  } catch {
+    // session lookup failed — fall through to client blob
+  }
+  if (serverProfile) {
+    userProfileContext = userProfileToContext(serverProfile, agentId)
+  } else if (userProfile) {
     try {
       const parsed = JSON.parse(userProfile) as Partial<UserProfile>
       userProfileContext = userProfileToContext(parsed, agentId)

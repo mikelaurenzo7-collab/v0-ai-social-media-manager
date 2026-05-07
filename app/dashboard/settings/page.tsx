@@ -21,6 +21,7 @@ import {
   type HashtagStyle,
   type PostingFrequency,
 } from '@/lib/user-profile'
+import { LearnVoiceDialog } from '@/components/profile/learn-voice-dialog'
 
 const POSTING_FREQUENCIES: { id: PostingFrequency; label: string; desc: string }[] = [
   { id: 'daily', label: 'Daily', desc: '1 post per day' },
@@ -114,6 +115,16 @@ export default function SettingsPage() {
     const target = next ?? profile
     if (!target) return
     saveUserProfile(target)
+    // Mirror to server (Neon) so the chat route reads the latest profile on
+    // every message, even on a fresh device. Soft-fail — local copy is still
+    // the fallback for unauthenticated/dev sessions.
+    fetch('/api/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(target),
+    }).catch(() => {
+      /* swallow — local copy keeps working */
+    })
   }
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -435,11 +446,21 @@ export default function SettingsPage() {
 
         {/* ── Brand Voice ─────────────────────────────────────────── */}
         <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle className="text-base font-bold">Brand Voice</CardTitle>
-            <CardDescription>
-              Describe your unique voice. Lock in the words you love and the words you can&apos;t stand.
-            </CardDescription>
+          <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
+            <div>
+              <CardTitle className="text-base font-bold">Brand Voice</CardTitle>
+              <CardDescription>
+                Describe your unique voice. Lock in the words you love and the words you can&apos;t stand.
+              </CardDescription>
+            </div>
+            <LearnVoiceDialog
+              onApply={(changes) => {
+                if (!profile) return
+                const updated = { ...profile, ...changes }
+                setProfile(updated)
+                persist(updated)
+              }}
+            />
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="space-y-2">

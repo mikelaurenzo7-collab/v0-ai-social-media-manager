@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { Agent } from '@/lib/agents'
 import { USER_PROFILE_KEY } from '@/lib/user-profile'
 import { Button } from '@/components/ui/button'
+import { TailoredBadge } from '@/components/profile/tailored-badge'
 
 // ── Agent-specific tool renderers ──────────────────────────────────────────────
 
@@ -220,6 +221,9 @@ export function AgentChat({ agent }: { agent: Agent }) {
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-bold tracking-tight">{agent.name} Agent</h2>
+              <div className="flex justify-center">
+                <TailoredBadge />
+              </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 I&apos;m the default agent for your {agent.name} integration. Tell me your role, voice, and rules — or jump straight into a task below.
               </p>

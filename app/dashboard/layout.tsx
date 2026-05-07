@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { MobileNav } from '@/components/dashboard/mobile-nav'
+import { OnboardingGuard } from '@/components/dashboard/onboarding-guard'
 
 export default function DashboardLayout({
   children,
@@ -8,6 +9,9 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex min-h-screen bg-background">
+      {/* First-run guard — redirects to /dashboard/onboarding if not complete */}
+      <OnboardingGuard />
+
       {/* Desktop Sidebar */}
       <div className="hidden lg:block shrink-0">
         <Sidebar />

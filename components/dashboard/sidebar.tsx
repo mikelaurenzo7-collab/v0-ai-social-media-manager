@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { ProfileCompletenessCard } from '@/components/profile/completeness-ring'
 
 interface NavItem {
   name: string
@@ -224,6 +225,9 @@ export function Sidebar() {
 
       {/* Bottom section */}
       <div className="p-3 space-y-2" style={{ borderTop: '1px solid oklch(0.22 0.016 48)' }}>
+        {/* Profile completeness — only renders while < 100% */}
+        <ProfileCompletenessCard />
+
         {/* User row */}
         <div
           className="flex items-center gap-3 px-3 py-2 rounded-xl"
