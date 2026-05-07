@@ -155,6 +155,7 @@ export default function ApprovalsPage() {
     return filtered[0] ?? null
   }, [filtered, selectedId])
 
+  // Filter-driven retargeting: keep selectedId in sync with what's visible.
   useEffect(() => {
     if (selected && selected.id !== selectedId) {
       setSelectedId(selected.id)
@@ -162,6 +163,13 @@ export default function ApprovalsPage() {
       setSelectedId('')
     }
   }, [selected, selectedId])
+
+  // Whenever the selection changes (via filter retargeting OR an explicit
+  // click), clear any half-typed decision note so a reject/request-changes
+  // note from the previous draft can't be submitted against the new one.
+  useEffect(() => {
+    setReason('')
+  }, [selectedId])
 
   const counts = useMemo(() => {
     const c: Record<Status | 'all', number> = {

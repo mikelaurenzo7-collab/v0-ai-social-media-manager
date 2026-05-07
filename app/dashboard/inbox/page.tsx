@@ -226,12 +226,17 @@ export default function InboxPage() {
   }, [filtered, selectedId])
 
   // Keep selectedId in sync with what's actually displayed so reply / send
-  // operations always target a visible conversation.
+  // operations always target a visible conversation. Whenever filters
+  // retarget the selection, also clear any half-typed reply — otherwise
+  // the composer would show the previous conversation's draft under a
+  // different recipient.
   useEffect(() => {
     if (selected && selected.id !== selectedId) {
       setSelectedId(selected.id)
+      setReply('')
     } else if (!selected && selectedId !== null) {
       setSelectedId(null)
+      setReply('')
     }
   }, [selected, selectedId])
 
