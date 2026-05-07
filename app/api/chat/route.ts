@@ -2,8 +2,14 @@ import { streamText, tool, generateObject, convertToModelMessages, stepCountIs, 
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { getAgentById } from '@/lib/agents'
+import { sendEmailViaGmail, sendEmailViaOutlook } from '@/lib/publishing/email'
+import { publishSocialPost } from '@/lib/publishing/social'
+import { getConnection } from '@/lib/oauth/connections'
+import { getCurrentUserId } from '@/lib/oauth/session'
 
-export const runtime = 'edge'
+// Node runtime — required by googleapis (Gmail) + Microsoft Graph SDK (Outlook).
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const defaultSystemPrompt = `You are PostPilot's AI Content Strategist — a sharp, senior social media expert with 10+ years growing top brands across every major platform.
 
@@ -376,6 +382,91 @@ export async function POST(req: Request) {
 
 // ── Agent-specific tools logic ───────────────────────────────────────────────
 
+const emailDraftSchema = z.object({
+  to: z.array(z.string().email()).min(1).describe('Recipient email addresses'),
+  cc: z.array(z.string().email()).optional(),
+  bcc: z.array(z.string().email()).optional(),
+  subject: z.string().min(1).max(200).describe('Email subject line'),
+  body: z.string().min(1).describe('Email body content'),
+  html: z
+    .boolean()
+    .default(false)
+    .describe('Whether the body is HTML. Default false (plain text).'),
+})
+
+function buildEmailTools(channel: 'gmail' | 'outlook') {
+  const channelLabel = channel === 'gmail' ? 'Gmail' : 'Outlook'
+  return {
+    check_email_connection: tool({
+      description: `Check whether the user has connected their ${channelLabel} account. Always call this first if you're unsure.`,
+      inputSchema: z.object({}),
+      execute: async () => {
+        try {
+          const userId = await getCurrentUserId()
+          const conn = await getConnection(userId, channel)
+          if (!conn) {
+            return {
+              connected: false,
+              message: `${channelLabel} is not connected. Direct the user to /dashboard/accounts to connect.`,
+            }
+          }
+          return {
+            connected: true,
+            email: conn.email,
+            displayName: conn.displayName,
+            scopes: conn.scopes,
+          }
+        } catch (err) {
+          return {
+            connected: false,
+            error: err instanceof Error ? err.message : 'Connection check failed',
+          }
+        }
+      },
+    }),
+
+    draft_email: tool({
+      description: `Draft a ${channelLabel} email and return it for the user to review. This does NOT send the email.`,
+      inputSchema: emailDraftSchema,
+      execute: async (input) => {
+        return {
+          draft: input,
+          channel,
+          characterCount: input.body.length,
+          subjectLength: input.subject.length,
+          note: `Draft ready. Confirm with the user before sending via send_email.`,
+        }
+      },
+    }),
+
+    send_email: tool({
+      description: `Send a ${channelLabel} email through the user's connected account. Only call this AFTER the user has explicitly approved the draft.`,
+      inputSchema: emailDraftSchema,
+      execute: async (input) => {
+        try {
+          const userId = await getCurrentUserId()
+          const result =
+            channel === 'gmail'
+              ? await sendEmailViaGmail(userId, input)
+              : await sendEmailViaOutlook(userId, input)
+          return {
+            ...result,
+            channel,
+            recipientCount: input.to.length,
+            sentAt: new Date().toISOString(),
+          }
+        } catch (err) {
+          return {
+            success: false,
+            channel,
+            error: err instanceof Error ? err.message : 'Send failed',
+          }
+        }
+      },
+    }),
+  }
+}
+
 const AGENT_TOOLS = {
   viral: {
     analyze_virality: tool({
@@ -418,4 +509,30 @@ const AGENT_TOOLS = {
       },
     }),
   },
+  community: {
+    publish_to_platform: tool({
+      description:
+        "Publish a short post to the user's connected social account. Only call after the user has explicitly approved the post and chosen a platform.",
+      inputSchema: z.object({
+        platform: z.enum(['twitter', 'linkedin', 'facebook', 'instagram', 'tiktok']),
+        text: z.string().min(1),
+        mediaUrls: z.array(z.string().url()).optional(),
+      }),
+      execute: async ({ platform, text, mediaUrls }) => {
+        try {
+          const userId = await getCurrentUserId()
+          const result = await publishSocialPost(userId, platform, { text, mediaUrls })
+          return { ...result, platform }
+        } catch (err) {
+          return {
+            success: false,
+            platform,
+            error: err instanceof Error ? err.message : 'Publish failed',
+          }
+        }
+      },
+    }),
+  },
+  gmail: buildEmailTools('gmail'),
+  outlook: buildEmailTools('outlook'),
 }
