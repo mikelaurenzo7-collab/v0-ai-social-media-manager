@@ -141,12 +141,18 @@ export function NotificationsButton() {
             ))
           )}
         </div>
-        <div className="border-t border-border/60 px-4 py-2.5">
+        <div className="border-t border-border/60 px-4 py-2.5 flex items-center justify-between">
+          <Link
+            href="/dashboard/notifications"
+            className="text-[11px] font-semibold text-muted-foreground hover:text-foreground"
+          >
+            See all notifications →
+          </Link>
           <Link
             href="/dashboard/settings"
             className="text-[11px] font-semibold text-muted-foreground hover:text-foreground"
           >
-            Notification preferences →
+            Preferences
           </Link>
         </div>
       </PopoverContent>

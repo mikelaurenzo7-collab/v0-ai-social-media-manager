@@ -21,6 +21,14 @@ const COLS = [
     ],
   },
   {
+    heading: 'Compare',
+    items: [
+      { label: 'vs. Buffer',    href: '/compare/buffer' },
+      { label: 'vs. Hootsuite', href: '/compare/hootsuite' },
+      { label: 'vs. Later',     href: '/compare/later' },
+    ],
+  },
+  {
     heading: 'Company',
     items: [
       { label: 'About',         href: '/about' },
@@ -45,7 +53,7 @@ export function Footer() {
   return (
     <footer className="relative border-t border-border/70 bg-card/40">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_repeat(5,1fr)]">
           <div>
             <Link href="/" className="inline-flex items-center" aria-label="PostPilot home">
               <Logo size={28} wordmark wordmarkClassName="text-[1.4rem]" />
