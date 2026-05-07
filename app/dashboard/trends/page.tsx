@@ -105,9 +105,9 @@ interface Competitor {
 }
 
 const COMPETITORS: Competitor[] = [
-  { name: '@buffer', platform: 'twitter', lastPost: '2h ago', topPost: '"The 5 metrics every social marketer should obsess over"', engagement: '+312%' },
-  { name: '@hootsuite', platform: 'twitter', lastPost: '6h ago', topPost: '"Agencies: stop using 7 different tools. Here\'s our consolidation playbook."', engagement: '+89%' },
-  { name: 'Sprout Social', platform: 'linkedin', lastPost: '4h ago', topPost: '"We surveyed 1,200 marketers about AI in 2026. The findings surprised us."', engagement: '+540%' },
+  { name: '@buffer', platform: 'twitter', lastPost: '2h ago', topPost: 'The 5 metrics every social marketer should obsess over', engagement: '+312%' },
+  { name: '@hootsuite', platform: 'twitter', lastPost: '6h ago', topPost: 'Agencies: stop using 7 different tools. Here\'s our consolidation playbook.', engagement: '+89%' },
+  { name: 'Sprout Social', platform: 'linkedin', lastPost: '4h ago', topPost: 'We surveyed 1,200 marketers about AI in 2026. The findings surprised us.', engagement: '+540%' },
 ]
 
 export default function TrendsPage() {
@@ -122,7 +122,7 @@ export default function TrendsPage() {
         description="What's working right now — across your audience, niche, and platforms — picked for you."
         action={
           <Badge className="bg-orange-500/10 text-orange-700 border-orange-200">
-            Updated 4 min ago
+            Recently updated
           </Badge>
         }
       />
@@ -134,6 +134,7 @@ export default function TrendsPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
+              aria-pressed={filter === f}
               className={cn(
                 'rounded-full px-4 py-1.5 text-xs font-semibold capitalize transition-colors',
                 filter === f

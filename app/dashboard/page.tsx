@@ -243,7 +243,7 @@ export default function DashboardPage() {
                 {[
                   { icon: '✅', text: 'Auto-Pilot published 3 posts', time: '2m', tone: 'emerald' },
                   { icon: '💬', text: 'Maya Chen replied to your X post', time: '14m', tone: 'orange' },
-                  { icon: '🤖', text: 'Sarah drafted 2 posts for Friday', time: '1h', tone: 'violet' },
+                  { icon: '🤖', text: 'LinkedIn Agent drafted 2 posts for Friday', time: '1h', tone: 'violet' },
                   { icon: '📈', text: 'New trend match: 96% relevance', time: '2h', tone: 'sky' },
                 ].map((a, i) => (
                   <div key={i} className="flex items-start gap-3">

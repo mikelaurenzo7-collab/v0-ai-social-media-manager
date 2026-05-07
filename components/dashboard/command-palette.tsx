@@ -55,8 +55,16 @@ export function CommandPalette() {
         setOpen((o) => !o)
       }
     }
+    const onOpen = () => setOpen(true)
+    const onToggle = () => setOpen((o) => !o)
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    window.addEventListener('command-palette:open', onOpen)
+    window.addEventListener('command-palette:toggle', onToggle)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      window.removeEventListener('command-palette:open', onOpen)
+      window.removeEventListener('command-palette:toggle', onToggle)
+    }
   }, [])
 
   const go = useCallback(

@@ -7,21 +7,21 @@ import { Button } from '@/components/ui/button'
 import { Header } from '@/components/dashboard/header'
 
 const AGENT_STATS: Record<string, { sessions: number; workflows: number; rating: string; specialty: string }> = {
-  strategist: { sessions: 24, workflows: 8, rating: '4.9', specialty: 'Brand Growth' },
-  viral: { sessions: 31, workflows: 5, rating: '4.8', specialty: 'Viral Reach' },
-  voice: { sessions: 18, workflows: 11, rating: '4.9', specialty: 'Tone & Voice' },
-  community: { sessions: 42, workflows: 6, rating: '5.0', specialty: 'Engagement' },
-  gmail: { sessions: 12, workflows: 4, rating: '4.9', specialty: 'Gmail Outreach' },
-  outlook: { sessions: 9, workflows: 3, rating: '4.8', specialty: 'Business Email' },
+  x:        { sessions: 31, workflows: 5,  rating: '4.8', specialty: 'X / Twitter' },
+  meta:     { sessions: 27, workflows: 6,  rating: '4.9', specialty: 'Instagram & Facebook' },
+  linkedin: { sessions: 24, workflows: 8,  rating: '4.9', specialty: 'LinkedIn' },
+  tiktok:   { sessions: 18, workflows: 4,  rating: '4.8', specialty: 'TikTok' },
+  gmail:    { sessions: 12, workflows: 4,  rating: '4.9', specialty: 'Gmail' },
+  outlook:  { sessions: 9,  workflows: 3,  rating: '4.8', specialty: 'Outlook' },
 }
 
 const AGENT_GRADIENT: Record<string, string> = {
-  strategist: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
-  viral: 'linear-gradient(135deg, #EA580C 0%, #EAB308 100%)',
-  voice: 'linear-gradient(135deg, #A855F7 0%, #DB2777 100%)',
-  community: 'linear-gradient(135deg, #22C55E 0%, #0EA5E9 100%)',
-  gmail: 'linear-gradient(135deg, #EA4335 0%, #FBBC04 100%)',
-  outlook: 'linear-gradient(135deg, #0078D4 0%, #00BCF2 100%)',
+  x:        'linear-gradient(135deg, #18181B 0%, #3F3F46 100%)',
+  meta:     'linear-gradient(135deg, #EC4899 0%, #F43F5E 100%)',
+  linkedin: 'linear-gradient(135deg, #0EA5E9 0%, #1D4ED8 100%)',
+  tiktok:   'linear-gradient(135deg, #D946EF 0%, #E11D48 100%)',
+  gmail:    'linear-gradient(135deg, #EF4444 0%, #F97316 100%)',
+  outlook:  'linear-gradient(135deg, #2563EB 0%, #4338CA 100%)',
 }
 
 export default function AgentsPage() {
@@ -29,7 +29,7 @@ export default function AgentsPage() {
     <div className="flex flex-col">
       <Header
         title="AI Agents"
-        description="Your dedicated team of social media experts, ready to scale your presence."
+        description="One specialist agent per channel. Rename, retrain, and reconfigure permissions for any of them."
       />
 
       {/* Team intro banner */}
@@ -43,9 +43,10 @@ export default function AgentsPage() {
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Your AI Team</p>
-              <h2 className="mt-1 text-lg font-bold text-white">{AGENTS.length} specialists · Always available</h2>
+              <h2 className="mt-1 text-lg font-bold text-white">{AGENTS.length} channel specialists · Always on</h2>
               <p className="mt-1 text-sm text-white/60">
-                Each agent has a unique role across social and email. Use them together for a complete go-to-market strategy.
+                One agent per channel, pre-tuned for that platform&apos;s formats and rhythm. Persona, tone, system prompt,
+                and posting permissions are fully editable per agent.
               </p>
             </div>
             <div className="flex -space-x-3 shrink-0">
@@ -150,7 +151,7 @@ export default function AgentsPage() {
                   style={{ background: gradient, border: 'none' }}
                 >
                   <Link href={`/dashboard/agents/${agent.id}`}>
-                    {agent.premium ? '🔓 Unlock Agent' : `Chat with ${agent.name}`}
+                    {agent.premium ? '🔓 Unlock Agent' : `Open ${agent.name}`}
                   </Link>
                 </Button>
                 {!agent.premium && (
@@ -181,12 +182,13 @@ export default function AgentsPage() {
             ✨
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-white">Need a custom agent?</h3>
+            <h3 className="text-lg font-bold text-white">Customize every agent — out of the box</h3>
             <p className="mt-1 text-sm text-white/60 max-w-lg">
-              Enterprise plans let you build AI agents trained entirely on your brand voice, industry knowledge, and historical performance data.
+              Every channel agent ships with smart defaults. Open any of them to rewrite the persona, lock the system
+              prompt to your Brand Kit, set posting permissions, and add custom tools. No tier gating.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {['Custom system prompts', 'Brand data fine-tuning', 'Unlimited agents', 'API access'].map((feat) => (
+              {['Editable system prompts', 'Persona overrides', 'Per-channel permissions', 'Tool & MCP access'].map((feat) => (
                 <span
                   key={feat}
                   className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/70"
@@ -197,7 +199,7 @@ export default function AgentsPage() {
             </div>
           </div>
           <Button asChild variant="link" className="shrink-0 text-orange-400 hover:text-orange-300 font-semibold">
-            <Link href="mailto:sales@postpilot.ai">Contact Sales →</Link>
+            <Link href="/dashboard/brand">Open Brand Kit →</Link>
           </Button>
         </div>
       </div>

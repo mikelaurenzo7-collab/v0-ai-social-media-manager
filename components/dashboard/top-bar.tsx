@@ -5,8 +5,7 @@ import { NotificationsButton } from '@/components/dashboard/notifications'
 
 export function TopBar() {
   function openCommandPalette() {
-    const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true })
-    document.dispatchEvent(event)
+    window.dispatchEvent(new CustomEvent('command-palette:open'))
   }
 
   return (

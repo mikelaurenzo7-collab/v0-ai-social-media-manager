@@ -18,7 +18,7 @@ const CATEGORIES = [
   {
     icon: '🤖',
     title: 'AI agents',
-    desc: 'Meet the team — Sarah, Leo, Aria, Marcus, Gina, Oliver.',
+    desc: 'One specialist agent per channel. Customize each one.',
     articles: 14,
     color: 'from-violet-500 to-purple-600',
   },
@@ -61,8 +61,8 @@ const POPULAR = [
   { q: 'How do I delete my account and all my data?', read: '1 min' },
 ]
 
-const RESOURCES = [
-  { label: 'API & Webhooks', desc: 'Build on top of PostPilot', href: '#', emoji: '🛠️' },
+const RESOURCES: { label: string; desc: string; href?: string; emoji: string; comingSoon?: boolean }[] = [
+  { label: 'API & Webhooks', desc: 'Build on top of PostPilot', emoji: '🛠️', comingSoon: true },
   { label: 'Changelog', desc: 'See what shipped this week', href: '/changelog', emoji: '📝' },
   { label: 'System status', desc: 'Live uptime + incident log', href: '/status', emoji: '🟢' },
   { label: 'Security', desc: 'How we keep your data safe', href: '/security', emoji: '🔒' },
@@ -136,6 +136,7 @@ export default function HelpPage() {
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
+                aria-label="Search help articles"
                 placeholder="Search for answers, or ask the assistant…"
                 className="h-12 pl-11 pr-4 rounded-xl bg-white/10 border-white/15 text-white placeholder:text-white/40 focus:bg-white/15 focus:border-white/30"
               />
@@ -226,19 +227,39 @@ export default function HelpPage() {
               <p className="text-xs text-muted-foreground">No matching resources.</p>
             ) : (
             <div className="space-y-2">
-              {filteredResources.map((r) => (
-                <Link key={r.label} href={r.href} className="block">
-                  <div className="rounded-xl border border-border/60 bg-card p-3 hover:bg-muted/40 transition-colors">
+              {filteredResources.map((r) => {
+                const tile = (
+                  <div
+                    className={`rounded-xl border border-border/60 bg-card p-3 transition-colors ${
+                      r.comingSoon ? 'opacity-70' : 'hover:bg-muted/40'
+                    }`}
+                  >
                     <div className="flex items-start gap-3">
                       <div className="text-xl">{r.emoji}</div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold">{r.label}</p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold">{r.label}</p>
+                          {r.comingSoon && (
+                            <span className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground bg-muted/60 rounded-full px-1.5 py-0.5">
+                              Soon
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[11px] text-muted-foreground">{r.desc}</p>
                       </div>
                     </div>
                   </div>
-                </Link>
-              ))}
+                )
+                return r.href ? (
+                  <Link key={r.label} href={r.href} className="block">
+                    {tile}
+                  </Link>
+                ) : (
+                  <div key={r.label} aria-disabled="true" className="block">
+                    {tile}
+                  </div>
+                )
+              })}
             </div>
             )}
 
@@ -248,8 +269,10 @@ export default function HelpPage() {
             >
               <p className="text-sm font-bold">Still stuck?</p>
               <p className="text-xs text-white/85 mt-1">Real humans, not a bot. Average reply: 2h.</p>
-              <Button size="sm" variant="secondary" className="mt-3 h-8 text-xs">
-                Email support
+              <Button asChild size="sm" variant="secondary" className="mt-3 h-8 text-xs">
+                <a href="mailto:support@postpilot.app?subject=Support%20Request" aria-label="Email PostPilot support">
+                  Email support
+                </a>
               </Button>
             </div>
           </div>

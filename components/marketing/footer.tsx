@@ -60,7 +60,7 @@ export function Footer() {
               className="mt-5 inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-muted/40"
             >
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 pulse-dot text-emerald-500" />
-              All systems normal
+              View system status
             </Link>
           </div>
 

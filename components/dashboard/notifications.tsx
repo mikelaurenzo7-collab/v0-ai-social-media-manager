@@ -63,7 +63,7 @@ const SAMPLE: Notif[] = [
   {
     id: '5',
     icon: '🤖',
-    title: 'Sarah drafted next week\'s posts',
+    title: 'LinkedIn Agent drafted next week\'s posts',
     body: '7 drafts ready for your review.',
     time: '1d ago',
     href: '/dashboard/drafts',

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import type { Agent } from '@/lib/agents'
 
 const AGENT_PLATFORM_ADVICE: Record<string, Record<SocialPlatformId, { headline: string; tips: string[]; formats: string[] }>> = {
-  strategist: {
+  linkedin: {
     twitter: {
       headline: 'Build a thread-first X strategy',
       tips: [
@@ -55,7 +55,7 @@ const AGENT_PLATFORM_ADVICE: Record<string, Record<SocialPlatformId, { headline:
       formats: ['Educational series', 'Day-in-the-life', 'Tips & tricks', 'Weekly recurring format'],
     },
   },
-  viral: {
+  x: {
     twitter: {
       headline: 'Dominate the feed with hooks and hot takes',
       tips: [
@@ -102,7 +102,7 @@ const AGENT_PLATFORM_ADVICE: Record<string, Record<SocialPlatformId, { headline:
       formats: ['Trending sound + niche twist', 'Story-driven video', 'Tutorial with surprise ending', 'Controversial take'],
     },
   },
-  voice: {
+  meta: {
     twitter: {
       headline: 'Write with your authentic voice every single day',
       tips: [
@@ -149,7 +149,7 @@ const AGENT_PLATFORM_ADVICE: Record<string, Record<SocialPlatformId, { headline:
       formats: ['Talking-head story', 'Day-in-my-life', 'Unfiltered opinion', 'Q&A response video'],
     },
   },
-  community: {
+  tiktok: {
     twitter: {
       headline: 'Reply-first strategy is your fastest path to loyal followers',
       tips: [
@@ -208,7 +208,7 @@ export function AgentPlatformConfig({ agent }: AgentPlatformConfigProps) {
   )
   const [expandedPlatform, setExpandedPlatform] = useState<SocialPlatformId | null>('twitter')
 
-  const advice = AGENT_PLATFORM_ADVICE[agent.id] ?? AGENT_PLATFORM_ADVICE['strategist']
+  const advice = AGENT_PLATFORM_ADVICE[agent.id] ?? AGENT_PLATFORM_ADVICE['linkedin']
 
   const togglePlatform = (platformId: SocialPlatformId) => {
     setEnabledPlatforms(prev => {

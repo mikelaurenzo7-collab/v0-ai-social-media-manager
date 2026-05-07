@@ -146,12 +146,12 @@ function FeatureCard({
 
 function AgentsTile() {
   const agents = [
-    { initial: 'S', hue: 'from-blue-500 to-indigo-500',  name: 'Sarah',   role: 'Strategy' },
-    { initial: 'C', hue: 'from-orange-500 to-amber-500', name: 'Casey',   role: 'Viral'    },
-    { initial: 'R', hue: 'from-purple-500 to-pink-500',  name: 'Riley',   role: 'Voice'    },
-    { initial: 'M', hue: 'from-emerald-500 to-teal-500', name: 'Marcus',  role: 'Community'},
-    { initial: 'G', hue: 'from-red-500 to-rose-500',     name: 'Gina',    role: 'Gmail'    },
-    { initial: 'O', hue: 'from-sky-500 to-blue-600',     name: 'Oliver',  role: 'Outlook'  },
+    { initial: 'X',  hue: 'from-zinc-700 to-zinc-900',     name: 'X Agent',        role: 'X / Twitter' },
+    { initial: 'M',  hue: 'from-pink-500 to-rose-500',     name: 'Meta Agent',     role: 'Instagram & Facebook' },
+    { initial: 'in', hue: 'from-sky-500 to-blue-700',      name: 'LinkedIn Agent', role: 'LinkedIn' },
+    { initial: 'TT', hue: 'from-fuchsia-500 to-rose-600',  name: 'TikTok Agent',   role: 'TikTok' },
+    { initial: 'G',  hue: 'from-red-500 to-orange-500',    name: 'Gmail Agent',    role: 'Gmail' },
+    { initial: 'O',  hue: 'from-blue-600 to-indigo-700',   name: 'Outlook Agent',  role: 'Outlook' },
   ]
   return (
     <div className="grid grid-cols-3 gap-2">

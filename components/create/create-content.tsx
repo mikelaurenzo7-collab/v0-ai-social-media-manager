@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { experimental_useObject } from '@ai-sdk/react'
 import { Button } from '@/components/ui/button'
@@ -67,11 +67,21 @@ export function CreateContent() {
     }
   }, [editId])
 
-  // Pre-fill from query params (?topic=… &tone=…) — used by Trends and Command Palette
+  // Pre-fill from query params (?topic=… &tone=…) — used by Trends and Command Palette.
+  // We track the previously-applied topic so revisiting /dashboard/create with a new
+  // ?topic replaces the prior auto-generated prompt without overwriting any custom edits.
+  const prevTopicRef = useRef<string | null>(null)
   useEffect(() => {
     if (editId) return
     if (topicParam) {
-      setPrompt((current) => (current ? current : `Write a post about: ${topicParam}`))
+      const prevAuto = prevTopicRef.current
+        ? `Write a post about: ${prevTopicRef.current}`
+        : null
+      const nextAuto = `Write a post about: ${topicParam}`
+      setPrompt((current) =>
+        current === '' || current === prevAuto ? nextAuto : current,
+      )
+      prevTopicRef.current = topicParam
     }
     if (toneParam) {
       const validTones = TONES.map((t) => t.id) as readonly string[]

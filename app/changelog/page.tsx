@@ -66,8 +66,8 @@ const ENTRIES: Entry[] = [
     date: 'Apr 14, 2026',
     version: '0.39',
     type: 'feature',
-    title: 'Six specialist AI agents',
-    body: 'Sarah (strategy), Leo (viral), Aria (voice), Marcus (community), Gina (Gmail), Oliver (Outlook). Each with a job they actually do well.',
+    title: 'Six channel-specialist AI agents',
+    body: 'One agent per channel — X, Meta, LinkedIn, TikTok, Gmail, Outlook. Each one knows the platform; you customize the persona, voice, and permissions.',
   },
   {
     date: 'Apr 4, 2026',

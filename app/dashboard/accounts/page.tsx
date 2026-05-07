@@ -61,7 +61,7 @@ const EMAIL_PLATFORMS: PlatformDef[] = [
     name: 'Gmail',
     description: 'Send personalized outreach and follow-ups directly from your Gmail account.',
     bg: '#EA4335',
-    features: ['Send via Gmail API', 'Drafts in your Sent folder', 'Gina, the Gmail agent'],
+    features: ['Send via Gmail API', 'Drafts in your Sent folder', 'Gmail Agent'],
     category: 'email',
     available: true,
   },
@@ -70,7 +70,7 @@ const EMAIL_PLATFORMS: PlatformDef[] = [
     name: 'Outlook',
     description: 'Send executive-grade business emails through Microsoft 365 / Outlook.',
     bg: '#0078D4',
-    features: ['Microsoft Graph API', 'Calendar-aware drafts', 'Oliver, the Outlook agent'],
+    features: ['Microsoft Graph API', 'Calendar-aware drafts', 'Outlook Agent'],
     category: 'email',
     available: true,
   },
@@ -219,7 +219,7 @@ export default function AccountsPage() {
 
         <PlatformGrid
           title="Email Channels"
-          description="Let Gina (Gmail) and Oliver (Outlook) draft and send emails on your behalf."
+          description="Let your Gmail and Outlook agents draft and send emails on your behalf."
           platforms={EMAIL_PLATFORMS}
           connectionsByPlatform={connectionsByPlatform}
           onChanged={mutate}

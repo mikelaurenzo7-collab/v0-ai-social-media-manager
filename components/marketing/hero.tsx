@@ -6,24 +6,54 @@ import { Button } from '@/components/ui/button'
 import { ArrowRight, Sparkles, Play, ShieldCheck } from 'lucide-react'
 
 const ROTATION = [
-  { agent: 'Sarah',  role: 'Strategist',     hue: 'from-blue-500 to-indigo-500',
-    prompt: 'Plan a 7-day launch for our sustainable line',
-    out:    "Day 1 — tease the why. Day 2 — drop the hero shot. Day 3 — share the founder voice memo. Day 4–5 — early-access link. Day 6 — ugc reposts. Day 7 — open the floodgates." },
-  { agent: 'Casey',  role: 'Viral Specialist', hue: 'from-orange-500 to-amber-500',
-    prompt: 'Write a TikTok hook for: 5 productivity rules I broke',
-    out:    "I broke every productivity rule for 30 days. Rule #4 made me 3× more focused. Don\u2019t skip — wait for the green sticky note." },
-  { agent: 'Riley',  role: 'Voice Coach',     hue: 'from-purple-500 to-pink-500',
-    prompt: 'Make this LinkedIn post sound less corporate',
-    out:    "We hit 10k customers. I still cry-laughed in the car after the call with #6,142. Building means caring about every single one." },
-  { agent: 'Marcus', role: 'Community',       hue: 'from-emerald-500 to-teal-500',
-    prompt: 'A reply to: \u201cLove your brand but the price stings\u201d',
-    out:    "Hear you. We pay our makers 2\u00d7 industry rate \u2014 that\u2019s why. If it\u2019s out of reach today, we drop a 20% \u2018first piece\u2019 code in our newsletter once a month." },
-  { agent: 'Gina',   role: 'Gmail Outreach',  hue: 'from-red-500 to-rose-500',
+  {
+    agent: 'X Agent',
+    slug: 'x',
+    role: 'X Specialist',
+    hue: 'from-zinc-700 to-zinc-900',
+    prompt: 'Write a thread on the launch lessons from this week',
+    out: '5 lessons from launch week. A thread. \n\n1/ Ship before you are ready. We were not. It still worked.\n2/ The first hour matters more than the first day.\n3/ Pin the demo, not the announcement.\n4/ Reply to every comment for 48h. Velocity beats volume.\n5/ Day-2 silence kills momentum. Have a follow-up ready.',
+  },
+  {
+    agent: 'Meta Agent',
+    slug: 'meta',
+    role: 'Instagram & Facebook',
+    hue: 'from-pink-500 to-rose-500',
+    prompt: 'Carousel idea for our small studio behind the scenes',
+    out: 'Slide 1: "Inside the studio at 7am." (hero shot)\nSlide 2 to 3: the actual workbench, no stylists.\nSlide 4: the rejected version we almost shipped.\nSlide 5: the version we sent.\nSlide 6: "Save this if you have ever wondered what crafted actually looks like."',
+  },
+  {
+    agent: 'LinkedIn Agent',
+    slug: 'linkedin',
+    role: 'LinkedIn Specialist',
+    hue: 'from-sky-500 to-blue-700',
+    prompt: 'Make this post sound less corporate',
+    out: 'We hit 10k customers.\n\nI still cry-laughed in the car after the call with #6,142.\n\nBuilding means caring about every single one. If you are early, that is the bar.',
+  },
+  {
+    agent: 'TikTok Agent',
+    slug: 'tiktok',
+    role: 'TikTok Specialist',
+    hue: 'from-fuchsia-500 to-rose-600',
+    prompt: 'Hook for: 5 productivity rules I broke',
+    out: 'On-screen: "I broke every productivity rule for 30 days."\nVO: "Rule #4 made me 3x more focused. Do not skip — wait for the green sticky note."\nCaption: do not try this if you have meetings before 10am.',
+  },
+  {
+    agent: 'Gmail Agent',
+    slug: 'gmail',
+    role: 'Gmail Specialist',
+    hue: 'from-red-500 to-orange-500',
     prompt: 'Cold email to a founder I admire about partnership',
-    out:    "subject: small idea, big fan\u2014\nshort version: love what you\u2019re building. one specific way we could collab in 15 min\u2014happy to send the deck if it\u2019s a fit?" },
-  { agent: 'Oliver', role: 'Outlook Business', hue: 'from-sky-500 to-blue-600',
+    out: 'subject: small idea, big fan\n\nshort version —\nlove what you are building. one specific way we could collab in 15 min. happy to send the deck if it is a fit.',
+  },
+  {
+    agent: 'Outlook Agent',
+    slug: 'outlook',
+    role: 'Outlook Specialist',
+    hue: 'from-blue-600 to-indigo-700',
     prompt: 'Update the board on Q3 revenue',
-    out:    "Subject: [Update] Q3 revenue + commentary\n\nHeadline: $4.2M (+38% YoY). Three drivers below, two risks I\u2019m watching, one ask." },
+    out: 'Subject: [Update] Q3 revenue + commentary\n\nHeadline: $4.2M (+38% YoY).\nThree drivers below, two risks I am watching, one ask.',
+  },
 ]
 
 export function Hero() {
@@ -63,13 +93,15 @@ export function Hero() {
       {/* Aurora backdrop */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-40 left-1/2 h-[680px] w-[1100px] -translate-x-1/2">
-          <div className="h-full w-full opacity-70 [mask-image:radial-gradient(closest-side,white,transparent)]"
-               style={{
-                 background:
-                   'radial-gradient(35% 35% at 30% 35%, rgba(234,88,12,0.32), transparent 60%),' +
-                   'radial-gradient(35% 35% at 70% 30%, rgba(219,39,119,0.28), transparent 60%),' +
-                   'radial-gradient(45% 45% at 50% 70%, rgba(245,158,11,0.18), transparent 65%)',
-               }} />
+          <div
+            className="h-full w-full opacity-70 [mask-image:radial-gradient(closest-side,white,transparent)]"
+            style={{
+              background:
+                'radial-gradient(35% 35% at 30% 35%, rgba(234,88,12,0.32), transparent 60%),' +
+                'radial-gradient(35% 35% at 70% 30%, rgba(219,39,119,0.28), transparent 60%),' +
+                'radial-gradient(45% 45% at 50% 70%, rgba(245,158,11,0.18), transparent 65%)',
+            }}
+          />
         </div>
         <div className="absolute inset-x-0 top-0 h-[640px] bg-grid opacity-[0.5] [mask-image:linear-gradient(180deg,black,transparent)]" />
       </div>
@@ -79,30 +111,36 @@ export function Hero() {
           {/* Eyebrow pill */}
           <div className="reveal-up inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3.5 py-1 text-xs font-medium text-foreground/80 shadow-sm backdrop-blur">
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-orange-500 pulse-dot text-orange-500" />
-            <span>Now with Gmail &amp; Outlook agents</span>
+            <span>One agent per channel · fully customizable</span>
             <span className="text-muted-foreground/70">·</span>
             <span className="text-muted-foreground">v2026.05</span>
           </div>
 
           {/* Headline */}
-          <h1 className="reveal-up mt-6 text-balance font-display text-[2.75rem] leading-[1.04] tracking-tight sm:text-6xl lg:text-7xl"
-              style={{ animationDelay: '60ms' }}>
+          <h1
+            className="reveal-up mt-6 text-balance font-display text-[2.75rem] leading-[1.04] tracking-tight sm:text-6xl lg:text-7xl"
+            style={{ animationDelay: '60ms' }}
+          >
             Your AI co-pilot
             <br className="hidden sm:block" />
             <span className="gradient-text-animate">for social and email</span>
           </h1>
 
           {/* Subhead */}
-          <p className="reveal-up mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
-             style={{ animationDelay: '160ms' }}>
-            Six specialist agents draft, schedule, and publish across X, Instagram, LinkedIn, TikTok,
-            Facebook, Gmail, and Outlook — with real OAuth, real platform smarts, and copy you&apos;ll
-            actually want to send.
+          <p
+            className="reveal-up mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
+            style={{ animationDelay: '160ms' }}
+          >
+            One specialist agent per channel — X, Meta, LinkedIn, TikTok, Gmail, and Outlook —
+            drafting, scheduling, and publishing through real OAuth. Customize each one&apos;s
+            persona, voice, and permissions to fit your brand.
           </p>
 
           {/* CTAs */}
-          <div className="reveal-up mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
-               style={{ animationDelay: '240ms' }}>
+          <div
+            className="reveal-up mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
+            style={{ animationDelay: '240ms' }}
+          >
             <Button size="lg" asChild className="btn-gradient h-12 rounded-full px-7 text-sm font-semibold">
               <Link href="/signup" className="inline-flex items-center gap-2">
                 Start creating free
@@ -118,8 +156,10 @@ export function Hero() {
           </div>
 
           {/* Trust line */}
-          <div className="reveal-up mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground"
-               style={{ animationDelay: '320ms' }}>
+          <div
+            className="reveal-up mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground"
+            style={{ animationDelay: '320ms' }}
+          >
             <span className="inline-flex items-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
               SOC 2-ready · Tokens encrypted at rest
@@ -131,9 +171,8 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Hero demo — agent terminal */}
+        {/* Hero demo */}
         <div className="reveal-up relative mx-auto mt-14 max-w-5xl" style={{ animationDelay: '420ms' }}>
-          {/* Floating accent cards */}
           <FloatingChip
             label={current.agent}
             sub={current.role}
@@ -155,7 +194,6 @@ export function Hero() {
           />
 
           <div className="relative overflow-hidden rounded-[28px] border border-border/70 bg-card/95 shadow-[0_30px_80px_-30px_rgba(234,88,12,0.35)] backdrop-blur">
-            {/* Window chrome */}
             <div className="flex items-center gap-2 border-b border-border/60 bg-muted/30 px-4 py-2.5">
               <div className="flex gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
@@ -163,17 +201,16 @@ export function Hero() {
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
               </div>
               <span className="ml-auto rounded-full bg-background/80 px-2.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-                postpilot.app/agents/{current.agent.toLowerCase()}
+                postpilot.app/agents/{current.slug}
               </span>
               <Sparkles className="ml-2 h-3.5 w-3.5 text-orange-500" />
             </div>
 
             <div className="grid gap-0 lg:grid-cols-[1fr_1.15fr]">
-              {/* Left: prompt */}
               <div className="border-b lg:border-b-0 lg:border-r border-border/60 p-6 sm:p-7">
                 <div className="flex items-center gap-2.5">
-                  <div className={`relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${current.hue} text-white text-sm font-semibold shadow-md`}>
-                    {current.agent[0]}
+                  <div className={`relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${current.hue} text-white text-[11px] font-semibold shadow-md`}>
+                    {current.agent.split(' ')[0].slice(0, 2)}
                     <span className="absolute -right-0.5 -bottom-0.5 inline-flex h-3 w-3 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-card">
                       <span className="h-1.5 w-1.5 rounded-full bg-white" />
                     </span>
@@ -208,7 +245,6 @@ export function Hero() {
                 </div>
               </div>
 
-              {/* Right: result feed */}
               <div className="relative bg-gradient-to-br from-muted/30 to-background p-6 sm:p-7">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -258,7 +294,6 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Rotation indicator */}
           <div className="mt-4 flex items-center justify-center gap-1.5">
             {ROTATION.map((_, i) => (
               <span
@@ -291,9 +326,7 @@ function FloatingChip({
   return (
     <div className={`z-10 inline-flex items-center gap-2.5 rounded-2xl border border-border/70 bg-card px-3 py-2 shadow-lg float-gentle ${className}`}>
       <span className={`relative h-7 w-7 shrink-0 rounded-lg bg-gradient-to-br ${hue}`}>
-        {indicator && (
-          <span className="absolute inset-0 m-auto h-2 w-2 rounded-full bg-white" />
-        )}
+        {indicator && <span className="absolute inset-0 m-auto h-2 w-2 rounded-full bg-white" />}
       </span>
       <div className="min-w-0">
         <p className="text-xs font-semibold text-foreground leading-none">{label}</p>

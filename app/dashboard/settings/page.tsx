@@ -333,7 +333,7 @@ export default function SettingsPage() {
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              This helps agents like Sarah build more accurate content calendars for you.
+              This helps your channel agents build more accurate content calendars for you.
             </p>
           </CardContent>
         </Card>

@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { Header } from '@/components/dashboard/header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PlatformIcon } from '@/components/accounts/platform-icon'
+import { getAgentForPlatform } from '@/lib/agents'
 import { cn } from '@/lib/utils'
 
 type Platform = 'twitter' | 'instagram' | 'linkedin' | 'facebook' | 'tiktok' | 'gmail' | 'outlook'
@@ -204,8 +206,11 @@ export default function InboxPage() {
     })
   }, [items, filter, platform])
 
-  const selected = items.find((i) => i.id === selectedId) ?? null
-  const unreadCount = items.filter((i) => i.unread).length
+  const selected = useMemo(
+    () => items.find((i) => i.id === selectedId) ?? null,
+    [items, selectedId],
+  )
+  const unreadCount = useMemo(() => items.filter((i) => i.unread).length, [items])
 
   function markRead(id: string) {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, unread: false } : i)))
@@ -221,7 +226,31 @@ export default function InboxPage() {
     }
   }, [])
 
-  function useAiSuggestion() {
+  // Cancel any in-flight typing animation when the user switches conversation —
+  // prevents the previous conversation's draft from leaking into the new one.
+  useEffect(() => {
+    cancelTypingRef.current = true
+    if (typeTimeoutRef.current) {
+      clearTimeout(typeTimeoutRef.current)
+      typeTimeoutRef.current = null
+    }
+    setDrafting(false)
+  }, [selectedId])
+
+  function sendReply() {
+    if (!reply.trim() || !selected) return
+    if (typeTimeoutRef.current) {
+      clearTimeout(typeTimeoutRef.current)
+      typeTimeoutRef.current = null
+    }
+    cancelTypingRef.current = true
+    setDrafting(false)
+    toast.success(`Reply sent to ${selected.author.name}`)
+    setReply('')
+    if (selected.unread) markRead(selected.id)
+  }
+
+  function handleUseAiSuggestion() {
     if (!selected?.aiSuggestion) return
     if (typeTimeoutRef.current) clearTimeout(typeTimeoutRef.current)
     cancelTypingRef.current = false
@@ -285,6 +314,7 @@ export default function InboxPage() {
           <select
             value={platform}
             onChange={(e) => setPlatform(e.target.value as Platform | 'all')}
+            aria-label="Filter by platform"
             className="h-8 rounded-lg border border-border/60 bg-background px-3 text-xs font-medium"
           >
             {PLATFORM_FILTERS.map((p) => (
@@ -378,8 +408,8 @@ export default function InboxPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">Mute</Button>
-                    <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">Archive</Button>
+                    <Button variant="ghost" size="sm" disabled aria-disabled className="h-8 px-2 text-xs" title="Coming soon">Mute</Button>
+                    <Button variant="ghost" size="sm" disabled aria-disabled className="h-8 px-2 text-xs" title="Coming soon">Archive</Button>
                   </div>
                 </div>
               </div>
@@ -407,7 +437,7 @@ export default function InboxPage() {
                         </svg>
                       </div>
                       <span className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-300">
-                        Marcus suggests
+                        {getAgentForPlatform(selected.platform)?.name ?? 'Agent'} suggests
                       </span>
                       <Badge className="ml-auto text-[9px] px-1.5 py-0 bg-orange-500/15 text-orange-700 border-orange-300/40">
                         AI · matches your voice
@@ -419,7 +449,7 @@ export default function InboxPage() {
                         size="sm"
                         className="h-8 text-xs"
                         style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
-                        onClick={useAiSuggestion}
+                        onClick={handleUseAiSuggestion}
                         disabled={drafting}
                       >
                         Use this draft
@@ -436,6 +466,7 @@ export default function InboxPage() {
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
                     placeholder={`Reply to ${selected.author.name}…`}
+                    aria-label={`Reply to ${selected.author.name}`}
                     className="w-full resize-none px-4 pt-3 pb-2 text-sm bg-transparent outline-none"
                     rows={3}
                   />
@@ -456,6 +487,7 @@ export default function InboxPage() {
                         className="h-8 text-xs px-4"
                         style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
                         disabled={!reply.trim()}
+                        onClick={sendReply}
                       >
                         Send reply
                       </Button>

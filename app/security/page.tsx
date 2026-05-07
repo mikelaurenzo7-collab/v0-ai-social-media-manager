@@ -37,7 +37,7 @@ const PILLARS = [
   {
     icon: '🚨',
     title: 'Incident response',
-    body: '24/7 on-call. We commit to acknowledging security incidents within 1 hour, posting to /status within 4, and a public RCA within 72.',
+    body: '24/7 on-call. We commit to acknowledging security incidents within 1 hour, posting to /status within 4 hours, and a public RCA within 72 hours (3 days).',
   },
 ]
 

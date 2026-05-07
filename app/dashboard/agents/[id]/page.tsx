@@ -13,10 +13,12 @@ import { PremiumGate } from '@/components/agents/premium-gate'
 // ── AutoPilot mini-status widget ─────────────────────────────────────────────
 
 const AUTOPILOT_DEFAULTS: Record<string, { platform: string; schedule: string; postsWeek: number; active: boolean }> = {
-  strategist: { platform: 'LinkedIn', schedule: 'Mon–Fri · 8:30 AM', postsWeek: 5, active: true },
-  viral:       { platform: 'TikTok',   schedule: 'Mon, Wed, Fri · 5 PM', postsWeek: 6, active: true },
-  voice:       { platform: 'Twitter',  schedule: 'Sundays · 10 AM',  postsWeek: 1, active: false },
-  community:   { platform: 'Instagram', schedule: 'Daily · 12 PM',   postsWeek: 7, active: true },
+  x:        { platform: 'X (Twitter)', schedule: 'Mon–Fri · 8:30 AM', postsWeek: 5, active: true },
+  meta:     { platform: 'Instagram & Facebook', schedule: 'Mon, Wed, Fri · 12 PM', postsWeek: 6, active: true },
+  linkedin: { platform: 'LinkedIn', schedule: 'Tue–Thu · 9 AM', postsWeek: 3, active: true },
+  tiktok:   { platform: 'TikTok', schedule: 'Mon, Wed, Fri · 5 PM', postsWeek: 4, active: false },
+  gmail:    { platform: 'Gmail', schedule: 'On demand · approval-gated', postsWeek: 0, active: false },
+  outlook:  { platform: 'Outlook', schedule: 'On demand · approval-gated', postsWeek: 0, active: false },
 }
 
 function AutoPilotMiniStatus({ agentId }: { agentId: string }) {
@@ -146,19 +148,22 @@ const QUICK_ACTIONS: { label: string; tab: Tab; icon: React.ReactNode }[] = [
   },
 ]
 
-const MOCK_STATS = {
-  strategist: { chats: 24, workflows: 8, memories: 14, rating: '4.9' },
-  viral: { chats: 31, workflows: 5, memories: 9, rating: '4.8' },
-  voice: { chats: 18, workflows: 11, memories: 22, rating: '4.9' },
-  community: { chats: 42, workflows: 6, memories: 17, rating: '5.0' },
+const MOCK_STATS: Record<string, { chats: number; workflows: number; memories: number; rating: string }> = {
+  x:        { chats: 31, workflows: 5,  memories: 12, rating: '4.8' },
+  meta:     { chats: 27, workflows: 6,  memories: 18, rating: '4.9' },
+  linkedin: { chats: 24, workflows: 8,  memories: 14, rating: '4.9' },
+  tiktok:   { chats: 18, workflows: 4,  memories: 9,  rating: '4.8' },
+  gmail:    { chats: 12, workflows: 4,  memories: 7,  rating: '4.9' },
+  outlook:  { chats: 9,  workflows: 3,  memories: 5,  rating: '4.8' },
 }
+const DEFAULT_STATS = { chats: 0, workflows: 0, memories: 0, rating: '—' }
 
 export default function AgentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const agent = getAgentById(id)
   const [activeTab, setActiveTab] = useState<Tab>('Chat')
 
-  const stats = MOCK_STATS[agent.id as keyof typeof MOCK_STATS] ?? MOCK_STATS.strategist
+  const stats = MOCK_STATS[agent.id] ?? DEFAULT_STATS
 
   return (
     <div className="flex h-screen overflow-hidden">
