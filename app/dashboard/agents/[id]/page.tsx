@@ -13,10 +13,13 @@ import { PremiumGate } from '@/components/agents/premium-gate'
 // ── AutoPilot mini-status widget ─────────────────────────────────────────────
 
 const AUTOPILOT_DEFAULTS: Record<string, { platform: string; schedule: string; postsWeek: number; active: boolean }> = {
-  strategist: { platform: 'LinkedIn', schedule: 'Mon–Fri · 8:30 AM', postsWeek: 5, active: true },
-  viral:       { platform: 'TikTok',   schedule: 'Mon, Wed, Fri · 5 PM', postsWeek: 6, active: true },
-  voice:       { platform: 'Twitter',  schedule: 'Sundays · 10 AM',  postsWeek: 1, active: false },
-  community:   { platform: 'Instagram', schedule: 'Daily · 12 PM',   postsWeek: 7, active: true },
+  twitter:   { platform: 'X (Twitter)', schedule: 'Sundays · 10 AM',     postsWeek: 1, active: false },
+  instagram: { platform: 'Instagram',   schedule: 'Daily · 12 PM',       postsWeek: 7, active: true  },
+  linkedin:  { platform: 'LinkedIn',    schedule: 'Mon–Fri · 8:30 AM',   postsWeek: 5, active: true  },
+  facebook:  { platform: 'Facebook',    schedule: 'Tue, Thu · 1 PM',     postsWeek: 2, active: false },
+  tiktok:    { platform: 'TikTok',      schedule: 'Mon, Wed, Fri · 5 PM', postsWeek: 6, active: true  },
+  gmail:     { platform: 'Gmail',       schedule: 'Tue–Thu · 9 AM',      postsWeek: 3, active: false },
+  outlook:   { platform: 'Outlook',     schedule: 'Weekdays · 10 AM',    postsWeek: 2, active: false },
 }
 
 function AutoPilotMiniStatus({ agentId }: { agentId: string }) {

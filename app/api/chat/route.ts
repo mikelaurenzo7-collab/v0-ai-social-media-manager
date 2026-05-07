@@ -87,7 +87,7 @@ export async function POST(req: Request) {
 
     const toneInstructions = tone ? `\n\nTONE ADJUSTMENT: Your tone should be ${tone > 70 ? 'highly casual and conversational' : tone < 30 ? 'strictly professional and formal' : 'balanced and modern'}.` : ""
 
-    systemPrompt = `${agent.systemPrompt}${toneInstructions}${memoryContext}\n\nIn addition to your specific persona, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating viral hooks\n- Content calendars\n- Bio optimization\n\nFormat: Keep responses professional yet persona-driven. Use bold text for emphasis. Be concise.`
+    systemPrompt = `${agent.systemPrompt}${toneInstructions}${memoryContext}\n\nIn addition to your platform-specific defaults, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating high-engagement hooks\n- Content calendars\n- Bio optimization\n\nThe user can customize your role, voice, and responsibilities at any time. Treat any persona instructions saved in memory as authoritative — they override the defaults above.\n\nFormat: Keep responses concise and on-brand for the connected platform. Use bold text for emphasis where helpful.`
 
     if (creativity) {
       // Map 0-100 to 0.0-1.0 temperature
@@ -467,58 +467,15 @@ function buildEmailTools(channel: 'gmail' | 'outlook') {
   }
 }
 
-const AGENT_TOOLS = {
-  viral: {
-    analyze_virality: tool({
-      description: 'Analyze the virality potential of a post and give it a score.',
+function buildSocialPublishTool(platform: 'twitter' | 'instagram' | 'linkedin' | 'facebook' | 'tiktok', label: string) {
+  return {
+    [`publish_to_${platform}`]: tool({
+      description: `Publish a post to the user's connected ${label} account. Only call after the user has explicitly approved the draft.`,
       inputSchema: z.object({
-        content: z.string(),
-      }),
-      execute: async ({ content }) => {
-        const { object } = await generateObject({
-          model: anthropic('claude-3-5-haiku-20241022'),
-          schema: z.object({
-            score: z.number().min(1).max(100),
-            reasoning: z.string(),
-            improvement: z.string(),
-          }),
-          prompt: `Analyze this content for virality potential: ${content}`,
-        })
-        return object
-      },
-    }),
-  },
-  strategist: {
-    strategic_alignment: tool({
-      description: 'Check if a post aligns with brand pillars and long-term goals.',
-      inputSchema: z.object({
-        content: z.string(),
-        pillars: z.array(z.string()),
-      }),
-      execute: async ({ content, pillars }) => {
-        const { object } = await generateObject({
-          model: anthropic('claude-3-5-haiku-20241022'),
-          schema: z.object({
-            alignmentScore: z.number().min(1).max(10),
-            pillarMatches: z.array(z.string()),
-            feedback: z.string(),
-          }),
-          prompt: `Check alignment for this content: ${content} against pillars: ${pillars.join(', ')}`,
-        })
-        return object
-      },
-    }),
-  },
-  community: {
-    publish_to_platform: tool({
-      description:
-        "Publish a short post to the user's connected social account. Only call after the user has explicitly approved the post and chosen a platform.",
-      inputSchema: z.object({
-        platform: z.enum(['twitter', 'linkedin', 'facebook', 'instagram', 'tiktok']),
-        text: z.string().min(1),
+        text: z.string().min(1).describe(`Post body for ${label}`),
         mediaUrls: z.array(z.string().url()).optional(),
       }),
-      execute: async ({ platform, text, mediaUrls }) => {
+      execute: async ({ text, mediaUrls }) => {
         try {
           const userId = await getCurrentUserId()
           const result = await publishSocialPost(userId, platform, { text, mediaUrls })
@@ -532,7 +489,15 @@ const AGENT_TOOLS = {
         }
       },
     }),
-  },
+  }
+}
+
+const AGENT_TOOLS = {
+  twitter: buildSocialPublishTool('twitter', 'X (Twitter)'),
+  instagram: buildSocialPublishTool('instagram', 'Instagram'),
+  linkedin: buildSocialPublishTool('linkedin', 'LinkedIn'),
+  facebook: buildSocialPublishTool('facebook', 'Facebook'),
+  tiktok: buildSocialPublishTool('tiktok', 'TikTok'),
   gmail: buildEmailTools('gmail'),
   outlook: buildEmailTools('outlook'),
 }
