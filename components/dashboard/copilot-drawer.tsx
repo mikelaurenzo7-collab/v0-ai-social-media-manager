@@ -190,7 +190,7 @@ export function CopilotDrawer() {
         >
           <div
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-            style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+            style={{ background: 'var(--brand-gradient)' }}
           >
             <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
@@ -251,7 +251,7 @@ export function CopilotDrawer() {
               {t.role === 'copilot' && (
                 <div
                   className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
-                  style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                  style={{ background: 'var(--brand-gradient)' }}
                   aria-hidden
                 >
                   <span className="text-[10px] font-black text-white">C</span>
@@ -283,7 +283,7 @@ export function CopilotDrawer() {
             <div className="flex gap-2">
               <div
                 className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
-                style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                style={{ background: 'var(--brand-gradient)' }}
                 aria-hidden
               >
                 <span className="text-[10px] font-black text-white">C</span>
@@ -334,7 +334,7 @@ export function CopilotDrawer() {
                 onClick={send}
                 disabled={!input.trim() || busy}
                 className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold text-white transition-opacity disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #EA580C, #DB2777)' }}
+                style={{ background: 'var(--brand-gradient)' }}
               >
                 Send
                 <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
@@ -360,7 +360,7 @@ function CopilotFab({ onOpen }: { onOpen: () => void }) {
       aria-label="Open Co-Pilot"
       className="fixed bottom-5 right-5 z-30 group inline-flex items-center gap-2 rounded-full pl-3 pr-4 py-2.5 text-xs font-bold text-white shadow-lg transition-transform hover:-translate-y-0.5"
       style={{
-        background: 'linear-gradient(135deg, #EA580C, #DB2777)',
+        background: 'var(--brand-gradient)',
         boxShadow: '0 12px 32px -10px rgba(234, 88, 12, 0.55)',
       }}
     >

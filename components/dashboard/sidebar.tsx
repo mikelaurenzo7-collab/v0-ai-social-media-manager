@@ -35,7 +35,6 @@ const sections: NavSection[] = [
       {
         name: 'Inbox',
         href: '/dashboard/inbox',
-        badge: 'NEW',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z" />
@@ -54,7 +53,6 @@ const sections: NavSection[] = [
       {
         name: 'Approvals',
         href: '/dashboard/approvals',
-        badge: 'NEW',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -124,7 +122,6 @@ const sections: NavSection[] = [
       {
         name: 'Workflows',
         href: '/dashboard/workflows',
-        badge: 'NEW',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
@@ -167,7 +164,6 @@ const sections: NavSection[] = [
       {
         name: 'Brand Kit',
         href: '/dashboard/brand',
-        badge: 'NEW',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" />
@@ -177,7 +173,6 @@ const sections: NavSection[] = [
       {
         name: 'Team',
         href: '/dashboard/team',
-        badge: 'NEW',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
@@ -196,7 +191,6 @@ const sections: NavSection[] = [
       {
         name: 'Developers',
         href: '/dashboard/developers',
-        badge: 'NEW',
         icon: (
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
@@ -229,11 +223,11 @@ export function Sidebar() {
       <div className="flex h-14 items-center gap-2.5 px-5" style={{ borderBottom: '1px solid oklch(0.22 0.016 48)' }}>
         <Link href="/dashboard" className="flex items-center gap-2.5 group">
           <div
-            className="flex h-7 w-7 items-center justify-center rounded-lg shrink-0 transition-transform group-hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+            className="bg-brand-warm flex h-7 w-7 items-center justify-center rounded-lg shrink-0 shadow-brand transition-transform group-hover:scale-105"
           >
-            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-white">
+              <path d="M22 2 11 13" />
+              <path d="m22 2-7 20-4-9-9-4 20-7Z" />
             </svg>
           </div>
           <span className="text-sm font-bold text-white tracking-tight">PostPilot</span>
@@ -305,16 +299,9 @@ export function Sidebar() {
                     {item.icon}
                   </span>
                   {item.name}
-                  {item.badge && !isActive && (
-                    <span
-                      className="ml-auto rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-widest"
-                      style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', color: '#fff' }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
+                  {item.badge && !isActive && <span className="badge-new ml-auto">{item.badge}</span>}
                   {isActive && (
-                    <span className="ml-auto flex h-1.5 w-1.5 rounded-full" style={{ background: '#EA580C' }} />
+                    <span className="ml-auto flex h-1.5 w-1.5 rounded-full bg-[var(--brand-orange)]" />
                   )}
                 </Link>
               )
@@ -351,8 +338,7 @@ export function Sidebar() {
         {/* Upgrade CTA */}
         <Link
           href="/dashboard/settings"
-          className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
-          style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+          className="bg-brand shadow-brand flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold text-white transition-all hover:opacity-90 hover:-translate-y-px active:scale-[0.98]"
         >
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />

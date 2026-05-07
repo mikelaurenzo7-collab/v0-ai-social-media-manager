@@ -198,16 +198,18 @@ export async function POST(req: Request) {
     // (No DM tool today — reserved for future scope-gated tools.)
   }
 
-  const result = streamText({
-    model: anthropic('claude-3-5-sonnet-20241022'),
-    system: systemPrompt,
-    messages: modelMessages,
-    temperature,
-    maxOutputTokens: 2048,
-    stopWhen: stepCountIs(5),
-    tools: {
-      ...agentTools,
-      analyze_post: tool({
+  // Per-tool permission flags from the Permissions tab. Default ON when
+  // unspecified so existing workspaces keep current behavior; explicit
+  // `false` strips the tool entirely.
+  const allowImage     = permissions?.tools?.image     !== false
+  const allowAnalytics = permissions?.tools?.analytics !== false
+  const allowCalendar  = permissions?.tools?.calendar  !== false
+  // Brand Kit toggle is enforced via the system-prompt prefix above; we
+  // don't expose a dedicated tool for it.
+
+  const allTools: Record<string, unknown> = {
+    ...agentTools,
+    analyze_post: tool({
         description:
           'Analyze a social media post and score it on key metrics: hook strength, CTA clarity, readability, and engagement potential. Use this when the user shares a post or asks for feedback.',
         inputSchema: z.object({
@@ -558,7 +560,31 @@ export async function POST(req: Request) {
           return object
         },
       }),
-    },
+  }
+
+  // Permission-gate per-tool capabilities. Each respects the toggles in
+  // components/agents/agent-permissions.tsx so a workspace decision flows
+  // all the way to what tools the model is allowed to call.
+  if (!allowImage) {
+    delete allTools.generate_image
+  }
+  if (!allowAnalytics) {
+    delete allTools.analyze_post
+    delete allTools.get_posting_schedule
+  }
+  if (!allowCalendar) {
+    delete allTools.create_content_calendar
+  }
+
+  const result = streamText({
+    model: anthropic('claude-3-5-sonnet-20241022'),
+    system: systemPrompt,
+    messages: modelMessages,
+    temperature,
+    maxOutputTokens: 2048,
+    stopWhen: stepCountIs(5),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tools: allTools as any,
   })
 
   return result.toTextStreamResponse()

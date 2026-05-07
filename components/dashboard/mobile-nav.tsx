@@ -183,12 +183,10 @@ const navigation = [
 ]
 
 const LogoIcon = () => (
-  <div
-    className="flex h-8 w-8 items-center justify-center rounded-lg shadow-md"
-    style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
-  >
-    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-white" stroke="currentColor" strokeWidth="2">
-      <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+  <div className="bg-brand-warm shadow-brand flex h-8 w-8 items-center justify-center rounded-lg">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-white">
+      <path d="M22 2 11 13" />
+      <path d="m22 2-7 20-4-9-9-4 20-7Z" />
     </svg>
   </div>
 )
@@ -266,15 +264,11 @@ export function MobileNav() {
 
           {/* Upgrade CTA */}
           <div className="p-4 border-t border-white/10">
-            <div
-              className="rounded-xl p-3 text-center"
-              style={{ background: 'linear-gradient(135deg, #EA580C22 0%, #DB277722 100%)', border: '1px solid #EA580C30' }}
-            >
+            <div className="bg-brand-tint-soft rounded-xl p-3 text-center">
               <p className="text-xs font-semibold text-white mb-2">Upgrade to Pro</p>
               <p className="text-[10px] text-white/50 mb-3">Unlimited generations + all agents</p>
               <button
-                className="w-full rounded-lg py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+                className="bg-brand shadow-brand w-full rounded-lg py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90"
                 onClick={handleUpgradeClick}
               >
                 Upgrade Now

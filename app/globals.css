@@ -246,6 +246,59 @@
     transform: scale(0.98) translateY(0);
   }
 
+  /* ── Brand utilities — single source of truth, replaces inline gradients ── */
+  .bg-brand          { background: var(--brand-gradient); }
+  .bg-brand-soft     { background: var(--brand-gradient-soft); }
+  .bg-brand-warm     { background: var(--brand-gradient-warm); }
+  .text-brand        { color: var(--brand-orange); }
+  .border-brand      { border-color: oklch(0.652 0.214 36 / 0.3); }
+  .ring-brand        { box-shadow: 0 0 0 1px oklch(0.652 0.214 36 / 0.3); }
+  .shadow-brand      { box-shadow: 0 6px 20px -6px oklch(0.652 0.214 36 / 0.4); }
+  .shadow-brand-lg   { box-shadow: 0 18px 40px -12px oklch(0.652 0.214 36 / 0.45); }
+
+  /* Subtle brand-tinted background for callouts and primary surfaces */
+  .bg-brand-tint {
+    background: linear-gradient(135deg,
+      oklch(0.652 0.214 36 / 0.08) 0%,
+      oklch(0.588 0.238 352 / 0.06) 100%);
+    border: 1px solid oklch(0.652 0.214 36 / 0.22);
+  }
+  .bg-brand-tint-soft {
+    background: linear-gradient(135deg,
+      oklch(0.652 0.214 36 / 0.04) 0%,
+      oklch(0.588 0.238 352 / 0.03) 100%);
+    border: 1px solid oklch(0.652 0.214 36 / 0.14);
+  }
+
+  /* Inverse: dark espresso surface used for hero blocks */
+  .surface-espresso {
+    background: linear-gradient(135deg, oklch(0.135 0.018 48), oklch(0.21 0.05 30));
+    color: oklch(0.97 0.005 62);
+  }
+
+  /* Standardized card hover affordance — use sparingly (when card is clickable) */
+  .surface-hover {
+    transition: box-shadow var(--motion-base), transform var(--motion-base), border-color var(--motion-base);
+  }
+  .surface-hover:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: oklch(0.82 0.018 62);
+  }
+
+  /* "NEW" pill — small, restrained, only appears next to truly fresh items */
+  .badge-new {
+    background: var(--brand-gradient);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    line-height: 1;
+    box-shadow: 0 1px 4px oklch(0.652 0.214 36 / 0.4);
+  }
+
   .card-warm {
     background: var(--card);
     color: var(--card-foreground);

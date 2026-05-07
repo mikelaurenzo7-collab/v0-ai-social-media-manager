@@ -27,33 +27,45 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   metadataBase: new URL('https://postpilot.app'),
   title: {
-    default: 'PostPilot — Your AI Co-Pilot for Social and Email',
+    default: 'PostPilot — One AI agent per channel. Made yours.',
     template: '%s · PostPilot',
   },
   description:
-    'A team of specialist AI agents that draft, schedule, and publish content across X, Instagram, LinkedIn, Facebook, TikTok, Gmail, and Outlook. Built for creators, founders, and busy teams.',
+    'Six specialist AI agents — one for X, Meta, LinkedIn, TikTok, Gmail, and Outlook. They draft, design, schedule, and publish through real OAuth. They learn your voice, your audience, and what actually works. You stay in control of every word.',
   keywords: [
     'AI social media',
     'social media manager',
     'AI agents',
     'content creation',
+    'creative AI',
+    'image generation',
+    'video script',
+    'brand voice AI',
     'X', 'Twitter', 'Instagram', 'LinkedIn', 'TikTok', 'Facebook',
     'Gmail', 'Outlook', 'cold email',
     'PostPilot',
   ],
   authors: [{ name: 'PostPilot' }],
+  applicationName: 'PostPilot',
+  category: 'productivity',
   openGraph: {
-    title: 'PostPilot — Your AI Co-Pilot for Social and Email',
+    title: 'PostPilot — One AI agent per channel. Made yours.',
     description:
-      'Specialist AI agents that write, schedule, and publish across social and email — with real OAuth, real platform smarts, and real results.',
+      'Specialist AI agents that write, design, and publish across social and email. Real OAuth, real platform smarts, real brand voice.',
     type: 'website',
     siteName: 'PostPilot',
+    locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'PostPilot — Your AI Co-Pilot for Social and Email',
+    title: 'PostPilot — One AI agent per channel. Made yours.',
     description:
-      'Specialist AI agents for X, Instagram, LinkedIn, TikTok, Facebook, Gmail and Outlook.',
+      'Specialist AI agents for X, Instagram, LinkedIn, TikTok, Facebook, Gmail, and Outlook. They learn your voice. You ship.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
 }
 

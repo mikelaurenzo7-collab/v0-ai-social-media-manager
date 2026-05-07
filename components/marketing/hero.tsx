@@ -111,9 +111,11 @@ export function Hero() {
           {/* Eyebrow pill */}
           <div className="reveal-up inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/70 px-3.5 py-1 text-xs font-medium text-foreground/80 shadow-sm backdrop-blur">
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-orange-500 pulse-dot text-orange-500" />
-            <span>One agent per channel · fully customizable</span>
+            <span>One agent per channel — make each one yours</span>
             <span className="text-muted-foreground/70">·</span>
-            <span className="text-muted-foreground">v2026.05</span>
+            <a href="/changelog" className="text-muted-foreground hover:text-foreground transition-colors">
+              v2026.05
+            </a>
           </div>
 
           {/* Headline */}
@@ -131,9 +133,9 @@ export function Hero() {
             className="reveal-up mx-auto mt-6 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
             style={{ animationDelay: '160ms' }}
           >
-            One specialist agent per channel — X, Meta, LinkedIn, TikTok, Gmail, and Outlook —
-            drafting, scheduling, and publishing through real OAuth. Customize each one&apos;s
-            persona, voice, and permissions to fit your brand.
+            Six specialist agents — one per channel — draft, design, and publish across X, Meta,
+            LinkedIn, TikTok, Gmail, and Outlook. They learn your voice, your audience, and what
+            actually works. You stay in control of every word.
           </p>
 
           {/* CTAs */}
