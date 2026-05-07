@@ -2,6 +2,7 @@ import { streamText, tool, generateObject, convertToModelMessages, stepCountIs, 
 import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { getAgentById } from '@/lib/agents'
+import { userProfileToContext, type UserProfile } from '@/lib/user-profile'
 import { sendEmailViaGmail, sendEmailViaOutlook } from '@/lib/publishing/email'
 import { publishSocialPost } from '@/lib/publishing/social'
 import { getConnection } from '@/lib/oauth/connections'
@@ -53,18 +54,31 @@ const POSTING_SCHEDULES: Record<string, { bestDays: string[]; bestTimes: string[
 }
 
 export async function POST(req: Request) {
-  const { messages, agentId, creativity, tone, memory, persona } = (await req.json()) as {
+  const { messages, agentId, creativity, tone, memory, persona, userProfile } = (await req.json()) as {
     messages: UIMessage[],
     agentId?: string,
     creativity?: number,
     tone?: number,
     memory?: string,
     persona?: string,
+    userProfile?: string,
   }
   const modelMessages = await convertToModelMessages(messages)
 
   let systemPrompt = defaultSystemPrompt
   let temperature = 0.7
+  // (userProfileContext is appended below once parsed)
+
+  // User profile context — applies to ALL agents (and the default strategist)
+  let userProfileContext = ""
+  if (userProfile) {
+    try {
+      const parsed = JSON.parse(userProfile) as Partial<UserProfile>
+      userProfileContext = userProfileToContext(parsed, agentId)
+    } catch {
+      // malformed profile — skip silently
+    }
+  }
 
   if (agentId) {
     const agent = getAgentById(agentId)
@@ -105,12 +119,15 @@ export async function POST(req: Request) {
 
     const toneInstructions = tone ? `\n\nTONE ADJUSTMENT: Your tone should be ${tone > 70 ? 'highly casual and conversational' : tone < 30 ? 'strictly professional and formal' : 'balanced and modern'}.` : ""
 
-    systemPrompt = `${agent.systemPrompt}${personaContext}${toneInstructions}${memoryContext}\n\nIn addition to your platform-specific defaults, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating high-engagement hooks\n- Content calendars\n- Bio optimization\n\nIf a USER-DEFINED PERSONA is present above, treat it as authoritative — it overrides the defaults.\n\nFormat: Keep responses concise and on-brand for the connected platform. Use bold text for emphasis where helpful.`
+    systemPrompt = `${agent.systemPrompt}${userProfileContext}${personaContext}${toneInstructions}${memoryContext}\n\nIn addition to your platform-specific defaults, you have access to the following shared capabilities:\n- Analyzing posts\n- Suggesting hashtags\n- Creating threads\n- Rewriting for platforms\n- Generating high-engagement hooks\n- Content calendars\n- Bio optimization\n\nPriority order when blocks conflict (highest wins):\n1. USER-DEFINED PERSONA (if present)\n2. USER PROFILE\n3. Agent defaults\n\nFormat: Keep responses concise and on-brand for the connected platform. Use bold text for emphasis where helpful.`
 
     if (creativity) {
       // Map 0-100 to 0.0-1.0 temperature
       temperature = creativity / 100
     }
+  } else {
+    // Default strategist (no specific agent) — still benefits from the user profile
+    systemPrompt = `${defaultSystemPrompt}${userProfileContext}`
   }
 
   const agentTools = agentId ? (AGENT_TOOLS[agentId as keyof typeof AGENT_TOOLS] || {}) : {}

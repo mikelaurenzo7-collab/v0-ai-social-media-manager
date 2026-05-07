@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Agent } from '@/lib/agents'
+import { loadUserProfile, saveUserProfile, type PerAgentDefaults } from '@/lib/user-profile'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -33,6 +34,8 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
   const [newItem, setNewItem] = useState('')
   const [persona, setPersona] = useState<PersonaConfig>(EMPTY_PERSONA)
   const [personaDirty, setPersonaDirty] = useState(false)
+  const [platformDefaults, setPlatformDefaults] = useState<PerAgentDefaults>({})
+  const [platformDirty, setPlatformDirty] = useState(false)
 
   useEffect(() => {
     // Memory read is isolated — a parse failure here won't affect creativity/tone
@@ -72,6 +75,14 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
       }
     } catch {
       // creativity/tone remain at useState defaults
+    }
+
+    // Platform-defaults read (lives inside the global user profile)
+    try {
+      const profile = loadUserProfile()
+      setPlatformDefaults(profile.perAgent?.[agent.id] ?? {})
+    } catch {
+      setPlatformDefaults({})
     }
 
     // Persona read
@@ -135,6 +146,22 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
     localStorage.setItem(`agent_${agent.id}_persona`, JSON.stringify(persona))
     setPersonaDirty(false)
     toast.success(`${agent.name} Agent persona saved`)
+  }
+
+  const updatePlatformDefault = <K extends keyof PerAgentDefaults>(key: K, value: PerAgentDefaults[K]) => {
+    setPlatformDefaults((prev) => ({ ...prev, [key]: value }))
+    setPlatformDirty(true)
+  }
+
+  const handleSavePlatformDefaults = () => {
+    const profile = loadUserProfile()
+    const next = {
+      ...profile,
+      perAgent: { ...profile.perAgent, [agent.id]: platformDefaults },
+    }
+    saveUserProfile(next)
+    setPlatformDirty(false)
+    toast.success(`${agent.name} platform defaults saved`)
   }
 
   const handleResetPersona = () => {
@@ -319,6 +346,186 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
               <span>Formal</span>
               <span>Highly Casual</span>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Platform Defaults</CardTitle>
+          <CardDescription>
+            Things this agent should always assume on {agent.name}. Saved into your user profile and applied to every draft, post, and tool call.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {agent.id === 'slack' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="slack-channel">Default channel</Label>
+                <Input
+                  id="slack-channel"
+                  placeholder="#marketing"
+                  value={platformDefaults.slackDefaultChannel ?? ''}
+                  onChange={(e) => updatePlatformDefault('slackDefaultChannel', e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">Where notifications and digests post by default.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="slack-escalation">Escalation channel</Label>
+                <Input
+                  id="slack-escalation"
+                  placeholder="#incidents"
+                  value={platformDefaults.slackEscalationChannel ?? ''}
+                  onChange={(e) => updatePlatformDefault('slackEscalationChannel', e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">Used for urgent / on-call alerts.</p>
+              </div>
+            </>
+          )}
+
+          {agent.id === 'pinterest' && (
+            <div className="space-y-2">
+              <Label htmlFor="pinterest-board">Default board</Label>
+              <Input
+                id="pinterest-board"
+                placeholder="e.g. Brand Inspiration / Product Pins"
+                value={platformDefaults.pinterestDefaultBoard ?? ''}
+                onChange={(e) => updatePlatformDefault('pinterestDefaultBoard', e.target.value)}
+              />
+              <p className="text-[11px] text-muted-foreground">New pins go here unless you specify otherwise.</p>
+            </div>
+          )}
+
+          {(agent.id === 'gmail' || agent.id === 'outlook') && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="email-sender">Sender display name</Label>
+                <Input
+                  id="email-sender"
+                  placeholder="Alex from Acme"
+                  value={platformDefaults.emailSenderName ?? ''}
+                  onChange={(e) => updatePlatformDefault('emailSenderName', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email-cadence">Follow-up cadence</Label>
+                <Input
+                  id="email-cadence"
+                  placeholder="e.g. Day +3, +7, +14"
+                  value={platformDefaults.emailFollowUpCadence ?? ''}
+                  onChange={(e) => updatePlatformDefault('emailFollowUpCadence', e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">Default schedule for cold-email follow-ups.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email-signature">Email signature</Label>
+                <Textarea
+                  id="email-signature"
+                  rows={4}
+                  placeholder="Alex Kim&#10;Founder, Acme&#10;acme.com"
+                  value={platformDefaults.emailSignature ?? ''}
+                  onChange={(e) => updatePlatformDefault('emailSignature', e.target.value)}
+                />
+              </div>
+            </>
+          )}
+
+          {agent.id === 'linkedin' && (
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label className="text-sm">Always put links in the first comment</Label>
+                <p className="text-[11px] text-muted-foreground">LinkedIn algorithm penalizes external links in the post body.</p>
+              </div>
+              <Switch
+                checked={!!platformDefaults.linkedinPutLinksInComments}
+                onCheckedChange={(v) => updatePlatformDefault('linkedinPutLinksInComments', v)}
+              />
+            </div>
+          )}
+
+          {agent.id === 'twitter' && (
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label className="text-sm">Avoid hashtags on X</Label>
+                <p className="text-[11px] text-muted-foreground">Hashtags suppress reach in the X algorithm. Recommended: ON.</p>
+              </div>
+              <Switch
+                checked={!!platformDefaults.twitterAvoidHashtags}
+                onCheckedChange={(v) => updatePlatformDefault('twitterAvoidHashtags', v)}
+              />
+            </div>
+          )}
+
+          {agent.id === 'instagram' && (
+            <div className="space-y-2">
+              <Label htmlFor="ig-hashtag-count">Hashtag count per post</Label>
+              <Input
+                id="ig-hashtag-count"
+                type="number"
+                min={0}
+                max={30}
+                placeholder="10"
+                value={platformDefaults.instagramHashtagCount ?? ''}
+                onChange={(e) =>
+                  updatePlatformDefault(
+                    'instagramHashtagCount',
+                    e.target.value === '' ? undefined : Number(e.target.value),
+                  )
+                }
+              />
+              <p className="text-[11px] text-muted-foreground">Instagram allows up to 30. Most pros use 8–15.</p>
+            </div>
+          )}
+
+          {agent.id === 'tiktok' && (
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label className="text-sm">Always suggest a trending sound</Label>
+                <p className="text-[11px] text-muted-foreground">Trending sounds dramatically boost FYP reach.</p>
+              </div>
+              <Switch
+                checked={!!platformDefaults.tiktokDefaultTrendingSound}
+                onCheckedChange={(v) => updatePlatformDefault('tiktokDefaultTrendingSound', v)}
+              />
+            </div>
+          )}
+
+          {/* Universal: UTM tagging */}
+          {(agent.id === 'twitter' ||
+            agent.id === 'instagram' ||
+            agent.id === 'linkedin' ||
+            agent.id === 'facebook' ||
+            agent.id === 'tiktok' ||
+            agent.id === 'pinterest' ||
+            agent.id === 'snapchat' ||
+            agent.id === 'gmail' ||
+            agent.id === 'outlook') && (
+            <div className="grid gap-4 sm:grid-cols-2 pt-2 border-t">
+              <div className="space-y-2">
+                <Label htmlFor="utm-source">Default UTM source</Label>
+                <Input
+                  id="utm-source"
+                  placeholder={`e.g. ${agent.id}`}
+                  value={platformDefaults.defaultUtmSource ?? ''}
+                  onChange={(e) => updatePlatformDefault('defaultUtmSource', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="utm-medium">Default UTM medium</Label>
+                <Input
+                  id="utm-medium"
+                  placeholder="e.g. social, email, organic"
+                  value={platformDefaults.defaultUtmMedium ?? ''}
+                  onChange={(e) => updatePlatformDefault('defaultUtmMedium', e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-end pt-2">
+            <Button onClick={handleSavePlatformDefaults} disabled={!platformDirty}>
+              Save platform defaults
+            </Button>
           </div>
         </CardContent>
       </Card>

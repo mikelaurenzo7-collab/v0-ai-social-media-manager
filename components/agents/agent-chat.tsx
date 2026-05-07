@@ -5,6 +5,7 @@ import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, isTextUIPart, isToolUIPart, type UIMessage } from 'ai'
 import { cn } from '@/lib/utils'
 import { Agent } from '@/lib/agents'
+import { USER_PROFILE_KEY } from '@/lib/user-profile'
 import { Button } from '@/components/ui/button'
 
 // ── Agent-specific tool renderers ──────────────────────────────────────────────
@@ -178,6 +179,7 @@ export function AgentChat({ agent }: { agent: Agent }) {
         tone: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_tone`) : null,
         memory: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_memory`) : null,
         persona: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_persona`) : null,
+        userProfile: typeof window !== 'undefined' ? localStorage.getItem(USER_PROFILE_KEY) : null,
       },
     }),
   })
