@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { AGENTS } from '@/lib/agents'
 import { AUDIENCES } from '@/lib/audiences'
 import { COMPETITORS } from '@/lib/competitors'
 import { HELP_ARTICLES } from '@/lib/help-articles'
@@ -31,6 +32,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === '' ? 1.0 : 0.8,
   }))
 
+  const agentDetails = AGENTS.map((a) => ({
+    url: `${BASE}/agents/${a.id}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }))
+
   const audiences = Object.keys(AUDIENCES).map((slug) => ({
     url: `${BASE}/for/${slug}`,
     lastModified: now,
@@ -52,5 +60,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.5,
   }))
 
-  return [...marketing, ...audiences, ...compares, ...helpArticles]
+  return [...marketing, ...agentDetails, ...audiences, ...compares, ...helpArticles]
 }
