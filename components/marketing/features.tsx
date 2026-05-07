@@ -32,9 +32,9 @@ export function Features() {
           <FeatureCard
             className="md:col-span-3 md:row-span-2"
             icon={<Sparkles className="h-5 w-5" />}
-            title="Six specialist agents"
-            kicker="Built for results"
-            description="Strategist, Viral, Voice, Community, Gmail, and Outlook — each tuned with deep platform smarts and shipping defaults you'd actually use."
+            title="One agent per integration"
+            kicker="Fully customizable"
+            description="X, Instagram, LinkedIn, Facebook, TikTok, Gmail, and Outlook — each named after its platform. Customize role, voice, and rules after you connect."
             visual={<AgentsTile />}
             featured
           />

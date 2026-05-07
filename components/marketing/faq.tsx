@@ -10,11 +10,11 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Can I use it just for Gmail or just for Outlook?',
-    a: 'Yes. Gina (Gmail) and Oliver (Outlook) are first-class agents with their own outreach playbooks. Connect one channel and send through it — social is optional.',
+    a: 'Yes. The Gmail Agent and Outlook Agent are first-class integrations with their own outreach playbooks. Connect one channel and send through it — social is optional.',
   },
   {
     q: 'How is this different from a generic AI writer?',
-    a: 'Each agent is tuned for one job — Sarah for strategy, Casey for hooks, Riley for voice, Marcus for replies, Gina for cold email, Oliver for executive comms. They know each platform\u2019s formats, character limits, and what actually converts.',
+    a: 'Each agent is tuned for one platform — X for threads, Instagram for carousels, LinkedIn for thought leadership, TikTok for hooks, Gmail for cold email, Outlook for exec comms. They know each platform\u2019s formats, limits, and what converts. Plus you customize role, voice, and rules after you connect.',
   },
   {
     q: 'Will my drafts and tone stay private?',
@@ -26,7 +26,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Is there a free plan?',
-    a: 'Yes — 25 generations a month, all six agents, and one connected account on each network. No credit card required.',
+    a: 'Yes — 25 generations a month, all seven agents, and one connected account per platform. No credit card required.',
   },
 ]
 

@@ -52,8 +52,8 @@ export function Footer() {
               <Logo size={28} wordmark wordmarkClassName="text-[1.4rem]" />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Your AI co-pilot for social and email. Six specialist agents that draft, schedule,
-              and publish across every channel that matters.
+              Your AI co-pilot for social and email. One agent per integration — customize role,
+              voice, and rules after you connect.
             </p>
             <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-3 py-1 text-[11px] font-medium text-muted-foreground">
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 pulse-dot text-emerald-500" />

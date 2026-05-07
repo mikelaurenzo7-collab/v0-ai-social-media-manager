@@ -763,17 +763,17 @@ export default function InboxPage() {
 
               {/* AI Reply Coach + Composer */}
               <div className="border-t border-border/60 bg-card/50 backdrop-blur-sm px-6 py-4 space-y-3 shrink-0">
-                {/* Marcus avatar + signals */}
+                {/* Platform agent avatar + signals */}
                 <div className="flex items-start gap-3">
                   <div
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm"
-                    style={{ background: 'linear-gradient(135deg, #22C55E 0%, #0EA5E9 100%)' }}
+                    style={{ background: PLATFORM_COLOR[selected.platform].color }}
                   >
-                    M
+                    <PlatformIcon platform={selected.platform} className="h-3.5 w-3.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-xs font-bold text-foreground">Marcus · Reply Coach</p>
+                      <p className="text-xs font-bold text-foreground capitalize">{selected.platform} Agent · Reply Coach</p>
                       <span className="rounded-full border border-emerald-300/40 bg-emerald-50 px-1.5 py-0 text-[9px] font-bold uppercase tracking-widest text-emerald-700">
                         AI
                       </span>

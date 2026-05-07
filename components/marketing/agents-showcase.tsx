@@ -5,19 +5,9 @@ import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { AGENTS } from '@/lib/agents'
 
-const GRADIENTS: Record<string, string> = {
-  strategist: 'from-blue-500 to-indigo-500',
-  viral:      'from-orange-500 to-amber-500',
-  voice:      'from-purple-500 to-pink-500',
-  community:  'from-emerald-500 to-teal-500',
-  gmail:      'from-red-500 to-rose-500',
-  outlook:    'from-sky-500 to-blue-600',
-}
-
 export function AgentsShowcase() {
   const [active, setActive] = useState(AGENTS[0].id)
   const current = AGENTS.find((a) => a.id === active) ?? AGENTS[0]
-  const grad = GRADIENTS[current.id] ?? 'from-orange-500 to-pink-500'
 
   return (
     <section id="agents" className="relative py-24 sm:py-32">
@@ -28,11 +18,11 @@ export function AgentsShowcase() {
             Meet the agents
           </p>
           <h2 className="mt-4 text-balance font-display text-4xl tracking-tight sm:text-5xl">
-            Six specialists. <span className="gradient-text">One command bar.</span>
+            One agent per integration. <span className="gradient-text">Fully customizable.</span>
           </h2>
           <p className="mt-4 text-pretty text-lg text-muted-foreground">
-            Each agent owns a craft — from brand strategy to inbox open rates. Hire them by name,
-            or let them collaborate on your launches.
+            Each agent is named after its platform. After you connect, customize role, voice, and
+            rules to make it work exactly how you need.
           </p>
         </div>
 
@@ -41,7 +31,6 @@ export function AgentsShowcase() {
           <div className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
             {AGENTS.map((a) => {
               const isActive = a.id === active
-              const g = GRADIENTS[a.id] ?? 'from-orange-500 to-pink-500'
               return (
                 <button
                   key={a.id}
@@ -54,18 +43,14 @@ export function AgentsShowcase() {
                   }`}
                 >
                   <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${g} text-sm font-bold text-white shadow-sm`}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[11px] font-bold text-white shadow-sm"
+                    style={{ background: a.gradient }}
                   >
                     {a.avatar}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-1.5">
-                      <span className="truncate text-sm font-semibold text-foreground">{a.name}</span>
-                      {a.premium && (
-                        <span className="rounded-full bg-foreground/8 px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-foreground/70">
-                          Pro
-                        </span>
-                      )}
+                      <span className="truncate text-sm font-semibold text-foreground">{a.name} Agent</span>
                     </span>
                     <span className="block truncate text-[11px] text-muted-foreground">{a.role}</span>
                   </span>
@@ -85,15 +70,19 @@ export function AgentsShowcase() {
               {/* gradient halo */}
               <div
                 aria-hidden
-                className={`pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-br ${grad} opacity-20 blur-3xl`}
+                className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full opacity-20 blur-3xl"
+                style={{ background: current.gradient }}
               />
 
               <div className="flex items-center gap-4">
-                <span className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${grad} text-xl font-bold text-white shadow-lg`}>
+                <span
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl text-lg font-bold text-white shadow-lg"
+                  style={{ background: current.gradient }}
+                >
                   {current.avatar}
                 </span>
                 <div>
-                  <h3 className="font-display text-3xl tracking-tight">{current.name}</h3>
+                  <h3 className="font-display text-3xl tracking-tight">{current.name} Agent</h3>
                   <p className="mt-1 text-sm text-muted-foreground">{current.role}</p>
                 </div>
                 {current.category === 'email' && (
@@ -129,7 +118,7 @@ export function AgentsShowcase() {
                   href="/signup"
                   className="btn-gradient inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-xs font-semibold"
                 >
-                  Hire {current.name}
+                  Get started with {current.name}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
                 <Link

@@ -29,7 +29,7 @@ export function CTABanner() {
             Ship the first post in 60 seconds.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-pretty text-base text-white/70 sm:text-lg">
-            All six agents. Real OAuth posting. Tokens encrypted at rest. A free plan that&apos;s
+            All seven agents. Real OAuth posting. Tokens encrypted at rest. A free plan that&apos;s
             actually free. No credit card.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">

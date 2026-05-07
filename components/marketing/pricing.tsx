@@ -22,7 +22,7 @@ const PLANS: Plan[] = [
     features: [
       '25 generations / month',
       '1 connected account per platform',
-      'All 6 specialist agents',
+      'All 7 platform agents',
       '3 variations per prompt',
       '10 saved drafts',
     ],
