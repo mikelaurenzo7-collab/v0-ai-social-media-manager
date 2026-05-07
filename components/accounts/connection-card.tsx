@@ -67,15 +67,25 @@ export function ConnectionCard({ platform, connection, onChanged }: Props) {
   return (
     <Card
       className={cn(
-        'group relative overflow-hidden border-border/60 transition-all duration-200',
-        isConnected && 'border-primary/30 ring-1 ring-primary/15',
-        !isConnected && 'hover:shadow-lg hover:-translate-y-0.5',
+        'group relative overflow-hidden border-border/60 transition-all duration-300',
+        isConnected
+          ? 'border-emerald-500/30 shadow-[inset_0_0_0_1px_oklch(0.65_0.18_152_/_0.18)]'
+          : 'hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_20px_50px_-20px_oklch(0.652_0.214_36_/_0.25)]',
       )}
     >
-      <CardContent className="p-5 flex flex-col gap-4">
+      {isConnected && !needsReauth && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full opacity-25 blur-3xl"
+          style={{
+            background: 'radial-gradient(closest-side, oklch(0.7 0.16 152 / 0.5), transparent 70%)',
+          }}
+        />
+      )}
+      <CardContent className="relative flex flex-col gap-4 p-5">
         <div className="flex items-start justify-between gap-3">
           <div
-            className="flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-sm"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-[0_6px_16px_-4px_rgb(0_0_0_/_0.25)] ring-1 ring-black/5"
             style={{ background: platform.bg }}
           >
             <PlatformIcon platform={platform.id} className="h-5 w-5" />
@@ -83,13 +93,16 @@ export function ConnectionCard({ platform, connection, onChanged }: Props) {
 
           {isConnected ? (
             needsReauth ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-medium text-amber-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
                 Reconnect needed
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-600">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inset-0 animate-ping rounded-full bg-emerald-500/60" />
+                  <span className="relative h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                </span>
                 Connected
               </span>
             )
@@ -100,54 +113,56 @@ export function ConnectionCard({ platform, connection, onChanged }: Props) {
           ) : (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-              Coming Soon
+              Coming soon
             </span>
           )}
         </div>
 
         <div>
-          <h3 className="text-sm font-bold">{platform.name}</h3>
-          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{platform.description}</p>
+          <h3 className="font-display text-lg leading-tight tracking-tight text-foreground">{platform.name}</h3>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{platform.description}</p>
         </div>
 
         {isConnected ? (
-          <div className="rounded-lg border border-border/60 bg-muted/30 p-3 flex items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
+          <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 p-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted ring-2 ring-emerald-500/20">
               {connection.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={connection.avatarUrl} alt={connection.displayName ?? platform.name} className="h-full w-full object-cover" />
               ) : (
-                <span className="text-xs font-bold text-foreground/60">
+                <span className="font-display text-sm leading-none text-foreground/70">
                   {(connection.displayName ?? connection.username ?? platform.name).slice(0, 1).toUpperCase()}
                 </span>
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-foreground truncate">
+              <p className="truncate text-xs font-semibold text-foreground">
                 {connection.displayName ?? connection.username ?? 'Connected'}
               </p>
-              <p className="text-[11px] text-muted-foreground truncate">
+              <p className="truncate text-[11px] text-muted-foreground">
                 {connection.email ?? (connection.username ? `@${connection.username}` : '—')}
               </p>
             </div>
           </div>
         ) : (
-          <div className="space-y-1.5">
+          <ul className="space-y-1.5">
             {platform.features.map((feat) => (
-              <div key={feat} className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="h-1 w-1 rounded-full shrink-0 bg-primary" />
+              <li key={feat} className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+                <svg className="mt-0.5 h-3 w-3 shrink-0 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
                 {feat}
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 pt-1">
           {isConnected ? (
             <>
               {needsReauth ? (
                 <Button
-                  className="flex-1 text-xs"
+                  className="btn-gradient h-9 flex-1 rounded-full text-xs font-semibold"
                   onClick={connect}
                   disabled={busy}
                 >
@@ -156,7 +171,7 @@ export function ConnectionCard({ platform, connection, onChanged }: Props) {
               ) : (
                 <Button
                   variant="outline"
-                  className="flex-1 text-xs"
+                  className="h-9 flex-1 rounded-full border-border/70 text-xs font-semibold"
                   onClick={connect}
                   disabled={busy}
                 >
@@ -166,7 +181,7 @@ export function ConnectionCard({ platform, connection, onChanged }: Props) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-xs text-muted-foreground hover:text-destructive"
+                className="h-9 rounded-full text-xs text-muted-foreground hover:text-destructive"
                 onClick={disconnect}
                 disabled={busy}
               >
@@ -175,11 +190,26 @@ export function ConnectionCard({ platform, connection, onChanged }: Props) {
             </>
           ) : (
             <Button
-              className="flex-1 text-xs"
+              className={cn(
+                'h-9 flex-1 rounded-full text-xs font-semibold',
+                platform.available && 'btn-gradient',
+              )}
               onClick={connect}
               disabled={!platform.available || busy}
             >
-              {platform.available ? `Connect ${platform.name}` : 'Coming Soon'}
+              {busy ? (
+                <span className="inline-flex items-center gap-2">
+                  <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Redirecting…
+                </span>
+              ) : platform.available ? (
+                <>Connect {platform.name}</>
+              ) : (
+                'Coming soon'
+              )}
             </Button>
           )}
         </div>

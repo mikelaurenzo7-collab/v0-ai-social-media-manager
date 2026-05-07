@@ -135,10 +135,10 @@ function PlatformGrid({
 }) {
   return (
     <div>
-      <div className="mb-4 flex items-end justify-between gap-3">
+      <div className="mb-5 flex items-end justify-between gap-3">
         <div>
-          <h2 className="text-sm font-bold text-foreground">{title}</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+          <h2 className="font-display text-xl leading-tight tracking-tight text-foreground">{title}</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -165,52 +165,55 @@ export default function AccountsPage() {
   const totalAvailable = SOCIAL_PLATFORMS.length + EMAIL_PLATFORMS.length
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-full flex-col">
       <Header
-        title="Connected Accounts"
+        eyebrow="Integrations"
+        title="Connected accounts"
         description="Connect your social and email accounts so your AI agents can publish and send on your behalf."
       />
 
-      <div className="p-6 space-y-7">
+      <div className="px-6 pt-7 pb-14 md:px-10 space-y-7">
         <Suspense fallback={null}>
           <CallbackBanner />
         </Suspense>
 
         {/* Hero status banner */}
-        <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card px-6 py-5">
+        <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card px-6 py-6 shadow-sm">
           <div
-            className="pointer-events-none absolute inset-0"
+            aria-hidden
+            className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full opacity-30 blur-3xl"
             style={{
               background:
-                'radial-gradient(ellipse at top right, oklch(0.652 0.214 36 / 0.12), transparent 55%)',
+                'radial-gradient(closest-side, oklch(0.652 0.214 36 / 0.4), transparent 70%)',
             }}
           />
-          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-              style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
-            >
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-[0_8px_24px_-6px_oklch(0.652_0.214_36_/_0.4)]">
               <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-foreground text-base">Connect once, post everywhere</h3>
-              <p className="mt-0.5 text-sm text-muted-foreground max-w-xl">
+              <h3 className="font-display text-2xl leading-tight tracking-tight text-foreground">
+                Connect once, post everywhere
+              </h3>
+              <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
                 Tokens are encrypted with AES-256-GCM at rest and refreshed automatically. We never store your password.
               </p>
             </div>
-            <div className="rounded-xl border border-border/60 bg-muted/40 px-4 py-2 shrink-0">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Connected</p>
-              <p className="text-lg font-black text-foreground">
-                {isLoading ? '—' : `${totalConnected} / ${totalAvailable}`}
+            <div className="rounded-xl border border-border/60 bg-muted/40 px-5 py-3 shrink-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Connected
+              </p>
+              <p className="mt-0.5 font-display text-3xl leading-none tracking-tight tabular-nums text-foreground">
+                {isLoading ? '—' : `${totalConnected}/${totalAvailable}`}
               </p>
             </div>
           </div>
         </div>
 
         <PlatformGrid
-          title="Social Platforms"
+          title="Social platforms"
           description="Publish posts directly from PostPilot to your social accounts."
           platforms={SOCIAL_PLATFORMS}
           connectionsByPlatform={connectionsByPlatform}
@@ -218,7 +221,7 @@ export default function AccountsPage() {
         />
 
         <PlatformGrid
-          title="Email Channels"
+          title="Email channels"
           description="Let Gina (Gmail) and Oliver (Outlook) draft and send emails on your behalf."
           platforms={EMAIL_PLATFORMS}
           connectionsByPlatform={connectionsByPlatform}
@@ -226,21 +229,20 @@ export default function AccountsPage() {
         />
 
         {/* Setup instructions */}
-        <Card className="border-border/60 overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-lg"
-                style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
-              >
-                <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+        <Card className="overflow-hidden border-border/60 shadow-sm">
+          <CardContent className="p-7">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-[0_4px_12px_-2px_oklch(0.652_0.214_36_/_0.4)]">
+                <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                 </svg>
               </div>
-              <h2 className="text-sm font-bold text-foreground">How connecting works</h2>
+              <h2 className="font-display text-xl leading-tight tracking-tight text-foreground">
+                How connecting works
+              </h2>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-3">
               {[
                 {
                   step: '1',
@@ -258,15 +260,12 @@ export default function AccountsPage() {
                   desc: 'Your agents can now post and send on your behalf, with you in full control.',
                 },
               ].map((item) => (
-                <div key={item.step} className="flex flex-col gap-2">
-                  <span
-                    className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-black text-white"
-                    style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
-                  >
+                <div key={item.step} className="relative flex flex-col gap-2 pl-12">
+                  <span className="absolute left-0 top-0 flex h-9 w-9 items-center justify-center rounded-full border border-primary/25 bg-primary/[0.08] font-display text-lg leading-none text-primary">
                     {item.step}
                   </span>
                   <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">{item.desc}</p>
                 </div>
               ))}
             </div>

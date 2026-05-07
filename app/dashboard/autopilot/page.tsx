@@ -448,30 +448,35 @@ export default function AutoPilotPage() {
   return (
     <div className="flex flex-col min-h-full">
       <Header
+        eyebrow="Automation"
         title="Auto-Pilot"
-        description="Your AI agents post autonomously — you just set the strategy"
+        description="Your AI agents post autonomously. You just set the strategy."
         action={
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground">{autopilotOn ? 'Active' : 'Paused'}</span>
+            <div className="flex items-center gap-2 rounded-full border border-border/60 bg-card px-3 py-1.5 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                {autopilotOn ? 'Active' : 'Paused'}
+              </span>
               <button
                 onClick={() => {
                   setAutopilotOn((v) => !v)
-                  toast(autopilotOn ? '⏸ Auto-Pilot paused' : '▶ Auto-Pilot active', {
-                    description: autopilotOn ? 'No posts will be published until you resume.' : 'Your agents are back to work.',
+                  toast(autopilotOn ? 'Auto-Pilot paused' : 'Auto-Pilot active', {
+                    description: autopilotOn
+                      ? 'No posts will be published until you resume.'
+                      : 'Your agents are back to work.',
                   })
                 }}
                 className={cn(
-                  'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200',
-                  autopilotOn ? 'bg-emerald-500' : 'bg-muted-foreground/30'
+                  'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300',
+                  autopilotOn ? 'bg-emerald-500' : 'bg-muted-foreground/30',
                 )}
                 role="switch"
                 aria-checked={autopilotOn}
               >
                 <span
                   className={cn(
-                    'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200',
-                    autopilotOn ? 'translate-x-5' : 'translate-x-0'
+                    'inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-300',
+                    autopilotOn ? 'translate-x-4' : 'translate-x-0',
                   )}
                 />
               </button>
@@ -479,56 +484,60 @@ export default function AutoPilotPage() {
             <Button
               size="sm"
               onClick={() => setShowCreateModal(true)}
-              style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+              className="btn-gradient h-10 rounded-full px-5 text-sm font-semibold"
             >
-              + New Automation
+              <svg className="mr-1.5 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              New automation
             </Button>
           </div>
         }
       />
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto px-6 pt-7 pb-14 md:px-10 space-y-6">
 
         {/* ── Status hero ───────────────────────────────────────────────── */}
         <div
-          className="relative overflow-hidden rounded-2xl p-5 text-white"
+          className="relative isolate overflow-hidden rounded-2xl border border-sidebar-border/60 p-6 text-sidebar-foreground shadow-[0_30px_60px_-20px_oklch(0.135_0.018_48_/_0.45)]"
           style={{ background: 'linear-gradient(135deg, oklch(0.135 0.018 48) 0%, oklch(0.185 0.020 38) 100%)' }}
         >
-          {/* Ambient glow */}
-          <div className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full opacity-20 blur-3xl" style={{ background: 'radial-gradient(circle, #EA580C, transparent)' }} />
-          <div className="pointer-events-none absolute -bottom-10 left-20 h-32 w-32 rounded-full opacity-10 blur-3xl" style={{ background: 'radial-gradient(circle, #DB2777, transparent)' }} />
+          <div aria-hidden className="pointer-events-none absolute -top-12 -right-12 -z-10 h-52 w-52 rounded-full opacity-30 blur-3xl" style={{ background: 'radial-gradient(circle, #EA580C, transparent 70%)' }} />
+          <div aria-hidden className="pointer-events-none absolute -bottom-14 left-32 -z-10 h-40 w-40 rounded-full opacity-15 blur-3xl" style={{ background: 'radial-gradient(circle, #DB2777, transparent 70%)' }} />
 
-          <div className="relative flex items-center justify-between flex-wrap gap-4">
+          <div className="relative flex flex-wrap items-center justify-between gap-5">
             <div className="flex items-center gap-4">
               {/* Pulse indicator */}
-              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full" style={{ background: 'oklch(0.22 0.016 48)' }}>
+              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-sidebar-accent/60 ring-1 ring-sidebar-border/40">
                 {autopilotOn && (
-                  <span className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
+                  <span className="absolute inset-0 rounded-full bg-emerald-500/25 animate-ping" />
                 )}
-                <div className={cn('h-5 w-5 rounded-full', autopilotOn ? 'bg-emerald-400' : 'bg-muted-foreground/50')} />
+                <div className={cn('h-4 w-4 rounded-full transition-colors duration-300', autopilotOn ? 'bg-emerald-400 shadow-[0_0_14px_oklch(0.78_0.18_152_/_0.7)]' : 'bg-muted-foreground/50')} />
               </div>
               <div>
-                <p className="text-base font-black">
-                  {autopilotOn ? 'Auto-Pilot is LIVE' : 'Auto-Pilot is Paused'}
+                <p className="font-display text-2xl leading-tight tracking-tight">
+                  {autopilotOn ? 'Auto-Pilot is live' : 'Auto-Pilot is paused'}
                 </p>
-                <p className="text-sm text-white/60 mt-0.5">
+                <p className="mt-1 max-w-sm text-sm leading-relaxed text-sidebar-foreground/65">
                   {autopilotOn
-                    ? `${activeCount} automation${activeCount !== 1 ? 's' : ''} running across ${new Set(automations.filter(a => a.active).map(a => a.platform)).size} platforms`
-                    : 'No posts will be published until you resume'}
+                    ? `${activeCount} automation${activeCount !== 1 ? 's' : ''} running across ${new Set(automations.filter((a) => a.active).map((a) => a.platform)).size} platform${new Set(automations.filter((a) => a.active).map((a) => a.platform)).size !== 1 ? 's' : ''}.`
+                    : 'No posts will be published until you resume.'}
                 </p>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="flex gap-6">
+            <div className="flex gap-7">
               {[
-                { label: 'Posts auto-published', value: totalPosts },
+                { label: 'Posts auto-published', value: String(totalPosts) },
                 { label: 'Avg engagement',       value: `${avgEng}%` },
-                { label: 'Time saved',            value: '4.2 hrs' },
+                { label: 'Time saved',           value: '4.2h' },
               ].map((s) => (
                 <div key={s.label} className="text-center">
-                  <p className="text-2xl font-black tabular-nums">{s.value}</p>
-                  <p className="text-[10px] text-white/50 uppercase tracking-wider">{s.label}</p>
+                  <p className="font-display text-3xl leading-none tracking-tight tabular-nums">{s.value}</p>
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-sidebar-foreground/50">
+                    {s.label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -542,9 +551,15 @@ export default function AutoPilotPage() {
 
             {/* Automations */}
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-bold">Active Automations</h2>
-                <span className="text-xs text-muted-foreground">{activeCount} of {automations.length} running</span>
+              <div className="mb-4 flex items-end justify-between">
+                <div>
+                  <h2 className="font-display text-xl leading-tight tracking-tight text-foreground">Active automations</h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Each runs on its own schedule and platform.</p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-[11px] font-semibold text-muted-foreground">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  {activeCount} of {automations.length} running
+                </span>
               </div>
               <div className="space-y-3">
                 {automations.map((auto) => {

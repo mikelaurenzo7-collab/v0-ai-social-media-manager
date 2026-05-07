@@ -19,6 +19,7 @@ import { contentVariationSchema, type ContentVariation } from '@/lib/schemas/con
 import { threadSchema, type Thread, type ThreadTweet } from '@/lib/schemas/thread'
 import { TONES, CONTENT_TYPES, THREAD_TWEET_COUNTS, type PlatformId, type ToneId, type ContentTypeId, type ThreadTweetCount } from '@/lib/constants/platforms'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 export function CreateContent() {
   const searchParams = useSearchParams()
@@ -202,29 +203,20 @@ export function CreateContent() {
   const hasThread = (threadObject?.tweets?.length ?? 0) > 0 || isGeneratingThread
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-full flex-col">
       <Header
-        title="Create Content"
-        description="Let AI help you craft the perfect social media post"
+        eyebrow="Studio"
+        title="Create content"
+        description="Let AI help you craft the perfect post or thread."
         action={
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowAssistant((prev) => !prev)}
-            className="gap-2"
+            className="h-10 gap-2 rounded-full border-border/70 px-4 text-sm font-semibold"
           >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
-              />
+            <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
             </svg>
             AI Strategist
           </Button>
@@ -233,31 +225,39 @@ export function CreateContent() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Main Content */}
-        <div className="flex-1 overflow-auto p-6 space-y-6">
+        <div className="flex-1 overflow-auto px-6 pt-6 pb-14 md:px-10 space-y-6">
           {/* Mode Toggle */}
-          <div className="flex gap-2">
-            <Button
-              variant={mode === 'post' ? 'default' : 'outline'}
-              size="sm"
+          <div className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-card p-1 shadow-sm">
+            <button
+              type="button"
               onClick={() => setMode('post')}
-              className="gap-1.5"
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-all',
+                mode === 'post'
+                  ? 'btn-gradient text-white'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
               </svg>
-              Post
-            </Button>
-            <Button
-              variant={mode === 'thread' ? 'default' : 'outline'}
-              size="sm"
+              Single post
+            </button>
+            <button
+              type="button"
               onClick={() => setMode('thread')}
-              className="gap-1.5"
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-all',
+                mode === 'thread'
+                  ? 'btn-gradient text-white'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
               </svg>
               Thread
-            </Button>
+            </button>
           </div>
 
           {/* Platform Selection (only for post mode) */}

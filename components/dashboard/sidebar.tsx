@@ -200,29 +200,45 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom section */}
-      <div className="p-3 space-y-2" style={{ borderTop: '1px solid oklch(0.22 0.016 48)' }}>
+      <div className="relative space-y-3 border-t border-sidebar-border/60 p-3">
+        {/* Usage meter */}
+        <div className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/40 px-3 py-2.5">
+          <div className="mb-1.5 flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-sidebar-foreground/55">
+              AI generations
+            </p>
+            <p className="font-display text-xs leading-none tabular-nums text-sidebar-foreground/85">25 / 50</p>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-sidebar-border/60">
+            <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-primary to-accent" />
+          </div>
+        </div>
+
         {/* User row */}
-        <div
-          className="flex items-center gap-3 px-3 py-2 rounded-xl"
-          style={{ background: 'oklch(0.185 0.016 48)' }}
-        >
-          <div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
-          >
+        <div className="flex items-center gap-3 rounded-xl border border-sidebar-border/60 bg-sidebar-accent/40 px-3 py-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent font-display text-sm leading-none text-white shadow-[0_4px_12px_-2px_oklch(0.652_0.214_36_/_0.45)] ring-2 ring-sidebar-background">
             D
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="truncate text-xs font-semibold text-white">Demo User</p>
-            <p className="truncate text-[10px]" style={{ color: 'oklch(0.42 0.012 52)' }}>Free · 25 generations left</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-semibold text-sidebar-foreground">Demo User</p>
+            <p className="truncate text-[10px] text-sidebar-foreground/45">Free plan</p>
           </div>
+          <Link
+            href="/dashboard/settings"
+            aria-label="Settings"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/55 transition-colors hover:bg-sidebar-accent/70 hover:text-sidebar-foreground"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </Link>
         </div>
 
         {/* Upgrade CTA */}
         <Link
           href="/dashboard/settings"
-          className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
-          style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
+          className="btn-gradient flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold text-white shadow-[0_8px_20px_-8px_oklch(0.652_0.214_36_/_0.6)] transition-all duration-300 active:scale-[0.98]"
         >
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
