@@ -4,9 +4,15 @@ import { z } from 'zod'
 
 export const runtime = 'edge'
 
+const WORKFLOW_STEPS = ['research', 'hooks', 'draft', 'hashtags', 'schedule'] as const
+
 const requestSchema = z.object({
-  steps: z.array(z.enum(['research', 'hooks', 'draft', 'hashtags', 'schedule'])).min(1),
-  topic: z.string().min(1).max(500),
+  steps: z
+    .array(z.enum(WORKFLOW_STEPS))
+    .min(1)
+    .max(WORKFLOW_STEPS.length)
+    .refine((arr) => new Set(arr).size === arr.length, { message: 'steps must be unique' }),
+  topic: z.string().trim().min(1).max(500),
   agentId: z.string().optional(),
 })
 

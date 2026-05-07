@@ -13,7 +13,45 @@ const AI_TIPS = [
   'Posts with a question get 2× more comments on average.',
   'Consistency beats virality. Show up daily before chasing big moments.',
   'Repurpose your top-performing post in 3 different formats this week.',
-  'The best time to post on Instagram is when YOUR audience is active — check your insights.',
+  'The best time to post is when YOUR audience is active — check your insights.',
+  'Start every caption with your hook. Never bury the lead.',
+  'Carousels hold attention 3× longer than single images on Instagram.',
+]
+
+const QUICK_ACTIONS = [
+  {
+    label: 'Write a post',
+    desc: 'Generate 3 AI variations in seconds',
+    href: '/dashboard/create',
+    gradient: 'from-orange-500 to-pink-600',
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Build a thread',
+    desc: 'X/Twitter thread in one click',
+    href: '/dashboard/create',
+    gradient: 'from-amber-500 to-orange-500',
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Chat with an Agent',
+    desc: 'Get expert strategy from your AI team',
+    href: '/dashboard/agents',
+    gradient: 'from-pink-600 to-rose-500',
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+      </svg>
+    ),
+  },
 ]
 
 export default function DashboardPage() {
@@ -37,192 +75,167 @@ export default function DashboardPage() {
   if (!mounted) return null
 
   return (
-    <div className="flex flex-col">
-      <Header 
-        title="Welcome back!" 
-        description="Ready to create some engaging content?"
+    <div className="flex flex-col min-h-full">
+      <Header
+        title="Good morning ✦"
+        description="Your content studio is ready. What are we creating today?"
       />
-      
-      <div className="p-6 space-y-6">
-        {/* Quick Action */}
-        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <svg className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold">Create Your First Post</h2>
-            <p className="mt-2 max-w-md text-muted-foreground">
-              Let Claude craft platform-optimized content for X, Instagram, and Facebook in seconds.
-            </p>
-            <Button asChild className="mt-6" size="lg">
-              <Link href="/dashboard/create">
-                <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Create New Post
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
 
-        {/* Stats Grid */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Saved Drafts</CardDescription>
-              <CardTitle className="text-3xl">{drafts.length}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">Posts ready to publish</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Saved Threads</CardDescription>
-              <CardTitle className="text-3xl">{threads.length}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">X/Twitter threads</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>AI Generations Left</CardDescription>
-              <CardTitle className="text-3xl">25</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">Free plan</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Connected Accounts</CardDescription>
-              <CardTitle className="text-3xl">0</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                <Link href="/dashboard/accounts" className="text-primary hover:underline">
-                  Connect now
-                </Link>
-              </p>
-            </CardContent>
-          </Card>
+      <div className="p-6 space-y-7">
+
+        {/* ── Hero: Quick Actions ─────────────────────────────────────────── */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          {QUICK_ACTIONS.map((action) => (
+            <Link key={action.label} href={action.href} className="group block">
+              <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${action.gradient} p-5 text-white shadow-lg transition-all duration-200 group-hover:shadow-xl group-hover:-translate-y-0.5 group-active:scale-[0.99]`}>
+                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative flex flex-col gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                    {action.icon}
+                  </div>
+                  <div>
+                    <p className="font-bold text-base leading-tight">{action.label}</p>
+                    <p className="text-xs text-white/75 mt-0.5">{action.desc}</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
 
+        {/* ── Stats Row ───────────────────────────────────────────────────── */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { label: 'Saved Drafts', value: drafts.length, sub: 'Posts ready to publish', icon: '📝' },
+            { label: 'Saved Threads', value: threads.length, sub: 'X/Twitter threads', icon: '🧵' },
+            { label: 'AI Generations', value: 25, sub: 'Remaining on free plan', icon: '⚡' },
+            { label: 'Connected', value: 0, sub: <Link href="/dashboard/accounts" className="text-orange-500 hover:underline font-medium">Connect accounts →</Link>, icon: '🔗' },
+          ].map((stat) => (
+            <Card key={stat.label} className="border-border/60 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="pt-5 pb-4 px-5">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</p>
+                  <span className="text-lg">{stat.icon}</span>
+                </div>
+                <p className="text-3xl font-black text-foreground">{stat.value}</p>
+                <p className="text-xs text-muted-foreground mt-1">{stat.sub}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* ── Main Content Grid ────────────────────────────────────────────── */}
         <div className="grid gap-6 lg:grid-cols-3">
+
           {/* Recent Drafts */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+            <Card className="border-border/60 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <div>
-                  <CardTitle>Recent Drafts</CardTitle>
-                  <CardDescription>Your saved content ready to post</CardDescription>
+                  <CardTitle className="text-base font-bold">Recent Drafts</CardTitle>
+                  <CardDescription className="text-xs mt-0.5">Your saved content, ready to publish</CardDescription>
                 </div>
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/dashboard/drafts">View all</Link>
+                <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
+                  <Link href="/dashboard/drafts">View all →</Link>
                 </Button>
               </CardHeader>
               <CardContent>
                 {drafts.length > 0 ? (
-                  <div className="space-y-4">
-                    {drafts.slice(0, 3).map((draft) => (
-                      <div key={draft.id} className="flex items-center justify-between gap-4 rounded-lg border p-4 hover:bg-muted/50 transition-colors">
+                  <div className="space-y-2">
+                    {drafts.slice(0, 4).map((draft) => (
+                      <div
+                        key={draft.id}
+                        className="group flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-muted/30 px-4 py-3 hover:bg-muted/60 transition-colors"
+                      >
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium line-clamp-1">{draft.content}</p>
-                          <div className="mt-1 flex items-center gap-2">
+                          <p className="text-sm font-medium line-clamp-1 text-foreground">{draft.content}</p>
+                          <div className="mt-1.5 flex items-center gap-2">
                             <div className="flex -space-x-1">
-                              {draft.platforms.map((p: string) => (
-                                <div key={p} className="flex h-5 w-5 items-center justify-center rounded-full bg-background border ring-1 ring-background">
-                                  <PlatformIcon platform={p as any} className="h-3 w-3" />
+                              {draft.platforms?.map((p: string) => (
+                                <div key={p} className="flex h-5 w-5 items-center justify-center rounded-full bg-white border border-border ring-1 ring-white">
+                                  <PlatformIcon platform={p as 'twitter' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok'} className="h-3 w-3" />
                                 </div>
                               ))}
                             </div>
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(draft.createdAt).toLocaleDateString()}
+                            <span className="text-[11px] text-muted-foreground">
+                              {new Date(draft.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </span>
                           </div>
                         </div>
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/dashboard/drafts`}>Open</Link>
+                        <Button asChild variant="outline" size="sm" className="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Link href="/dashboard/drafts">Open</Link>
                         </Button>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                      <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                      </svg>
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-2xl">
+                      📝
                     </div>
-                    <p className="text-sm text-muted-foreground">No drafts yet</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Your saved posts will appear here
-                    </p>
+                    <p className="text-sm font-medium text-foreground">No drafts yet</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Generate your first post and save it here</p>
+                    <Button asChild size="sm" className="mt-4" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}>
+                      <Link href="/dashboard/create">Create a post</Link>
+                    </Button>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* AI Insight Card */}
-          <div className="flex flex-col gap-6">
-            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10">
-                    <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+          {/* Right column */}
+          <div className="space-y-5">
+
+            {/* AI Tip */}
+            <div
+              className="relative overflow-hidden rounded-2xl p-5 text-white"
+              style={{ background: 'linear-gradient(135deg, #1A1210 0%, #2C1A12 100%)' }}
+            >
+              <div className="absolute top-0 right-0 h-32 w-32 rounded-full opacity-10 blur-2xl"
+                style={{ background: 'radial-gradient(circle, #EA580C, transparent)' }} />
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}>
+                    <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                     </svg>
                   </div>
-                  <CardTitle className="text-sm">Today&apos;s Tip</CardTitle>
-                  <Badge variant="secondary" className="text-[10px]">Claude</Badge>
+                  <span className="text-xs font-bold text-white/90 uppercase tracking-widest">Today&apos;s Tip</span>
+                  <Badge className="text-[9px] ml-auto px-1.5 py-0" style={{ background: 'oklch(0.652 0.214 36 / 0.3)', color: '#FED7AA', border: '1px solid oklch(0.652 0.214 36 / 0.4)' }}>Claude</Badge>
                 </div>
+                <p className="text-sm text-white/85 leading-relaxed">&ldquo;{tip}&rdquo;</p>
+                <Link href="/dashboard/create" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-orange-400 hover:text-orange-300 transition-colors">
+                  Apply it now
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+
+            {/* Platform quick links */}
+            <Card className="border-border/60 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-bold">Platform Tips</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  &ldquo;{tip}&rdquo;
-                </p>
-                <Button asChild variant="link" className="mt-3 h-auto p-0 text-xs">
-                  <Link href="/dashboard/create">Apply it now →</Link>
-                </Button>
+              <CardContent className="space-y-2">
+                {[
+                  { name: 'X / Twitter', tip: 'Hook in first 10 words', color: '#000' },
+                  { name: 'Instagram', tip: 'First 125 chars are everything', color: '#E1306C' },
+                  { name: 'LinkedIn', tip: 'First 3 lines before "see more"', color: '#0A66C2' },
+                ].map((p) => (
+                  <div key={p.name} className="flex items-start gap-3 rounded-xl p-3 bg-muted/40 border border-border/50">
+                    <div className="mt-0.5 h-2 w-2 rounded-full shrink-0 mt-1.5" style={{ background: p.color === '#000' ? '#374151' : p.color }} />
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">{p.name}</p>
+                      <p className="text-[11px] text-muted-foreground">{p.tip}</p>
+                    </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
 
-            {/* Quick Links */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button asChild variant="outline" size="sm" className="w-full justify-start">
-                  <Link href="/dashboard/create">
-                    <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    Generate new post
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="sm" className="w-full justify-start">
-                  <Link href="/dashboard/drafts">
-                    <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                    </svg>
-                    View all drafts
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="sm" className="w-full justify-start">
-                  <Link href="/dashboard/accounts">
-                    <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-                    </svg>
-                    Connect accounts
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

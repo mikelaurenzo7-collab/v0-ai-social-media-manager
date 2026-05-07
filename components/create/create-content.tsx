@@ -70,6 +70,12 @@ export function CreateContent() {
   const [copied, setCopied] = useState(false)
   const [showAssistant, setShowAssistant] = useState(false)
 
+  // Declare improvedOverride before experimental_useObject so onFinish can reference setImprovedOverride
+  const [improvedOverride, setImprovedOverride] = useState<{
+    content: string
+    hashtags: string[]
+  } | null>(null)
+
   // Streaming object generation via Claude
   const { object, submit, isLoading: isGenerating, stop } = experimental_useObject({
     api: '/api/generate',
@@ -77,6 +83,7 @@ export function CreateContent() {
     onFinish: (event) => {
       if (event.object?.variations?.length) {
         setSelectedVariationId(event.object.variations[0].id ?? null)
+        setImprovedOverride(null)
         toast.success('Content generated successfully!')
       }
     },
@@ -103,9 +110,16 @@ export function CreateContent() {
 
   const selectedContent = variations.find((v) => v.id === selectedVariationId) ?? null
 
+  // displayContent is the single source of truth: improved version when one exists, else selected variation
+  const displayContent =
+    improvedOverride && selectedContent
+      ? { ...selectedContent, ...improvedOverride }
+      : selectedContent
+
   const handleGenerate = useCallback(() => {
     if (!prompt.trim()) return
     setSelectedVariationId(null)
+    setImprovedOverride(null)
     submit({ prompt, tone, contentType, platforms })
   }, [prompt, tone, contentType, platforms, submit])
 
@@ -114,23 +128,11 @@ export function CreateContent() {
     submitThread({ topic: prompt, tweetCount: threadTweetCount, tone: threadTone })
   }, [prompt, threadTweetCount, threadTone, submitThread])
 
-  // Improved override for the selected variation — declared before handlers that depend on it
-  const [improvedOverride, setImprovedOverride] = useState<{
-    content: string
-    hashtags: string[]
-  } | null>(null)
-
   // When selection changes, clear the override
   const handleSelectVariation = useCallback((id: string) => {
     setSelectedVariationId(id)
     setImprovedOverride(null)
   }, [])
-
-  // displayContent is the source of truth: the improved version if one exists, else the selected variation
-  const displayContent =
-    improvedOverride && selectedContent
-      ? { ...selectedContent, ...improvedOverride }
-      : selectedContent
 
   const handleCopy = useCallback(async () => {
     if (!displayContent) return

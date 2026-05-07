@@ -6,10 +6,10 @@ export const runtime = 'edge'
 
 const requestSchema = z.object({
   content: z.string().min(1).max(5000),
-  hashtags: z.array(z.string()),
+  hashtags: z.array(z.string().trim().min(1).max(50)).max(20),
   feedback: z.string().min(1).max(1000),
-  tone: z.string(),
-  platforms: z.array(z.string()).min(1),
+  tone: z.string().trim().min(1).max(80),
+  platforms: z.array(z.string().trim().min(1).max(30)).min(1).max(5),
 })
 
 const improveResponseSchema = z.object({

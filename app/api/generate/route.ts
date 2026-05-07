@@ -56,11 +56,11 @@ const PLATFORM_DEEP_GUIDES: Record<string, string> = {
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null)
-  const result = requestSchema.safeParse(body)
-  if (!result.success) {
+  const validation = requestSchema.safeParse(body)
+  if (!validation.success) {
     return Response.json({ error: 'Invalid request body' }, { status: 400 })
   }
-  const { prompt, tone, contentType, platforms } = result.data
+  const { prompt, tone, contentType, platforms } = validation.data
 
   const platformNames = platforms.join(', ')
   const platformGuides = platforms

@@ -18,6 +18,7 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
   const [newItem, setNewItem] = useState('')
 
   useEffect(() => {
+    // Memory read is isolated — a parse failure here won't affect creativity/tone
     try {
       const savedMemory = localStorage.getItem(`agent_${agent.id}_memory`)
       if (savedMemory) {
@@ -38,7 +39,12 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
           { id: '2', content: 'Avoid using corporate jargon or buzzwords', type: 'style' },
         ])
       }
+    } catch {
+      setMemoryItems([])
+    }
 
+    // Creativity/tone reads are isolated — failures here don't clobber memory
+    try {
       const savedCreativity = localStorage.getItem(`agent_${agent.id}_creativity`)
       if (savedCreativity) {
         const n = Number(savedCreativity)
@@ -51,7 +57,7 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
         if (isFinite(n)) setTone(n)
       }
     } catch {
-      setMemoryItems([])
+      // creativity/tone remain at useState defaults
     }
   }, [agent.id])
 
@@ -62,7 +68,13 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
 
   const handleAddMemory = () => {
     if (!newItem.trim()) return
-    const updated = [...memoryItems, { id: crypto.randomUUID(), content: newItem, type: 'knowledge' }]
+    const id =
+      typeof crypto?.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : Array.from(crypto.getRandomValues(new Uint8Array(16)))
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('')
+    const updated = [...memoryItems, { id, content: newItem, type: 'knowledge' }]
     saveMemory(updated)
     setNewItem('')
     toast.success("Memory updated")
