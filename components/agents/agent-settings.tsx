@@ -21,22 +21,38 @@ export function AgentSettings({ agent, mode }: { agent: Agent, mode: 'memory' | 
     try {
       const savedMemory = localStorage.getItem(`agent_${agent.id}_memory`)
       if (savedMemory) {
-        setMemoryItems(JSON.parse(savedMemory))
+        const parsed = JSON.parse(savedMemory)
+        const isValid =
+          Array.isArray(parsed) &&
+          parsed.every(
+            (item) =>
+              item &&
+              typeof item.id === 'string' &&
+              typeof item.content === 'string' &&
+              typeof item.type === 'string'
+          )
+        setMemoryItems(isValid ? parsed : [])
       } else {
         setMemoryItems([
           { id: '1', content: 'Target audience: B2B Founders in SaaS', type: 'knowledge' },
           { id: '2', content: 'Avoid using corporate jargon or buzzwords', type: 'style' },
         ])
       }
+
+      const savedCreativity = localStorage.getItem(`agent_${agent.id}_creativity`)
+      if (savedCreativity) {
+        const n = Number(savedCreativity)
+        if (isFinite(n)) setCreativity(n)
+      }
+
+      const savedTone = localStorage.getItem(`agent_${agent.id}_tone`)
+      if (savedTone) {
+        const n = Number(savedTone)
+        if (isFinite(n)) setTone(n)
+      }
     } catch {
       setMemoryItems([])
     }
-
-    const savedCreativity = localStorage.getItem(`agent_${agent.id}_creativity`)
-    if (savedCreativity) setCreativity(Number(savedCreativity))
-
-    const savedTone = localStorage.getItem(`agent_${agent.id}_tone`)
-    if (savedTone) setTone(Number(savedTone))
   }, [agent.id])
 
   const saveMemory = (items: typeof memoryItems) => {

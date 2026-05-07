@@ -11,8 +11,19 @@ const requestSchema = z.object({
 })
 
 export async function POST(req: Request) {
-  const body = await req.json()
-  const { steps, topic } = requestSchema.parse(body)
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const parsed = requestSchema.safeParse(body)
+  if (!parsed.success) {
+    return Response.json({ error: parsed.error.flatten() }, { status: 400 })
+  }
+
+  const { steps, topic } = parsed.data
 
   let context = `Topic: ${topic}`
   const results: { id: string; name: string; output: string }[] = []

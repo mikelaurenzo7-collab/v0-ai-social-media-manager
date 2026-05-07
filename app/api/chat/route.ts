@@ -64,8 +64,16 @@ export async function POST(req: Request) {
     let memoryContext = ""
     if (memory) {
       try {
-        const parsedMemory = JSON.parse(memory) as { content: string }[]
-        memoryContext = `\n\nLONG-TERM MEMORY & CONTEXT:\n${parsedMemory.map((m) => `- ${m.content}`).join('\n')}`
+        const parsed = JSON.parse(memory)
+        const validEntries = Array.isArray(parsed)
+          ? parsed.filter(
+              (m): m is { content: string } =>
+                !!m && typeof m.content === 'string' && m.content.trim().length > 0
+            )
+          : []
+        if (validEntries.length > 0) {
+          memoryContext = `\n\nLONG-TERM MEMORY & CONTEXT:\n${validEntries.map((m) => `- ${m.content}`).join('\n')}`
+        }
       } catch {
         // malformed memory string — skip
       }

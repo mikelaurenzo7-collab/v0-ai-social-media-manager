@@ -18,8 +18,19 @@ const improveResponseSchema = z.object({
 })
 
 export async function POST(req: Request) {
-  const body = await req.json()
-  const { content, hashtags, feedback, tone, platforms } = requestSchema.parse(body)
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const parsed = requestSchema.safeParse(body)
+  if (!parsed.success) {
+    return Response.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+
+  const { content, hashtags, feedback, tone, platforms } = parsed.data
 
   const platformNames = platforms.join(', ')
   const hashtagStr = hashtags.map((h) => `#${h}`).join(' ')

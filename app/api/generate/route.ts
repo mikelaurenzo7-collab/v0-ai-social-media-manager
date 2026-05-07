@@ -3,11 +3,13 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { contentVariationSchema } from '@/lib/schemas/content'
 
+const SUPPORTED_PLATFORMS = ['twitter', 'instagram', 'facebook', 'linkedin', 'tiktok'] as const
+
 const requestSchema = z.object({
-  prompt: z.string().min(1).max(2000),
-  tone: z.string(),
-  contentType: z.string(),
-  platforms: z.array(z.string()).min(1).max(5),
+  prompt: z.string().trim().min(1).max(2000),
+  tone: z.string().trim().min(1).max(80),
+  contentType: z.string().trim().min(1).max(80),
+  platforms: z.array(z.enum(SUPPORTED_PLATFORMS)).min(1).max(5),
 })
 
 export const runtime = 'edge'
@@ -53,8 +55,12 @@ const PLATFORM_DEEP_GUIDES: Record<string, string> = {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json()
-  const { prompt, tone, contentType, platforms } = requestSchema.parse(body)
+  const body = await req.json().catch(() => null)
+  const result = requestSchema.safeParse(body)
+  if (!result.success) {
+    return Response.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+  const { prompt, tone, contentType, platforms } = result.data
 
   const platformNames = platforms.join(', ')
   const platformGuides = platforms

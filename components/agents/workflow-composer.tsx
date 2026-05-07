@@ -55,7 +55,11 @@ export function WorkflowComposer({ agent }: { agent: Agent }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ steps: selectedSteps, topic, agentId: agent.id })
       })
-      const data = await res.json()
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error((errData as { error?: string }).error || 'Workflow request failed')
+      }
+      const data = await res.json() as { results: WorkflowResult[] }
       setResults(data.results)
       toast.success("Workflow completed!")
     } catch {

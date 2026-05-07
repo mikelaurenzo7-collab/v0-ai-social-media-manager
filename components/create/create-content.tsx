@@ -114,30 +114,49 @@ export function CreateContent() {
     submitThread({ topic: prompt, tweetCount: threadTweetCount, tone: threadTone })
   }, [prompt, threadTweetCount, threadTone, submitThread])
 
+  // Improved override for the selected variation — declared before handlers that depend on it
+  const [improvedOverride, setImprovedOverride] = useState<{
+    content: string
+    hashtags: string[]
+  } | null>(null)
+
+  // When selection changes, clear the override
+  const handleSelectVariation = useCallback((id: string) => {
+    setSelectedVariationId(id)
+    setImprovedOverride(null)
+  }, [])
+
+  // displayContent is the source of truth: the improved version if one exists, else the selected variation
+  const displayContent =
+    improvedOverride && selectedContent
+      ? { ...selectedContent, ...improvedOverride }
+      : selectedContent
+
   const handleCopy = useCallback(async () => {
-    if (!selectedContent) return
+    if (!displayContent) return
     const full =
-      selectedContent.hashtags.length > 0
-        ? `${selectedContent.content}\n\n${selectedContent.hashtags.map((t) => `#${t}`).join(' ')}`
-        : selectedContent.content
+      displayContent.hashtags.length > 0
+        ? `${displayContent.content}\n\n${displayContent.hashtags.map((t) => `#${t}`).join(' ')}`
+        : displayContent.content
     await navigator.clipboard.writeText(full)
     setCopied(true)
     toast.success('Copied to clipboard!')
     setTimeout(() => setCopied(false), 2000)
-  }, [selectedContent])
+  }, [displayContent])
 
   const handleSaveDraft = useCallback(() => {
-    if (!selectedContent) return
+    if (!displayContent) return
     let existingDrafts: unknown[] = []
     try {
-      existingDrafts = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
+      const parsed = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
+      existingDrafts = Array.isArray(parsed) ? parsed : []
     } catch {
       existingDrafts = []
     }
     const newDraft = {
       id: Date.now().toString(),
-      content: selectedContent.content,
-      hashtags: selectedContent.hashtags,
+      content: displayContent.content,
+      hashtags: displayContent.hashtags,
       platforms,
       tone,
       contentType,
@@ -145,7 +164,7 @@ export function CreateContent() {
     }
     localStorage.setItem('postpilot_drafts', JSON.stringify([newDraft, ...existingDrafts]))
     toast.success('Draft saved!')
-  }, [selectedContent, platforms, tone, contentType])
+  }, [displayContent, platforms, tone, contentType])
 
   const handleCopyThread = useCallback(async (tweets: ThreadTweet[]) => {
     const text = tweets.map((t, i) => `${i + 1}/ ${t.content}`).join('\n\n')
@@ -157,7 +176,8 @@ export function CreateContent() {
     if (!thread.tweets?.length) return
     let existing: unknown[] = []
     try {
-      existing = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
+      const parsed = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
+      existing = Array.isArray(parsed) ? parsed : []
     } catch {
       existing = []
     }
@@ -171,29 +191,10 @@ export function CreateContent() {
   const handleImproved = useCallback(
     (newContent: string, newHashtags: string[]) => {
       if (!selectedContent) return
-      // Update the selected variation in the object by triggering a new generation isn't ideal,
-      // so we store the improved version in local state and switch to it
       setImprovedOverride({ content: newContent, hashtags: newHashtags })
     },
     [selectedContent]
   )
-
-  // Improved override for the selected variation
-  const [improvedOverride, setImprovedOverride] = useState<{
-    content: string
-    hashtags: string[]
-  } | null>(null)
-
-  // When selection changes, clear the override
-  const handleSelectVariation = useCallback((id: string) => {
-    setSelectedVariationId(id)
-    setImprovedOverride(null)
-  }, [])
-
-  const displayContent =
-    improvedOverride && selectedContent
-      ? { ...selectedContent, ...improvedOverride }
-      : selectedContent
 
   const hasResults = variations.length > 0 || isGenerating
   const hasThread = (threadObject?.tweets?.length ?? 0) > 0 || isGeneratingThread
