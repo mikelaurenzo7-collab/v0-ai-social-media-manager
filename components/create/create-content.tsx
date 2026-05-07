@@ -41,28 +41,37 @@ export function CreateContent() {
   // Pre-fill if editing
   useEffect(() => {
     if (!editId) return
-    try {
-      const stored = localStorage.getItem('postpilot_drafts')
-      if (!stored) return
-      type SavedDraft = {
-        id: string
-        content: string
-        tone: ToneId
-        contentType: ContentTypeId
-        platforms: PlatformId[]
-        createdAt: string
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/drafts', { cache: 'no-store' })
+        if (!res.ok) return
+        const json = (await res.json()) as {
+          drafts: Array<{
+            id: string
+            content: string
+            tone: string | null
+            platforms: string[]
+            metadata: { contentType?: string } | null
+          }>
+        }
+        if (cancelled) return
+        const draft = json.drafts.find((d) => d.id === editId)
+        if (draft) {
+          setPrompt(draft.content)
+          if (draft.tone) setTone(draft.tone as ToneId)
+          if (draft.metadata?.contentType) {
+            setContentType(draft.metadata.contentType as ContentTypeId)
+          }
+          setPlatforms(draft.platforms as PlatformId[])
+          setMode('post')
+        }
+      } catch {
+        // ignore
       }
-      const drafts = JSON.parse(stored) as SavedDraft[]
-      const draft = drafts.find((d) => d.id === editId)
-      if (draft) {
-        setPrompt(draft.content)
-        setTone(draft.tone)
-        setContentType(draft.contentType)
-        setPlatforms(draft.platforms)
-        setMode('post')
-      }
-    } catch {
-      // corrupt localStorage — ignore
+    })()
+    return () => {
+      cancelled = true
     }
   }, [editId])
 
@@ -147,26 +156,28 @@ export function CreateContent() {
     setTimeout(() => setCopied(false), 2000)
   }, [displayContent])
 
-  const handleSaveDraft = useCallback(() => {
+  const handleSaveDraft = useCallback(async () => {
     if (!displayContent) return
-    let existingDrafts: unknown[] = []
     try {
-      const parsed = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
-      existingDrafts = Array.isArray(parsed) ? parsed : []
-    } catch {
-      existingDrafts = []
+      const res = await fetch('/api/drafts', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          content: displayContent.content,
+          hashtags: displayContent.hashtags,
+          platforms,
+          tone,
+          metadata: { contentType },
+        }),
+      })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        throw new Error(j?.error ?? 'Failed to save draft')
+      }
+      toast.success('Draft saved!')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save draft')
     }
-    const newDraft = {
-      id: Date.now().toString(),
-      content: displayContent.content,
-      hashtags: displayContent.hashtags,
-      platforms,
-      tone,
-      contentType,
-      createdAt: new Date().toISOString(),
-    }
-    localStorage.setItem('postpilot_drafts', JSON.stringify([newDraft, ...existingDrafts]))
-    toast.success('Draft saved!')
   }, [displayContent, platforms, tone, contentType])
 
   const handleCopyThread = useCallback(async (tweets: ThreadTweet[]) => {
@@ -175,21 +186,35 @@ export function CreateContent() {
     toast.success('Thread copied to clipboard!')
   }, [])
 
-  const handleSaveThread = useCallback((thread: Partial<Thread>) => {
-    if (!thread.tweets?.length) return
-    let existing: unknown[] = []
-    try {
-      const parsed = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
-      existing = Array.isArray(parsed) ? parsed : []
-    } catch {
-      existing = []
+  const handleSaveThread = useCallback(async (thread: Partial<Thread>) => {
+    if (!thread.tweets?.length || !thread.title) {
+      toast.error('Thread is missing a title or tweets')
+      return
     }
-    localStorage.setItem(
-      'postpilot_threads',
-      JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing])
-    )
-    toast.success('Thread saved!')
-  }, [])
+    try {
+      const res = await fetch('/api/threads', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          title: thread.title,
+          topic: thread.topic ?? null,
+          tone,
+          tweets: thread.tweets.map((t) => ({
+            type: t.type ?? 'tweet',
+            content: t.content,
+          })),
+          metadata: thread.engagementTip ? { engagementTip: thread.engagementTip } : null,
+        }),
+      })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        throw new Error(j?.error ?? 'Failed to save thread')
+      }
+      toast.success('Thread saved!')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save thread')
+    }
+  }, [tone])
 
   const handleImproved = useCallback(
     (newContent: string, newHashtags: string[]) => {

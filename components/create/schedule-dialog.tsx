@@ -62,19 +62,30 @@ export function ScheduleDialog({ draft, children }: ScheduleDialogProps) {
 
   const handleSchedule = useCallback(async () => {
     setIsLoading(true)
-    await new Promise((r) => setTimeout(r, 700))
     try {
-      const raw = localStorage.getItem('postpilot_scheduled')
-      const existing = raw ? (JSON.parse(raw) as unknown[]) : []
-      const newPost = {
-        id: `u-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        content: draft.content,
-        platform: selectedPlatform,
-        date: selectedDate,
-        time: selectedTime,
-        status: 'scheduled' as const,
+      // Combine date + time into a local Date, then send as ISO
+      const [hours, minutes] = selectedTime.split(':').map(Number)
+      const scheduledFor = new Date(selectedDate + 'T00:00:00')
+      scheduledFor.setHours(hours, minutes, 0, 0)
+      if (Number.isNaN(scheduledFor.getTime())) {
+        throw new Error('Invalid date or time')
       }
-      localStorage.setItem('postpilot_scheduled', JSON.stringify([...existing, newPost]))
+
+      const res = await fetch('/api/scheduled-posts', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          content: draft.content,
+          platforms: [selectedPlatform],
+          scheduledFor: scheduledFor.toISOString(),
+          draftId: draft.id || null,
+        }),
+      })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        throw new Error(j?.error ?? 'Failed to schedule post')
+      }
+
       const d = new Date(selectedDate + 'T12:00:00')
       const dateLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
       toast.success(`Scheduled for ${dateLabel} at ${fmtTime(selectedTime)}`, {
@@ -82,8 +93,8 @@ export function ScheduleDialog({ draft, children }: ScheduleDialogProps) {
         action: { label: 'View Calendar', onClick: () => { window.location.href = '/dashboard/calendar' } },
       })
       setOpen(false)
-    } catch {
-      toast.error('Failed to schedule post')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to schedule post')
     } finally {
       setIsLoading(false)
     }

@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/dashboard/header'
 import { PlatformIcon } from '@/components/create/platform-selector'
+import { useDrafts } from '@/lib/hooks/use-drafts'
+import { useThreads } from '@/lib/hooks/use-threads'
 
 const AI_TIPS = [
   'Hook your audience in the first 3 words — people scroll fast.',
@@ -55,34 +57,9 @@ const QUICK_ACTIONS = [
 ]
 
 export default function DashboardPage() {
-  const [drafts, setDrafts] = useState<{ id: string; content: string; platforms: string[]; createdAt: string }[]>([])
-  const [threads, setThreads] = useState<{ id: string }[]>([])
-  const [mounted, setMounted] = useState(false)
+  const { drafts } = useDrafts()
+  const { threads } = useThreads()
   const [tip] = useState(() => AI_TIPS[Math.floor(Math.random() * AI_TIPS.length)])
-
-  useEffect(() => {
-    setMounted(true)
-    try {
-      const storedDrafts = localStorage.getItem('postpilot_drafts')
-      if (storedDrafts) {
-        const parsed = JSON.parse(storedDrafts)
-        setDrafts(Array.isArray(parsed) ? parsed : [])
-      }
-    } catch {
-      setDrafts([])
-    }
-    try {
-      const storedThreads = localStorage.getItem('postpilot_threads')
-      if (storedThreads) {
-        const parsed = JSON.parse(storedThreads)
-        setThreads(Array.isArray(parsed) ? parsed : [])
-      }
-    } catch {
-      setThreads([])
-    }
-  }, [])
-
-  if (!mounted) return null
 
   return (
     <div className="flex min-h-full flex-col">

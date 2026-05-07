@@ -1,77 +1,48 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Header } from '@/components/dashboard/header'
 import { PlatformIcon } from '@/components/create/platform-selector'
-import { PLATFORMS, TONES, type PlatformId, type ToneId } from '@/lib/constants/platforms'
+import { PLATFORMS, TONES, type PlatformId } from '@/lib/constants/platforms'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { ScheduleDialog } from '@/components/create/schedule-dialog'
-
-interface Draft {
-  id: string
-  content: string
-  hashtags: string[]
-  platforms: PlatformId[]
-  tone: ToneId
-  contentType: string
-  createdAt: string
-}
-
-interface ThreadDraft {
-  id: string
-  title: string
-  tweets: { number: number; content: string; type: string }[]
-  engagementTip: string
-  createdAt: string
-}
+import { useDrafts, type Draft as ApiDraft } from '@/lib/hooks/use-drafts'
+import { useThreads, type Thread as ApiThread } from '@/lib/hooks/use-threads'
 
 const TABS = ['posts', 'threads'] as const
 type TabId = (typeof TABS)[number]
 
 export default function DraftsPage() {
-  const [drafts, setDrafts] = useState<Draft[]>([])
-  const [threads, setThreads] = useState<ThreadDraft[]>([])
+  const { drafts, isLoading: draftsLoading, deleteDraft } = useDrafts()
+  const { threads, isLoading: threadsLoading, deleteThread } = useThreads()
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabId>('posts')
 
-  useEffect(() => {
-    const storedDrafts = localStorage.getItem('postpilot_drafts')
-    if (storedDrafts) {
-      try {
-        const parsed = JSON.parse(storedDrafts)
-        if (Array.isArray(parsed)) setDrafts(parsed)
-      } catch { /* ignore */ }
+  const handleDeleteDraft = useCallback(async (id: string) => {
+    try {
+      await deleteDraft(id)
+      toast.success('Draft deleted')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete draft')
     }
-    const storedThreads = localStorage.getItem('postpilot_threads')
-    if (storedThreads) {
-      try {
-        const parsed = JSON.parse(storedThreads)
-        if (Array.isArray(parsed)) setThreads(parsed)
-      } catch { /* ignore */ }
+  }, [deleteDraft])
+
+  const handleDeleteThread = useCallback(async (id: string) => {
+    try {
+      await deleteThread(id)
+      toast.success('Thread deleted')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete thread')
     }
-  }, [])
+  }, [deleteThread])
 
-  const handleDeleteDraft = useCallback((id: string) => {
-    const updated = drafts.filter((d) => d.id !== id)
-    setDrafts(updated)
-    localStorage.setItem('postpilot_drafts', JSON.stringify(updated))
-    toast.success('Draft deleted')
-  }, [drafts])
-
-  const handleDeleteThread = useCallback((id: string) => {
-    const updated = threads.filter((t) => t.id !== id)
-    setThreads(updated)
-    localStorage.setItem('postpilot_threads', JSON.stringify(updated))
-    toast.success('Thread deleted')
-  }, [threads])
-
-  const handleCopyDraft = useCallback(async (draft: Draft) => {
+  const handleCopyDraft = useCallback(async (draft: ApiDraft) => {
     const fullContent = draft.hashtags.length > 0
-      ? `${draft.content}\n\n${draft.hashtags.map(t => `#${t}`).join(' ')}`
+      ? `${draft.content}\n\n${draft.hashtags.map((t) => `#${t}`).join(' ')}`
       : draft.content
     try {
       await navigator.clipboard.writeText(fullContent)
@@ -83,7 +54,7 @@ export default function DraftsPage() {
     }
   }, [])
 
-  const handleCopyThread = useCallback(async (thread: ThreadDraft) => {
+  const handleCopyThread = useCallback(async (thread: ApiThread) => {
     const text = thread.tweets.map((t, i) => `${i + 1}/ ${t.content}`).join('\n\n')
     try {
       await navigator.clipboard.writeText(text)
@@ -104,7 +75,9 @@ export default function DraftsPage() {
     })
   }
 
-  const getToneName = (toneId: ToneId) => TONES.find((t) => t.id === toneId)?.name ?? toneId
+  const getToneName = (toneId: string | null) => TONES.find((t) => t.id === toneId)?.name ?? (toneId ?? 'Default')
+
+  const isLoading = activeTab === 'posts' ? draftsLoading : threadsLoading
 
   return (
     <div className="flex min-h-full flex-col">
@@ -158,7 +131,9 @@ export default function DraftsPage() {
 
         {/* Posts tab */}
         {activeTab === 'posts' && (
-          drafts.length === 0 ? (
+          isLoading ? (
+            <DraftSkeletonGrid />
+          ) : drafts.length === 0 ? (
             <EmptyState title="No posts yet" description="Create your first post and save it as a draft to see it here." />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -170,16 +145,19 @@ export default function DraftsPage() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex flex-wrap gap-1">
-                        {draft.platforms.map((p, i) => (
-                          <div
-                            key={p}
-                            className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-card bg-muted text-muted-foreground"
-                            style={{ marginLeft: i > 0 ? '-6px' : 0, zIndex: 10 - i }}
-                            title={PLATFORMS[p]?.shortName ?? p}
-                          >
-                            <PlatformIcon platform={p} className="h-3.5 w-3.5" />
-                          </div>
-                        ))}
+                        {draft.platforms.map((rawId, i) => {
+                          const p = rawId as PlatformId
+                          return (
+                            <div
+                              key={rawId}
+                              className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-card bg-muted text-muted-foreground"
+                              style={{ marginLeft: i > 0 ? '-6px' : 0, zIndex: 10 - i }}
+                              title={PLATFORMS[p]?.shortName ?? rawId}
+                            >
+                              <PlatformIcon platform={p} className="h-3.5 w-3.5" />
+                            </div>
+                          )
+                        })}
                       </div>
                       <span className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                         {getToneName(draft.tone)}
@@ -232,7 +210,13 @@ export default function DraftsPage() {
                           'Copy'
                         )}
                       </Button>
-                      <ScheduleDialog draft={{ id: draft.id, content: draft.content, platforms: draft.platforms }}>
+                      <ScheduleDialog
+                        draft={{
+                          id: draft.id,
+                          content: draft.content,
+                          platforms: draft.platforms as PlatformId[],
+                        }}
+                      >
                         <Button
                           size="sm"
                           className="btn-gradient h-9 rounded-full px-4 text-xs font-semibold"
@@ -264,7 +248,9 @@ export default function DraftsPage() {
 
         {/* Threads tab */}
         {activeTab === 'threads' && (
-          threads.length === 0 ? (
+          isLoading ? (
+            <DraftSkeletonGrid />
+          ) : threads.length === 0 ? (
             <EmptyState title="No threads yet" description="Create your first thread and save it to see it here." />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -345,6 +331,38 @@ export default function DraftsPage() {
           )
         )}
       </div>
+    </div>
+  )
+}
+
+function DraftSkeletonGrid() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-live="polite">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Card key={i} className="overflow-hidden border-border/60">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex gap-1">
+                <div className="h-7 w-7 animate-pulse rounded-full bg-muted" />
+                <div className="h-7 w-7 animate-pulse rounded-full bg-muted" />
+              </div>
+              <div className="h-5 w-16 animate-pulse rounded-full bg-muted" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2">
+              <div className="h-3 w-full animate-pulse rounded-full bg-muted" />
+              <div className="h-3 w-11/12 animate-pulse rounded-full bg-muted" />
+              <div className="h-3 w-3/4 animate-pulse rounded-full bg-muted" />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <div className="h-9 flex-1 animate-pulse rounded-full bg-muted" />
+              <div className="h-9 w-24 animate-pulse rounded-full bg-muted" />
+              <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   )
 }

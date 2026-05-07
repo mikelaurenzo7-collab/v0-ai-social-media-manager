@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Header } from '@/components/dashboard/header'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { useScheduledPosts } from '@/lib/hooks/use-scheduled-posts'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -19,6 +20,8 @@ interface CalendarPost {
   date: string   // YYYY-MM-DD
   time: string   // HH:MM
   status: PostStatus
+  /** Original ScheduledPost id for user-created entries; absent on seed/mock data. */
+  sourceId?: string
 }
 
 // ── Platform display config ────────────────────────────────────────────────────
@@ -116,24 +119,22 @@ function DayPanel({
   date,
   posts,
   onClose,
+  onDelete,
 }: {
   date: string
   posts: CalendarPost[]
   onClose: () => void
+  onDelete: (sourceId: string) => Promise<void>
 }) {
   const d = new Date(date + 'T12:00:00')
   const label = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (sourceId: string) => {
     try {
-      const stored = localStorage.getItem('postpilot_scheduled')
-      if (!stored) return
-      const parsed: CalendarPost[] = JSON.parse(stored)
-      const updated = parsed.filter((p) => p.id !== id)
-      localStorage.setItem('postpilot_scheduled', JSON.stringify(updated))
+      await onDelete(sourceId)
       toast.success('Post removed from calendar')
-    } catch {
-      toast.error('Failed to remove post')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to remove post')
     }
   }
 
@@ -212,9 +213,9 @@ function DayPanel({
                       </span>
                     </div>
                   </div>
-                  {post.id.startsWith('u-') && (
+                  {post.sourceId && (
                     <button
-                      onClick={() => handleDelete(post.id)}
+                      onClick={() => handleDelete(post.sourceId!)}
                       className="opacity-0 group-hover:opacity-100 flex h-6 w-6 items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                     >
                       <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -233,27 +234,47 @@ function DayPanel({
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 
+const PLATFORM_IDS: PlatformId[] = ['twitter', 'instagram', 'linkedin', 'tiktok', 'facebook']
+
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1)) // May 2026
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
-  const [userPosts, setUserPosts] = useState<CalendarPost[]>([])
   const [platformFilter, setPlatformFilter] = useState<Set<PlatformId>>(
     new Set(['twitter', 'instagram', 'linkedin', 'tiktok', 'facebook'])
   )
 
   const TODAY = '2026-05-07'
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('postpilot_scheduled')
-      if (stored) {
-        const parsed: CalendarPost[] = JSON.parse(stored)
-        if (Array.isArray(parsed)) setUserPosts(parsed)
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [])
+  const { posts: scheduledPosts, cancelPost } = useScheduledPosts()
+
+  // Fan out one CalendarPost per (scheduled post × platform) for grid rendering.
+  const userPosts = useMemo<CalendarPost[]>(() => {
+    return scheduledPosts.flatMap((p) => {
+      const dt = new Date(p.scheduledFor)
+      if (Number.isNaN(dt.getTime())) return []
+      const date = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(
+        dt.getDate(),
+      ).padStart(2, '0')}`
+      const time = `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`
+      const status: PostStatus =
+        p.status === 'published' ? 'published' : p.status === 'scheduled' ? 'scheduled' : 'draft'
+      return p.platforms
+        .filter((plat): plat is PlatformId => PLATFORM_IDS.includes(plat as PlatformId))
+        .map((platform) => ({
+          id: `${p.id}:${platform}`,
+          sourceId: p.id,
+          content: p.content,
+          platform,
+          date,
+          time,
+          status,
+        }))
+    })
+  }, [scheduledPosts])
+
+  const handleCancelScheduled = async (sourceId: string) => {
+    await cancelPost(sourceId)
+  }
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -452,6 +473,7 @@ export default function CalendarPage() {
                 date={selectedDate}
                 posts={selectedPosts}
                 onClose={() => setSelectedDate(null)}
+                onDelete={handleCancelScheduled}
               />
             )}
 
