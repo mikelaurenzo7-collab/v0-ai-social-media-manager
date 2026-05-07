@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '@ai-sdk/react'
-import { TextStreamChatTransport } from 'ai'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -359,11 +358,10 @@ const SUGGESTIONS = [
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function AIAssistant() {
-  const [inputText, setInputText] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const { messages, sendMessage, status, stop } = useChat({
-    transport: new TextStreamChatTransport({ api: '/api/chat' }),
+  const { messages, input, setInput, append, handleSubmit, status, stop, handleInputChange } = useChat({
+    api: '/api/chat',
   })
 
   const isLoading = status === 'submitted' || status === 'streaming'
@@ -372,11 +370,10 @@ export function AIAssistant() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSend = () => {
-    const text = inputText.trim()
-    if (!text || isLoading) return
-    sendMessage({ text })
-    setInputText('')
+  const handleSend = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    if (!input || !input.trim() || isLoading) return
+    handleSubmit(e as any)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -388,7 +385,7 @@ export function AIAssistant() {
 
   const handleSuggestion = (suggestion: string) => {
     if (isLoading) return
-    sendMessage({ text: suggestion })
+    append({ role: 'user', content: suggestion })
   }
 
   return (
@@ -436,44 +433,34 @@ export function AIAssistant() {
             )}
 
             <div className={cn('max-w-[85%] space-y-2', message.role === 'user' ? 'items-end' : 'items-start')}>
-              {message.parts.map((part, i) => {
-                if (part.type === 'text') {
-                  return (
-                    <div
-                      key={i}
-                      className={cn(
-                        'rounded-xl px-3 py-2 text-sm leading-relaxed',
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      )}
-                    >
-                      <p className="whitespace-pre-wrap">{part.text}</p>
-                    </div>
-                  )
+              <div
+                className={cn(
+                  'rounded-xl px-3 py-2 text-sm leading-relaxed',
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted'
+                )}
+              >
+                <p className="whitespace-pre-wrap">{message.content}</p>
+              </div>
+
+              {/* Tool invocations in v6 AI SDK are different, but we can check toolInvocations */}
+              {message.toolInvocations?.map((toolInvocation) => {
+                const { toolCallId, toolName, state } = toolInvocation
+
+                if (state === 'result') {
+                  return <ToolResultCard key={toolCallId} toolName={toolName} output={toolInvocation.result} />
                 }
 
-                // Tool invocation parts
-                if (part.type.startsWith('tool-')) {
-                  const toolName = part.type.slice(5)
-                  const anyPart = part as { state?: string; output?: unknown }
-                  if (anyPart.state === 'output-available' && anyPart.output) {
-                    return <ToolResultCard key={i} toolName={toolName} output={anyPart.output} />
-                  }
-                  if (anyPart.state === 'input-streaming' || anyPart.state === 'input-available') {
-                    return (
-                      <div key={i} className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                        <svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        Running {toolName.replace(/_/g, ' ')}…
-                      </div>
-                    )
-                  }
-                }
-
-                return null
+                return (
+                  <div key={toolCallId} className="flex items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                    <svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Running {toolName.replace(/_/g, ' ')}…
+                  </div>
+                )
               })}
             </div>
           </div>
@@ -501,10 +488,10 @@ export function AIAssistant() {
 
       {/* Input */}
       <div className="border-t p-3">
-        <div className="flex items-end gap-2">
+        <form onSubmit={handleSend} className="flex items-end gap-2">
           <textarea
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask anything about strategy, hooks, hashtags…"
             className="flex-1 resize-none rounded-lg border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring min-h-[40px] max-h-[120px]"
@@ -523,9 +510,8 @@ export function AIAssistant() {
             </button>
           ) : (
             <button
-              type="button"
-              onClick={handleSend}
-              disabled={!inputText.trim()}
+              type="submit"
+              disabled={!input || !input.trim()}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground disabled:opacity-40 hover:bg-primary/90"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -533,7 +519,7 @@ export function AIAssistant() {
               </svg>
             </button>
           )}
-        </div>
+        </form>
         <p className="mt-1.5 text-[10px] text-muted-foreground text-center">
           Shift+Enter for new line · Enter to send
         </p>
