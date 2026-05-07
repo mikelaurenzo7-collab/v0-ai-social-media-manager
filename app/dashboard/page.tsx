@@ -7,6 +7,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/dashboard/header'
 import { PlatformIcon } from '@/components/create/platform-selector'
+interface Draft {
+  id: string
+  content: string
+  platforms: string[]
+  createdAt: string
+}
+
+interface ThreadDraft {
+  id: string
+  title?: string
+  tweets: { content: string }[]
+  createdAt: string
+}
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+  LineChart,
+  Line,
+  CartesianGrid
+} from 'recharts'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 const AI_TIPS = [
   'Hook your audience in the first 3 words — people scroll fast.',
@@ -19,19 +45,46 @@ const AI_TIPS = [
 const randomTip = AI_TIPS[Math.floor(Math.random() * AI_TIPS.length)]
 
 export default function DashboardPage() {
-  const [drafts, setDrafts] = useState<any[]>([])
-  const [threads, setThreads] = useState<any[]>([])
+  const [drafts, setDrafts] = useState<Draft[]>([])
+  const [threads, setThreads] = useState<ThreadDraft[]>([])
+  const [scheduled, setScheduled] = useState<any[]>([])
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
     const storedDrafts = localStorage.getItem('postpilot_drafts')
     const storedThreads = localStorage.getItem('postpilot_threads')
+    const storedScheduled = localStorage.getItem('postpilot_scheduled')
     if (storedDrafts) setDrafts(JSON.parse(storedDrafts))
     if (storedThreads) setThreads(JSON.parse(storedThreads))
+    if (storedScheduled) setScheduled(JSON.parse(storedScheduled))
   }, [])
 
   if (!mounted) return null
+
+  const chartData = [
+    { name: 'Mon', total: 4 },
+    { name: 'Tue', total: 7 },
+    { name: 'Wed', total: 5 },
+    { name: 'Thu', total: 8 },
+    { name: 'Fri', total: 12 },
+    { name: 'Sat', total: 9 },
+    { name: 'Sun', total: 6 },
+  ]
+
+  const platformData = [
+    { name: 'Twitter', value: 45, color: '#1DA1F2' },
+    { name: 'Instagram', value: 30, color: '#E4405F' },
+    { name: 'LinkedIn', value: 15, color: '#0A66C2' },
+    { name: 'Facebook', value: 10, color: '#1877F2' },
+  ]
+
+  const chartConfig = {
+    total: {
+      label: "Posts",
+      color: "hsl(var(--primary))",
+    },
+  }
 
   return (
     <div className="flex flex-col">
@@ -77,11 +130,11 @@ export default function DashboardPage() {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Saved Drafts</CardDescription>
-              <CardTitle className="text-3xl">{threads.length}</CardTitle>
+              <CardDescription>Scheduled</CardDescription>
+              <CardTitle className="text-3xl">{scheduled.length}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">Ready to post</p>
+              <p className="text-xs text-muted-foreground">Ready to go</p>
             </CardContent>
           </Card>
           <Card>
@@ -106,6 +159,106 @@ export default function DashboardPage() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Performance Overview */}
+          <div className="lg:col-span-2">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle>Content Performance</CardTitle>
+                <CardDescription>Weekly overview of your content reach and engagement</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] w-full">
+                  <ChartContainer config={chartConfig}>
+                    <BarChart data={chartData}>
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis
+                        dataKey="name"
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => `${value}`}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar
+                        dataKey="total"
+                        fill="var(--color-total)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Platform Distribution */}
+          <div className="lg:col-span-1">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle>Platform Split</CardTitle>
+                <CardDescription>Where your audience is most active</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col justify-center">
+                <div className="h-[200px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={platformData} layout="vertical">
+                      <XAxis type="number" hide />
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        width={70}
+                      />
+                      <Tooltip
+                        cursor={{fill: 'transparent'}}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                <div className="grid grid-cols-2 gap-2">
+                                  <span className="font-medium">{payload[0].name}:</span>
+                                  <span className="font-bold">{payload[0].value}%</span>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                        {platformData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 space-y-2">
+                  {platformData.map((platform) => (
+                    <div key={platform.name} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: platform.color }} />
+                        <span className="text-muted-foreground">{platform.name}</span>
+                      </div>
+                      <span className="font-medium">{platform.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">

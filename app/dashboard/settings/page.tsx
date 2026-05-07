@@ -1,18 +1,45 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import { Header } from '@/components/dashboard/header'
 import { TONES } from '@/lib/constants/platforms'
+import { toast } from 'sonner'
 
 export default function SettingsPage() {
   const [defaultTone, setDefaultTone] = useState('casual')
+  const [brandVoice, setBrandVoice] = useState('')
+  const [targetAudience, setTargetAudience] = useState('')
   const [emailNotifications, setEmailNotifications] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    const stored = localStorage.getItem('postpilot_brand_voice')
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      setBrandVoice(parsed.brandVoice || '')
+      setTargetAudience(parsed.targetAudience || '')
+      setDefaultTone(parsed.defaultTone || 'casual')
+    }
+  }, [])
+
+  const handleSaveBrand = () => {
+    localStorage.setItem('postpilot_brand_voice', JSON.stringify({
+      brandVoice,
+      targetAudience,
+      defaultTone
+    }))
+    toast.success('Brand voice profile updated!')
+  }
+
+  if (!mounted) return null
 
   return (
     <div className="flex flex-col">
@@ -54,13 +81,40 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* AI Preferences */}
+        {/* Brand Voice */}
         <Card>
           <CardHeader>
-            <CardTitle>AI Preferences</CardTitle>
-            <CardDescription>Default settings for content generation</CardDescription>
+            <CardTitle>AI Brand Voice</CardTitle>
+            <CardDescription>Teach Claude how to write like you</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="brand-voice">Describe your Brand Voice</Label>
+              <Textarea
+                id="brand-voice"
+                placeholder="e.g. Professional yet witty, uses specific industry jargon like 'ARR' and 'LTV', never uses exclamation marks, prefers short punchy sentences..."
+                className="min-h-[100px]"
+                value={brandVoice}
+                onChange={(e) => setBrandVoice(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Claude will use this description to personalize every post it generates for you.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="target-audience">Target Audience</Label>
+              <Input
+                id="target-audience"
+                placeholder="e.g. SaaS Founders, Marketing Directors, etc."
+                value={targetAudience}
+                onChange={(e) => setTargetAudience(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Who are you writing for?
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label>Default Tone</Label>
               <Select value={defaultTone} onValueChange={setDefaultTone}>
@@ -79,6 +133,8 @@ export default function SettingsPage() {
                 This will be pre-selected when creating new content
               </p>
             </div>
+
+            <Button onClick={handleSaveBrand}>Save Brand Profile</Button>
           </CardContent>
         </Card>
 

@@ -19,6 +19,10 @@ import { contentVariationSchema, type ContentVariation } from '@/lib/schemas/con
 import { threadSchema, type Thread, type ThreadTweet } from '@/lib/schemas/thread'
 import { TONES, CONTENT_TYPES, THREAD_TWEET_COUNTS, type PlatformId, type ToneId, type ContentTypeId, type ThreadTweetCount } from '@/lib/constants/platforms'
 import { toast } from 'sonner'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { format } from 'date-fns'
+import { CalendarIcon, Clock } from 'lucide-react'
 
 export function CreateContent() {
   const searchParams = useSearchParams()
@@ -36,6 +40,19 @@ export function CreateContent() {
   const [tone, setTone] = useState<ToneId>('casual')
   const [contentType, setContentType] = useState<ContentTypeId>('promotional')
   const [platforms, setPlatforms] = useState<PlatformId[]>(['twitter', 'instagram'])
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(new Date())
+  const [scheduledTime, setScheduledTime] = useState('12:00')
+  const [brandVoice, setBrandVoice] = useState<any>(null)
+
+  // Load brand voice
+  useEffect(() => {
+    const stored = localStorage.getItem('postpilot_brand_voice')
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      setBrandVoice(parsed)
+      if (parsed.defaultTone) setTone(parsed.defaultTone)
+    }
+  }, [])
 
   // Pre-fill if editing
   useEffect(() => {
@@ -96,13 +113,26 @@ export function CreateContent() {
   const handleGenerate = useCallback(() => {
     if (!prompt.trim()) return
     setSelectedVariationId(null)
-    submit({ prompt, tone, contentType, platforms })
-  }, [prompt, tone, contentType, platforms, submit])
+    submit({
+      prompt,
+      tone,
+      contentType,
+      platforms,
+      brandVoice: brandVoice?.brandVoice,
+      targetAudience: brandVoice?.targetAudience
+    })
+  }, [prompt, tone, contentType, platforms, submit, brandVoice])
 
   const handleGenerateThread = useCallback(() => {
     if (!prompt.trim()) return
-    submitThread({ topic: prompt, tweetCount: threadTweetCount, tone: threadTone })
-  }, [prompt, threadTweetCount, threadTone, submitThread])
+    submitThread({
+      topic: prompt,
+      tweetCount: threadTweetCount,
+      tone: threadTone,
+      brandVoice: brandVoice?.brandVoice,
+      targetAudience: brandVoice?.targetAudience
+    })
+  }, [prompt, threadTweetCount, threadTone, submitThread, brandVoice])
 
   const handleCopy = useCallback(async () => {
     if (!selectedContent) return
@@ -132,6 +162,29 @@ export function CreateContent() {
     toast.success('Draft saved!')
   }, [selectedContent, platforms, tone, contentType])
 
+  const handleSchedule = useCallback(() => {
+    if (!selectedContent || !scheduledDate) return
+
+    // Parse time
+    const [hours, minutes] = scheduledTime.split(':').map(Number)
+    const date = new Date(scheduledDate)
+    date.setHours(hours, minutes)
+
+    const existingScheduled = JSON.parse(localStorage.getItem('postpilot_scheduled') || '[]')
+    const newItem = {
+      id: Date.now().toString(),
+      content: selectedContent.content,
+      hashtags: selectedContent.hashtags,
+      platforms,
+      scheduledAt: date.toISOString(),
+      type: 'post',
+      status: 'scheduled'
+    }
+
+    localStorage.setItem('postpilot_scheduled', JSON.stringify([newItem, ...existingScheduled]))
+    toast.success(`Scheduled for ${format(date, 'PPP p')}!`)
+  }, [selectedContent, scheduledDate, scheduledTime, platforms])
+
   const handleCopyThread = useCallback(async (tweets: ThreadTweet[]) => {
     const text = tweets.map((t, i) => `${i + 1}/ ${t.content}`).join('\n\n')
     await navigator.clipboard.writeText(text)
@@ -144,6 +197,29 @@ export function CreateContent() {
     localStorage.setItem('postpilot_threads', JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing]))
     toast.success('Thread saved!')
   }, [])
+
+  const handleScheduleThread = useCallback((thread: Partial<Thread>) => {
+    if (!thread.tweets?.length || !scheduledDate) return
+
+    // Parse time
+    const [hours, minutes] = scheduledTime.split(':').map(Number)
+    const date = new Date(scheduledDate)
+    date.setHours(hours, minutes)
+
+    const existingScheduled = JSON.parse(localStorage.getItem('postpilot_scheduled') || '[]')
+    const newItem = {
+      id: Date.now().toString(),
+      content: thread.tweets[0].content, // Use first tweet as preview
+      title: thread.title,
+      scheduledAt: date.toISOString(),
+      type: 'thread',
+      status: 'scheduled',
+      threadData: thread
+    }
+
+    localStorage.setItem('postpilot_scheduled', JSON.stringify([newItem, ...existingScheduled]))
+    toast.success(`Thread scheduled for ${format(date, 'PPP p')}!`)
+  }, [scheduledDate, scheduledTime])
 
   const handleImproved = useCallback(
     (newContent: string, newHashtags: string[]) => {
@@ -393,11 +469,41 @@ export function CreateContent() {
           {mode === 'thread' && hasThread && (
             <Card>
               <CardContent className="pt-6">
+                <div className="mb-4 flex flex-wrap items-center gap-3 border-b pb-4">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="justify-start text-left font-normal">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {scheduledDate ? format(scheduledDate, 'PPP') : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={scheduledDate}
+                        onSelect={setScheduledDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="time"
+                      value={scheduledTime}
+                      onChange={(e) => setScheduledTime(e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-background py-1 pl-9 pr-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+
                 <ThreadView
                   thread={(threadObject ?? {}) as Partial<Thread>}
                   isGenerating={isGeneratingThread}
                   onCopy={handleCopyThread}
                   onSave={handleSaveThread}
+                  onSchedule={handleScheduleThread}
                 />
               </CardContent>
             </Card>
@@ -561,7 +667,7 @@ export function CreateContent() {
                     </ImproveDialog>
                   )}
 
-                  <Button onClick={handleCopy}>
+                  <Button onClick={handleCopy} variant="outline">
                     {copied ? (
                       <>
                         <svg
@@ -594,10 +700,43 @@ export function CreateContent() {
                             d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"
                           />
                         </svg>
-                        Copy to Clipboard
+                        Copy
                       </>
                     )}
                   </Button>
+
+                  <div className="flex items-center gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="justify-start text-left font-normal">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {scheduledDate ? format(scheduledDate, 'PPP') : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={scheduledDate}
+                          onSelect={setScheduledDate}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="time"
+                        value={scheduledTime}
+                        onChange={(e) => setScheduledTime(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                    </div>
+
+                    <Button onClick={handleSchedule}>
+                      Schedule Post
+                    </Button>
+                  </div>
                 </div>
               )}
             </>

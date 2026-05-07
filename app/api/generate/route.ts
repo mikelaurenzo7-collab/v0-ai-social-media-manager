@@ -45,7 +45,7 @@ const PLATFORM_DEEP_GUIDES: Record<string, string> = {
 }
 
 export async function POST(req: Request) {
-  const { prompt, tone, contentType, platforms } = await req.json()
+  const { prompt, tone, contentType, platforms, brandVoice, targetAudience } = await req.json()
 
   const platformNames = (platforms as string[]).join(', ')
   const platformGuides = (platforms as string[])
@@ -66,6 +66,8 @@ Content rules:
 - Make every word count — no filler, no clichés, no generic openers.
 - Match the tone precisely: ${tone}.
 - Content type is ${contentType} — reflect this in the approach.
+${brandVoice ? `- BRAND VOICE: Follow these brand voice instructions strictly: ${brandVoice}` : ''}
+${targetAudience ? `- TARGET AUDIENCE: The content is specifically for: ${targetAudience}` : ''}
 - Include strategic hashtags appropriate for the platform (respect platform hashtag limits).
 - Use emojis sparingly and only when they genuinely enhance the message.
 - Add a platformTip for each variation — one advanced tactic to maximize reach on the primary platform.
