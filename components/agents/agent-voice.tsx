@@ -90,7 +90,7 @@ export function getAgentVoice(agentId: string): AgentVoiceSettings | null {
 
 // ── Voice preview generator ────────────────────────────────────────────────────
 
-function makePreview(settings: AgentVoiceSettings, agentName: string): string {
+function makePreview(settings: AgentVoiceSettings): string {
   const arch = settings.archetypes[0] ?? 'The Educator'
   const hooks: Record<string, string> = {
     'The Educator':    'The thing nobody tells you about growing an audience:',
@@ -159,9 +159,13 @@ export function AgentVoice({ agent }: { agent: Agent }) {
   }, [])
 
   const handleSave = useCallback(() => {
-    localStorage.setItem(storageKey(agent.id), JSON.stringify(settings))
-    // Also update global voice key for Repurpose Engine (use last-saved agent voice)
-    localStorage.setItem('postpilot_brand_voice', JSON.stringify(settings))
+    try {
+      localStorage.setItem(storageKey(agent.id), JSON.stringify(settings))
+      localStorage.setItem('postpilot_brand_voice', JSON.stringify(settings))
+    } catch {
+      toast.error('Failed to save voice settings')
+      return
+    }
     setSaved(true)
     toast.success(`${agent.name} voice saved`, {
       description: 'Auto-Pilot and Repurpose Engine will use this style',
@@ -169,7 +173,7 @@ export function AgentVoice({ agent }: { agent: Agent }) {
     setTimeout(() => setSaved(false), 3000)
   }, [agent.id, agent.name, settings])
 
-  const preview = mounted ? makePreview(settings, agent.name) : ''
+  const preview = mounted ? makePreview(settings) : ''
 
   return (
     <div className="grid gap-6 lg:grid-cols-5">
