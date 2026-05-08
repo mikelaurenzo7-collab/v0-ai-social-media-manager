@@ -34,6 +34,12 @@ export function CreateContent() {
 
   // Form state — seed from ?idea= if present
   const [prompt, setPrompt] = useState(ideaParam ?? '')
+
+  // Keep prompt in sync when the user navigates to a new ?idea= link without unmounting
+  useEffect(() => {
+    if (editId) return
+    setPrompt(ideaParam ?? '')
+  }, [ideaParam, editId])
   const [tone, setTone] = useState<ToneId>('casual')
   const [contentType, setContentType] = useState<ContentTypeId>('promotional')
   const [platforms, setPlatforms] = useState<PlatformId[]>(['twitter', 'instagram'])

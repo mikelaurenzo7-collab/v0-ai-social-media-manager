@@ -309,26 +309,34 @@ export function RepurposeStudio() {
   const [sourceType, setSourceType] = useState<string>('blog_post')
   const [niche, setNiche] = useState('')
   const [activeTab, setActiveTab] = useState<PlatformTab>('twitter')
-  const [hasGenerated, setHasGenerated] = useState(false)
 
   const { object, submit, isLoading, stop } = experimental_useObject({
     api: '/api/repurpose',
     schema: repurposeSchema,
     onFinish: () => {
       toast.success('Content repurposed across all 5 platforms!')
-      setHasGenerated(true)
     },
     onError: () => {
       toast.error('Failed to repurpose content. Please try again.')
     },
   })
 
+  // True when any partial output has arrived — keeps the panel visible after Stop
+  const hasOutput = Boolean(
+    object?.key_insight ||
+    object?.suggested_hook ||
+    object?.twitter_thread?.tweets?.length ||
+    object?.linkedin?.full_post ||
+    object?.instagram?.caption ||
+    object?.tiktok?.hook ||
+    object?.facebook?.post
+  )
+
   const handleSubmit = useCallback(() => {
     if (!content.trim() || content.trim().length < 50) {
       toast.error('Please paste at least 50 characters of source content.')
       return
     }
-    setHasGenerated(false)
     submit({ content: content.trim(), sourceType, niche: niche.trim() || undefined })
   }, [content, sourceType, niche, submit])
 
@@ -482,7 +490,7 @@ export function RepurposeStudio() {
         </div>
 
         {/* Platform output tabs */}
-        {(isLoading || hasGenerated) && (
+        {(isLoading || hasOutput) && (
           <Card className="border-border/60 shadow-sm">
             <CardHeader className="pb-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -528,7 +536,7 @@ export function RepurposeStudio() {
         )}
 
         {/* Empty state */}
-        {!isLoading && !hasGenerated && (
+        {!isLoading && !hasOutput && (
           <div className="grid gap-4 sm:grid-cols-5">
             {PLATFORM_TABS.map((tab) => (
               <div

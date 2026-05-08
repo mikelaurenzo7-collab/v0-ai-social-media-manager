@@ -5,21 +5,35 @@ import { auth } from '@/lib/next-auth'
 
 const anthropic = createAnthropic()
 
-const trendsSchema = z.object({
-  topics: z
-    .array(
-      z.object({
-        title: z.string().describe('Short, punchy topic title — 4-8 words'),
-        angle: z.string().describe('The specific angle or framing that makes this compelling — 1 sentence'),
-        platform: z.enum(['twitter', 'instagram', 'linkedin', 'tiktok', 'all']),
-        urgency: z.enum(['trending_now', 'evergreen', 'seasonal']),
-        hook: z.string().describe('A ready-to-use opening hook for this topic — 1-2 sentences'),
-        why: z.string().describe('Why this will perform well right now — 1 sentence'),
-      })
-    )
-    .min(5)
-    .max(5),
-})
+const REQUIRED_PLATFORMS = ['twitter', 'instagram', 'linkedin', 'tiktok'] as const
+
+const trendsSchema = z
+  .object({
+    topics: z
+      .array(
+        z.object({
+          title: z.string().describe('Short, punchy topic title — 4-8 words'),
+          angle: z.string().describe('The specific angle or framing that makes this compelling — 1 sentence'),
+          platform: z.enum(['twitter', 'instagram', 'linkedin', 'tiktok', 'all']),
+          urgency: z.enum(['trending_now', 'evergreen', 'seasonal']),
+          hook: z.string().describe('A ready-to-use opening hook for this topic — 1-2 sentences'),
+          why: z.string().describe('Why this will perform well right now — 1 sentence'),
+        })
+      )
+      .length(5),
+  })
+  .superRefine(({ topics }, ctx) => {
+    const covered = new Set(topics.map((t) => t.platform))
+    for (const platform of REQUIRED_PLATFORMS) {
+      if (!covered.has(platform) && !covered.has('all')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['topics'],
+          message: `Missing required platform coverage for ${platform}`,
+        })
+      }
+    }
+  })
 
 const requestSchema = z.object({
   niche: z.string().trim().min(1).max(200),

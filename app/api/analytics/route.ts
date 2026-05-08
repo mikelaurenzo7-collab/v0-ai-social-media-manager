@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless'
 import { getCurrentUserId } from '@/lib/oauth/session'
-import { subDays, format, eachDayOfInterval, startOfDay } from 'date-fns'
+import { subDays, addDays, format, eachDayOfInterval, startOfDay } from 'date-fns'
 
 export async function GET(req: Request) {
   const sql = neon(process.env.DATABASE_URL!)
@@ -14,7 +14,11 @@ export async function GET(req: Request) {
     }
 
     const days = period === '7D' ? 7 : period === '90D' ? 90 : 30
-    const since = subDays(new Date(), days)
+    // Inclusive range: start..end produces exactly `days` buckets
+    const end = startOfDay(new Date())
+    const start = subDays(end, days - 1)
+    const startISO = start.toISOString()
+    const endISO = addDays(end, 1).toISOString()
 
     const [postsRaw, platformRaw, totalPublished, totalDrafts, totalConnections] =
       await Promise.all([
@@ -26,7 +30,8 @@ export async function GET(req: Request) {
           FROM "PublishedPost"
           WHERE "userId" = ${userId}
             AND status = 'published'
-            AND "publishedAt" >= ${since.toISOString()}
+            AND "publishedAt" >= ${startISO}
+            AND "publishedAt" < ${endISO}
           GROUP BY platform, DATE_TRUNC('day', "publishedAt")
           ORDER BY day ASC
         `,
@@ -35,17 +40,26 @@ export async function GET(req: Request) {
           FROM "PublishedPost"
           WHERE "userId" = ${userId}
             AND status = 'published'
-            AND "publishedAt" >= ${since.toISOString()}
+            AND "publishedAt" >= ${startISO}
+            AND "publishedAt" < ${endISO}
           GROUP BY platform
           ORDER BY count DESC
         `,
-        sql`SELECT COUNT(*)::int AS count FROM "PublishedPost" WHERE "userId" = ${userId} AND status = 'published'`,
+        // totals scoped to the selected period
+        sql`
+          SELECT COUNT(*)::int AS count
+          FROM "PublishedPost"
+          WHERE "userId" = ${userId}
+            AND status = 'published'
+            AND "publishedAt" >= ${startISO}
+            AND "publishedAt" < ${endISO}
+        `,
         sql`SELECT COUNT(*)::int AS count FROM "Draft" WHERE "userId" = ${userId}`,
         sql`SELECT COUNT(*)::int AS count FROM "SocialConnection" WHERE "userId" = ${userId}`,
       ])
 
     // Build a full date range so every day appears in the time series
-    const dateRange = eachDayOfInterval({ start: startOfDay(since), end: startOfDay(new Date()) })
+    const dateRange = eachDayOfInterval({ start, end })
     const dateMap: Record<string, Record<string, number>> = {}
     for (const d of dateRange) {
       dateMap[format(d, 'MMM d')] = {

@@ -12,7 +12,7 @@ const repurposeSchema = z.object({
     tweets: z.array(
       z.object({
         n: z.number().describe('Tweet number starting at 1'),
-        content: z.string().describe('Tweet text, max 280 chars. Tweet 1 is the hook tweet.'),
+        content: z.string().max(280).describe('Tweet text, max 280 chars. Tweet 1 is the hook tweet.'),
       })
     ).min(6).max(12),
   }),
@@ -71,8 +71,8 @@ const requestSchema = z.object({
     'tweet',
     'idea',
   ]),
-  niche: z.string().optional(),
-  tone: z.string().optional(),
+  niche: z.string().trim().min(1).max(120).optional(),
+  tone: z.string().trim().min(1).max(80).optional(),
 })
 
 const SOURCE_LABELS: Record<string, string> = {
