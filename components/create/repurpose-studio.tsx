@@ -336,8 +336,14 @@ export function RepurposeStudio() {
     object?.suggested_hook ||
     object?.twitter_thread?.tweets?.length ||
     object?.linkedin?.full_post ||
+    object?.linkedin?.hashtags?.length ||
     object?.instagram?.caption ||
+    object?.instagram?.carousel_titles?.length ||
+    object?.instagram?.hashtags?.length ||
     object?.tiktok?.hook ||
+    object?.tiktok?.script_beats?.length ||
+    object?.tiktok?.caption ||
+    object?.tiktok?.on_screen_text ||
     object?.facebook?.post
   )
 

@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       model: anthropic('claude-haiku-4-5-20251001'),
       schema: trendsSchema,
       abortSignal: controller.signal,
-      prompt: `Generate 5 high-performing content topic ideas for a creator in the "${niche}" niche. Today is ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
+      prompt: `Generate 5 high-performing content topic ideas for a creator in the "${niche}" niche. Today is ${new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date())}.
 
 Mix of content types:
 - 1-2 timely / trending topics relevant right now

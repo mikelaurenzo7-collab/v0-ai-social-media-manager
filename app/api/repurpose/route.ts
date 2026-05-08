@@ -80,7 +80,9 @@ const requestSchema = z.object({
   tone: z.string().trim().min(1).max(80).optional(),
 })
 
-const SOURCE_LABELS: Record<string, string> = {
+type SourceType = z.infer<typeof requestSchema>['sourceType']
+
+const SOURCE_LABELS: Record<SourceType, string> = {
   blog_post: 'blog post',
   newsletter: 'newsletter',
   youtube_transcript: 'YouTube transcript',
@@ -103,7 +105,7 @@ export async function POST(req: Request) {
   }
   const { content, sourceType, niche, tone } = validation.data
 
-  const sourceLabel = SOURCE_LABELS[sourceType] ?? 'content'
+  const sourceLabel = SOURCE_LABELS[sourceType]
   const nicheCtx = niche ? `Creator niche: ${niche}.` : ''
   const toneCtx = tone ? `Preferred tone: ${tone}.` : 'Default to conversational but substantive.'
 
