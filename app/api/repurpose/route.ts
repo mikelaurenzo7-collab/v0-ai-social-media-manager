@@ -1,6 +1,7 @@
 import { streamObject } from 'ai'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
+import { getCurrentUserId } from '@/lib/oauth/session'
 
 const anthropic = createAnthropic()
 
@@ -85,6 +86,11 @@ const SOURCE_LABELS: Record<string, string> = {
 }
 
 export async function POST(req: Request) {
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const body = await req.json().catch(() => null)
   const validation = requestSchema.safeParse(body)
   if (!validation.success) {
