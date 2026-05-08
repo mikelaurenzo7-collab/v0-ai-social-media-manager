@@ -40,23 +40,27 @@ const requestSchema = z.object({
 })
 
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => null)
-  const validation = requestSchema.safeParse(body)
-  if (!validation.success) {
-    return Response.json({ error: 'Invalid request' }, { status: 400 })
-  }
-
   try {
     const session = await auth()
     if (!session?.user?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const body = await req.json().catch(() => null)
+    const validation = requestSchema.safeParse(body)
+    if (!validation.success) {
+      return Response.json({ error: 'Invalid request' }, { status: 400 })
+    }
+
     const { niche } = validation.data
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15_000)
 
     const result = await generateObject({
       model: anthropic('claude-haiku-4-5-20251001'),
       schema: trendsSchema,
+      abortSignal: controller.signal,
       prompt: `Generate 5 high-performing content topic ideas for a creator in the "${niche}" niche. Today is ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
 
 Mix of content types:
@@ -69,10 +73,13 @@ Requirements:
 - The hook should be immediately usable, not a template
 - Vary the format: listicle, story, opinion, tutorial, data-driven
 - Make them genuinely interesting and likely to spark engagement`,
-    })
+    }).finally(() => clearTimeout(timeoutId))
 
     return Response.json(result.object)
-  } catch {
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      return Response.json({ error: 'Request timed out' }, { status: 504 })
+    }
     return Response.json({ error: 'Failed to generate trend ideas' }, { status: 500 })
   }
 }

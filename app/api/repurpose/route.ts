@@ -5,6 +5,11 @@ import { auth } from '@/lib/next-auth'
 
 const anthropic = createAnthropic()
 
+const hashtagSchema = z
+  .string()
+  .trim()
+  .regex(/^[^#\s][^\s]*$/, 'Hashtags must omit the # prefix and contain no spaces')
+
 const repurposeSchema = z.object({
   key_insight: z.string().describe('The single most powerful insight extracted from the source content'),
   suggested_hook: z.string().describe('The best viral hook formula derived from this content'),
@@ -22,7 +27,7 @@ const repurposeSchema = z.object({
       .describe(
         'Complete LinkedIn post. First 3 lines are the hook shown before "see more". Full body after. Use line breaks. 150-600 words.'
       ),
-    hashtags: z.array(z.string()).max(5).describe('3-5 hashtags without the # symbol'),
+    hashtags: z.array(hashtagSchema).min(3).max(5).describe('3-5 hashtags without the # symbol'),
   }),
   instagram: z.object({
     caption: z
@@ -33,7 +38,7 @@ const repurposeSchema = z.object({
       .min(4)
       .max(8)
       .describe('Carousel slide titles — bold, punchy, 2-5 words each'),
-    hashtags: z.array(z.string()).max(15).describe('8-15 hashtags without #'),
+    hashtags: z.array(hashtagSchema).min(8).max(15).describe('8-15 hashtags without #'),
   }),
   tiktok: z.object({
     hook: z

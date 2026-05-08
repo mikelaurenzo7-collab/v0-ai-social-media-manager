@@ -32,8 +32,8 @@ export function CreateContent() {
   const [threadTweetCount, setThreadTweetCount] = useState<ThreadTweetCount>(7)
   const [threadTone, setThreadTone] = useState('educational and engaging')
 
-  // Form state — seed from ?idea= if present
-  const [prompt, setPrompt] = useState(ideaParam ?? '')
+  // Form state — seed from ?idea= if present (not when editing a draft)
+  const [prompt, setPrompt] = useState(() => (editId ? '' : (ideaParam ?? '')))
 
   // Keep prompt in sync when the user navigates to a new ?idea= link without unmounting
   useEffect(() => {

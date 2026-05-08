@@ -76,11 +76,20 @@ function useCopy() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const copy = useCallback(
     (text: string, key: string) => {
-      navigator.clipboard.writeText(text).then(() => {
-        setCopiedKey(key)
-        toast.success('Copied to clipboard')
-        setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 2000)
-      })
+      if (!navigator.clipboard?.writeText) {
+        toast.error('Clipboard is not available in this browser.')
+        return
+      }
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          setCopiedKey(key)
+          toast.success('Copied to clipboard')
+          setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 2000)
+        })
+        .catch(() => {
+          toast.error('Unable to copy to clipboard.')
+        })
     },
     []
   )

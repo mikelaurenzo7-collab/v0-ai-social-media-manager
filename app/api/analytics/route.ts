@@ -99,7 +99,8 @@ export async function GET(req: Request) {
       },
       hasData: postsRaw.length > 0,
     })
-  } catch {
+  } catch (err) {
+    console.error('[analytics] Failed to load analytics:', err)
     return Response.json({ error: 'Failed to load analytics' }, { status: 500 })
   }
 }
