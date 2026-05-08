@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   const { topic, tweetCount, tone } = requestSchema.parse(body)
 
   const result = streamObject({
-    model: 'anthropic/claude-sonnet-4.6',
+    model: 'anthropic/claude-sonnet-4-6',
     schema: threadSchema,
     system: `You are a viral Twitter/X thread writer. You write threads that educate, entertain, and grow followings fast.
 

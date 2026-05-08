@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   const hashtagStr = hashtags.map((h) => `#${h}`).join(' ')
 
   const { object } = await generateObject({
-    model: 'anthropic/claude-haiku-4.5',
+    model: 'anthropic/claude-haiku-4-5-20251001',
     schema: improveResponseSchema,
     system: `You are an expert social media copywriter. Improve the given post based on the user's feedback. Tone: ${tone}. Platforms: ${platformNames}.`,
     prompt: `Original post:\n${content}\n\nHashtags: ${hashtagStr}\n\nUser feedback: ${feedback}\n\nRewrite the post incorporating this feedback while keeping it optimized for ${platformNames}. Return the improved content and updated hashtags.`,
