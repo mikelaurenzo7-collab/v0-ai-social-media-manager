@@ -1,0 +1,64 @@
+import { generateObject } from 'ai'
+import { createAnthropic } from '@ai-sdk/anthropic'
+import { z } from 'zod'
+import { getCurrentUserId } from '@/lib/oauth/session'
+
+const anthropic = createAnthropic()
+
+const trendsSchema = z.object({
+  topics: z
+    .array(
+      z.object({
+        title: z.string().describe('Short, punchy topic title — 4-8 words'),
+        angle: z.string().describe('The specific angle or framing that makes this compelling — 1 sentence'),
+        platform: z.enum(['twitter', 'instagram', 'linkedin', 'tiktok', 'all']),
+        urgency: z.enum(['trending_now', 'evergreen', 'seasonal']),
+        hook: z.string().describe('A ready-to-use opening hook for this topic — 1-2 sentences'),
+        why: z.string().describe('Why this will perform well right now — 1 sentence'),
+      })
+    )
+    .min(5)
+    .max(5),
+})
+
+const requestSchema = z.object({
+  niche: z.string().trim().min(1).max(200),
+})
+
+export async function POST(req: Request) {
+  const body = await req.json().catch(() => null)
+  const validation = requestSchema.safeParse(body)
+  if (!validation.success) {
+    return Response.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
+  try {
+    const userId = await getCurrentUserId()
+    if (!userId) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { niche } = validation.data
+
+    const result = await generateObject({
+      model: anthropic('claude-haiku-4-5-20251001'),
+      schema: trendsSchema,
+      prompt: `Generate 5 high-performing content topic ideas for a creator in the "${niche}" niche. Today is ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
+
+Mix of content types:
+- 1-2 timely / trending topics relevant right now
+- 2-3 evergreen topics that consistently perform well in this niche
+- At least one per major platform (Twitter, LinkedIn, Instagram, TikTok)
+
+Requirements:
+- Each topic must be SPECIFIC to the niche — no generic advice
+- The hook should be immediately usable, not a template
+- Vary the format: listicle, story, opinion, tutorial, data-driven
+- Make them genuinely interesting and likely to spark engagement`,
+    })
+
+    return Response.json(result.object)
+  } catch {
+    return Response.json({ error: 'Failed to generate trend ideas' }, { status: 500 })
+  }
+}

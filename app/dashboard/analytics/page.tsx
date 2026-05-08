@@ -198,12 +198,27 @@ function EngagementTooltip({
   )
 }
 
+// ── Real analytics shape ───────────────────────────────────────────────────────
+
+interface AnalyticsData {
+  timeSeries: Array<Record<string, number | string>>
+  platformTotals: Record<string, number>
+  totals: { published: number; drafts: number; connections: number }
+  hasData: boolean
+}
+
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>('30D')
   const [activePlatforms, setActivePlatforms] = useState<Set<string>>(
     new Set(['twitter', 'instagram', 'linkedin', 'tiktok'])
+  )
+
+  const { data: analytics, isLoading: analyticsLoading } = useSWR<AnalyticsData>(
+    `/api/analytics?period=${period}`,
+    fetcher,
+    { revalidateOnFocus: false }
   )
 
   const { data: stats } = useSWR<{
@@ -214,12 +229,14 @@ export default function AnalyticsPage() {
     connectedAccounts: number
   }>('/api/stats', fetcher, { refreshInterval: 60000 })
 
+  const usingRealData = !analyticsLoading && analytics?.hasData === true
+
   const totalContent = (stats?.drafts ?? 0) + (stats?.threads ?? 0)
-  const published = stats?.publishedPosts ?? 0
+  const published = usingRealData ? (analytics?.totals.published ?? 0) : (stats?.publishedPosts ?? 0)
   const scheduled = stats?.scheduledPosts ?? 0
 
   const kpi = KPIS[period]
-  const chartData = CHART_DATA[period]
+  const chartData = usingRealData ? (analytics?.timeSeries ?? CHART_DATA[period]) : CHART_DATA[period]
 
   // Build period label from today
   const today = new Date()
@@ -271,8 +288,20 @@ export default function AnalyticsPage() {
       />
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Date range label */}
-        <p className="text-xs text-muted-foreground -mt-2">{periodLabel}</p>
+        {/* Date range + data source label */}
+        <div className="flex items-center gap-3 -mt-2">
+          <p className="text-xs text-muted-foreground">{periodLabel}</p>
+          {!analyticsLoading && !usingRealData && (
+            <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-400">
+              Sample data · Publish posts to see real analytics
+            </span>
+          )}
+          {usingRealData && (
+            <span className="rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-[10px] font-bold text-green-700 dark:border-green-800/40 dark:bg-green-950/30 dark:text-green-400">
+              Live data
+            </span>
+          )}
+        </div>
 
         {/* ── KPIs ─────────────────────────────────────────────────────────── */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -340,7 +369,7 @@ export default function AnalyticsPage() {
             {[
               { label: 'Drafts saved',       value: stats?.drafts ?? 0,           href: '/dashboard/drafts' },
               { label: 'Threads saved',      value: stats?.threads ?? 0,          href: '/dashboard/drafts' },
-              { label: 'Published posts',    value: stats?.publishedPosts ?? 0,   href: '/dashboard/accounts' },
+              { label: 'Published posts',    value: published,                    href: '/dashboard/accounts' },
               { label: 'Scheduled posts',    value: stats?.scheduledPosts ?? 0,   href: '/dashboard/calendar' },
               { label: 'Connected accounts', value: stats?.connectedAccounts ?? 0, href: '/dashboard/accounts' },
             ].map((item) => (
