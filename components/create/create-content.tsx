@@ -32,13 +32,14 @@ export function CreateContent() {
   const { displayName, userName } = useMemo(() => {
     const name: string | undefined = sessionData?.user?.name
     const email: string | undefined = sessionData?.user?.email
+    // Sanitize name to a handle, but fall through to email-local-part /
+    // placeholder when sanitization produces an empty string (e.g. an
+    // all-emoji or all-symbol display name).
+    const sanitizedName = name?.toLowerCase().replace(/[^a-z0-9]/g, '') ?? ''
+    const emailLocal    = email?.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '') ?? ''
     return {
       displayName: name || 'Your Brand',
-      userName: name
-        ? name.toLowerCase().replace(/[^a-z0-9]/g, '')
-        : email
-          ? email.split('@')[0]
-          : 'yourbrand',
+      userName: sanitizedName || emailLocal || 'yourbrand',
     }
   }, [sessionData])
 
