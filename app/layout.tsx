@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
+import { SessionProvider } from 'next-auth/react'
 import './globals.css'
 
 const geistSans = Geist({
@@ -76,7 +77,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}
     >
       <body className="font-sans antialiased bg-background text-foreground">
-        {children}
+        <SessionProvider>
+          {children}
+        </SessionProvider>
         <Toaster position="bottom-right" richColors closeButton theme="light" />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

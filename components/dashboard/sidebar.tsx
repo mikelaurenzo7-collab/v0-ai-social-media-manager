@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession, signOut } from 'next-auth/react'
 import { cn } from '@/lib/utils'
+import { LogOut } from 'lucide-react'
 
 interface NavItem {
   name: string
@@ -93,7 +95,12 @@ const navigation: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { data: session } = useSession()
   const isCreateActive = pathname === '/dashboard/create' || pathname.startsWith('/dashboard/create/')
+
+  const userName = session?.user?.name ?? 'Guest'
+  const userEmail = session?.user?.email ?? ''
+  const userInitial = userName.charAt(0).toUpperCase()
 
   return (
     <aside className="flex h-screen w-60 flex-col" style={{ background: 'oklch(0.135 0.018 48)' }}>
@@ -205,12 +212,20 @@ export function Sidebar() {
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
             style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
           >
-            D
+            {userInitial}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="truncate text-xs font-semibold text-white">Demo User</p>
-            <p className="truncate text-[10px]" style={{ color: 'oklch(0.42 0.012 52)' }}>Free · 25 generations left</p>
+            <p className="truncate text-xs font-semibold text-white">{userName}</p>
+            <p className="truncate text-[10px]" style={{ color: 'oklch(0.42 0.012 52)' }}>{userEmail || 'Free plan'}</p>
           </div>
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="shrink-0 rounded-lg p-1 transition-colors hover:bg-white/10"
+            title="Sign out"
+            aria-label="Sign out"
+          >
+            <LogOut className="h-3.5 w-3.5" style={{ color: 'oklch(0.42 0.012 52)' }} />
+          </button>
         </div>
 
         {/* Upgrade CTA */}

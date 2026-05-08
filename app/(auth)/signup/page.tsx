@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
-import { SocialButtons } from '@/components/auth/social-buttons'
-import { ArrowRight, Check } from 'lucide-react'
+import { ArrowRight, Check, AlertCircle } from 'lucide-react'
 
 const PERKS = [
   '25 free generations · all 6 specialist agents',
@@ -22,12 +22,42 @@ export default function SignupPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 800))
+    setError(null)
+
+    // 1. Register
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setError(data.error ?? 'Registration failed. Please try again.')
+      setLoading(false)
+      return
+    }
+
+    // 2. Sign in immediately after registration
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      setError('Account created — please sign in.')
+      router.push('/login')
+      return
+    }
+
     router.push('/dashboard')
+    router.refresh()
   }
 
   return (
@@ -52,20 +82,14 @@ export default function SignupPage() {
       </ul>
 
       <div className="mt-6 space-y-4">
-        <SocialButtons variant="signup" />
-
-        <div className="relative my-2">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border/70" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-background px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              or with email
-            </span>
-          </div>
-        </div>
-
         <form onSubmit={onSubmit} className="space-y-4">
+          {error && (
+            <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="name" className="text-xs font-semibold">Full name</Label>
             <Input

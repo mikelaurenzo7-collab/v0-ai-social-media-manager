@@ -2,26 +2,43 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
-import { SocialButtons } from '@/components/auth/social-buttons'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard'
+
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    // TODO: wire to real auth route
-    await new Promise((r) => setTimeout(r, 800))
-    router.push('/dashboard')
+    setError(null)
+
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    })
+
+    if (result?.error) {
+      setError('Invalid email or password. Please try again.')
+      setLoading(false)
+      return
+    }
+
+    router.push(callbackUrl)
+    router.refresh()
   }
 
   return (
@@ -34,20 +51,14 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 space-y-4">
-        <SocialButtons variant="login" />
-
-        <div className="relative my-2">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border/70" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-background px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              or with email
-            </span>
-          </div>
-        </div>
-
         <form onSubmit={onSubmit} className="space-y-4">
+          {error && (
+            <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-3 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="email" className="text-xs font-semibold">Email</Label>
             <Input
