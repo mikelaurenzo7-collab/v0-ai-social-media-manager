@@ -97,7 +97,7 @@ export async function POST(req: Request) {
   const agentTools = agentId ? (AGENT_TOOLS[agentId as keyof typeof AGENT_TOOLS] || {}) : {}
 
   const result = streamText({
-    model: 'anthropic/claude-sonnet-4.6',
+    model: 'anthropic/claude-sonnet-4-6',
     system: systemPrompt,
     messages: modelMessages,
     temperature,
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
         }),
         execute: async ({ content, platform }) => {
           const { object } = await generateObject({
-            model: 'anthropic/claude-haiku-4.5',
+            model: 'anthropic/claude-haiku-4-5-20251001',
             schema: z.object({
               overallScore: z.number().min(1).max(10),
               hookStrength: z.number().min(1).max(10),
@@ -151,7 +151,7 @@ export async function POST(req: Request) {
         }),
         execute: async ({ topic, platform, count }) => {
           const { object } = await generateObject({
-            model: 'anthropic/claude-haiku-4.5',
+            model: 'anthropic/claude-haiku-4-5-20251001',
             schema: z.object({
               hashtags: z
                 .array(
@@ -192,7 +192,7 @@ export async function POST(req: Request) {
         }),
         execute: async ({ topic, tweetCount, tone }) => {
           const { object } = await generateObject({
-            model: 'anthropic/claude-haiku-4.5',
+            model: 'anthropic/claude-haiku-4-5-20251001',
             schema: z.object({
               threadTitle: z.string(),
               tweets: z
@@ -253,7 +253,7 @@ export async function POST(req: Request) {
             tiktok: 'Write a video script hook — first 1-3 seconds must grab attention. On-screen text idea. Trending sound suggestion. Caption is short (under 150 chars). End with a CTA to comment or duet.',
           }
           const { object } = await generateObject({
-            model: 'anthropic/claude-haiku-4.5',
+            model: 'anthropic/claude-haiku-4-5-20251001',
             schema: z.object({
               rewrittenContent: z.string().describe('The platform-optimized version of the content'),
               keyChanges: z.array(z.string()).max(4).describe('What was changed and why'),
@@ -278,7 +278,7 @@ export async function POST(req: Request) {
         }),
         execute: async ({ topic, platform }) => {
           const { object } = await generateObject({
-            model: 'anthropic/claude-haiku-4.5',
+            model: 'anthropic/claude-haiku-4-5-20251001',
             schema: z.object({
               hooks: z
                 .array(
@@ -314,7 +314,7 @@ export async function POST(req: Request) {
         }),
         execute: async ({ niche, platform, goal }) => {
           const { object } = await generateObject({
-            model: 'anthropic/claude-haiku-4.5',
+            model: 'anthropic/claude-haiku-4-5-20251001',
             schema: z.object({
               weekTheme: z.string().describe('An overarching theme that ties the week together'),
               days: z
@@ -360,7 +360,7 @@ export async function POST(req: Request) {
           }
           const limits = bioLimits[platform]
           const { object } = await generateObject({
-            model: 'anthropic/claude-haiku-4.5',
+            model: 'anthropic/claude-haiku-4-5-20251001',
             schema: z.object({
               bio: z.string().describe('The optimized bio text'),
               characterCount: z.number().describe('Character count'),
@@ -475,7 +475,7 @@ const AGENT_TOOLS = {
       }),
       execute: async ({ content }) => {
         const { object } = await generateObject({
-          model: 'anthropic/claude-haiku-4.5',
+          model: 'anthropic/claude-haiku-4-5-20251001',
           schema: z.object({
             score: z.number().min(1).max(100),
             reasoning: z.string(),
@@ -496,7 +496,7 @@ const AGENT_TOOLS = {
       }),
       execute: async ({ content, pillars }) => {
         const { object } = await generateObject({
-          model: 'anthropic/claude-haiku-4.5',
+          model: 'anthropic/claude-haiku-4-5-20251001',
           schema: z.object({
             alignmentScore: z.number().min(1).max(10),
             pillarMatches: z.array(z.string()),

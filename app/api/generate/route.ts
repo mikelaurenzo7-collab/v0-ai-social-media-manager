@@ -92,7 +92,7 @@ Hook types to rotate through:
 Target platforms: ${platformNames}`
 
   const result = streamObject({
-    model: 'anthropic/claude-sonnet-4.6',
+    model: 'anthropic/claude-sonnet-4-6',
     schema: contentVariationSchema,
     system: systemPrompt,
     prompt: `Create 3 unique, high-engagement social media post variations for this idea:\n\n"${prompt}"\n\nEach variation must feel like it was written by a different top creator with a distinct voice, hook style, and angle. Score each one honestly. Include a platformTip for each one.`,
