@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import useSWR from 'swr'
 import {
   AreaChart,
   Area,
@@ -13,6 +14,8 @@ import {
 import { Header } from '@/components/dashboard/header'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 const PERIODS = ['7D', '30D', '90D'] as const
 type Period = (typeof PERIODS)[number]
@@ -203,14 +206,28 @@ export default function AnalyticsPage() {
     new Set(['twitter', 'instagram', 'linkedin', 'tiktok'])
   )
 
+  const { data: stats } = useSWR<{
+    drafts: number
+    threads: number
+    publishedPosts: number
+    scheduledPosts: number
+    connectedAccounts: number
+  }>('/api/stats', fetcher, { refreshInterval: 60000 })
+
+  const totalContent = (stats?.drafts ?? 0) + (stats?.threads ?? 0)
+  const published = stats?.publishedPosts ?? 0
+  const scheduled = stats?.scheduledPosts ?? 0
+
   const kpi = KPIS[period]
   const chartData = CHART_DATA[period]
 
-  const PERIOD_LABELS: Record<Period, string> = {
-    '7D':  'Apr 30 – May 6, 2026',
-    '30D': 'Apr 6 – May 6, 2026',
-    '90D': 'Feb 5 – May 6, 2026',
-  }
+  // Build period label from today
+  const today = new Date()
+  const daysBefore = period === '7D' ? 7 : period === '30D' ? 30 : 90
+  const from = new Date(today)
+  from.setDate(from.getDate() - daysBefore)
+  const fmtDate = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  const periodLabel = `${fmtDate(from)} – ${fmtDate(today)}`
 
   const togglePlatform = (p: string) => {
     setActivePlatforms((prev) => {
@@ -255,33 +272,92 @@ export default function AnalyticsPage() {
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Date range label */}
-        <p className="text-xs text-muted-foreground -mt-2">{PERIOD_LABELS[period]}</p>
+        <p className="text-xs text-muted-foreground -mt-2">{periodLabel}</p>
 
         {/* ── KPIs ─────────────────────────────────────────────────────────── */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: 'Total Reach',       value: fmt(kpi.reach),      delta: `+${kpi.reachDelta}%`,        icon: '📡' },
-            { label: 'Avg Engagement',    value: `${kpi.engagement}%`, delta: `+${kpi.engDelta}pp`,         icon: '💬' },
-            { label: 'Posts Published',   value: kpi.posts,            delta: `+${kpi.postsDelta} vs prior`, icon: '📝' },
-            { label: 'Followers Gained',  value: `+${kpi.followers}`,  delta: `+${kpi.followersDelta}%`,    icon: '📈' },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</p>
-                <span className="text-xl">{stat.icon}</span>
-              </div>
-              <p className="text-3xl font-black tabular-nums">{stat.value}</p>
-              <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
-                </svg>
-                {stat.delta}
-              </span>
+          {/* Real DB stat: total content pieces created */}
+          <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Content Created</p>
+              <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+              </svg>
             </div>
-          ))}
+            <p className="text-3xl font-black tabular-nums">{totalContent}</p>
+            <span className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">{stats?.drafts ?? 0}</span> drafts &middot; <span className="font-semibold text-foreground">{stats?.threads ?? 0}</span> threads
+            </span>
+          </div>
+
+          {/* Real DB stat: published posts */}
+          <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Published</p>
+              <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+              </svg>
+            </div>
+            <p className="text-3xl font-black tabular-nums">{published}</p>
+            <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
+              {scheduled > 0 ? `${scheduled} scheduled` : 'No posts scheduled'}
+            </span>
+          </div>
+
+          {/* Illustrated: engagement rate */}
+          <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Avg Engagement</p>
+              <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+              </svg>
+            </div>
+            <p className="text-3xl font-black tabular-nums">{kpi.engagement}%</p>
+            <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
+              +{kpi.engDelta}pp vs prior period
+            </span>
+          </div>
+
+          {/* Illustrated: estimated reach */}
+          <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Est. Reach</p>
+              <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+              </svg>
+            </div>
+            <p className="text-3xl font-black tabular-nums">{fmt(kpi.reach)}</p>
+            <span className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
+              +{kpi.reachDelta}% vs prior period
+            </span>
+          </div>
+        </div>
+
+        {/* ── Real activity summary ─────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
+          <h3 className="text-sm font-bold mb-4">Your Activity</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            {[
+              { label: 'Drafts saved',       value: stats?.drafts ?? 0,           href: '/dashboard/drafts' },
+              { label: 'Threads saved',      value: stats?.threads ?? 0,          href: '/dashboard/drafts' },
+              { label: 'Published posts',    value: stats?.publishedPosts ?? 0,   href: '/dashboard/accounts' },
+              { label: 'Scheduled posts',    value: stats?.scheduledPosts ?? 0,   href: '/dashboard/calendar' },
+              { label: 'Connected accounts', value: stats?.connectedAccounts ?? 0, href: '/dashboard/accounts' },
+            ].map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="group flex flex-col items-center justify-center rounded-xl border border-border/50 bg-muted/20 p-4 text-center hover:bg-muted/40 hover:border-border transition-all"
+              >
+                <span className="text-2xl font-black tabular-nums group-hover:text-primary transition-colors">
+                  {item.value}
+                </span>
+                <span className="text-[10px] text-muted-foreground mt-1 font-medium uppercase tracking-wide">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* ── Engagement chart + Platform bars ─────────────────────────────── */}
