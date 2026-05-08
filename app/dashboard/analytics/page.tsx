@@ -253,7 +253,8 @@ export default function AnalyticsPage() {
   const usingRealData = !analyticsLoading && analytics?.hasData === true
 
   const totalContent = (stats?.drafts ?? 0) + (stats?.threads ?? 0)
-  const published = usingRealData ? (analytics?.totals.published ?? 0) : (stats?.publishedPosts ?? 0)
+  // Use period-scoped total once analytics loads, even when hasData is false (0 posts in period is still correct)
+  const published = (!analyticsLoading && analytics) ? analytics.totals.published : (stats?.publishedPosts ?? 0)
   const scheduled = stats?.scheduledPosts ?? 0
 
   const kpi = KPIS[period]
