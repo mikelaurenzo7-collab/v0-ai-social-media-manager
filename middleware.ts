@@ -1,25 +1,11 @@
-import { auth } from '@/lib/next-auth'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import NextAuth from 'next-auth'
+import { authConfig } from './auth.config'
 
-export default auth((req: NextRequest & { auth: unknown }) => {
-  const { pathname } = req.nextUrl
-  const isAuthed = !!req.auth
-
-  // Protect all dashboard routes
-  if (pathname.startsWith('/dashboard') && !isAuthed) {
-    const loginUrl = new URL('/login', req.url)
-    loginUrl.searchParams.set('callbackUrl', pathname)
-    return NextResponse.redirect(loginUrl)
-  }
-
-  // Redirect authed users away from auth pages
-  if ((pathname === '/login' || pathname === '/signup') && isAuthed) {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
-  }
-
-  return NextResponse.next()
-})
+/**
+ * Middleware uses the Edge-safe authConfig (no Prisma/bcrypt).
+ * The `authorized` callback in authConfig handles route protection.
+ */
+export default NextAuth(authConfig).auth
 
 export const config = {
   matcher: ['/dashboard/:path*', '/login', '/signup'],
