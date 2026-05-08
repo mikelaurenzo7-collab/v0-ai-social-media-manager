@@ -586,13 +586,10 @@ export default function SettingsPage() {
                 <p className="text-sm font-medium">Delete Account</p>
                 <p className="text-xs text-muted-foreground">Permanently delete your account and all data</p>
               </div>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="shrink-0"
-                onClick={() => toast.error('Please contact support@postpilot.ai to delete your account.')}
-              >
-                Delete Account
+              <Button asChild variant="destructive" size="sm" className="shrink-0">
+                <a href="mailto:support@postpilot.ai?subject=Delete%20Account%20Request">
+                  Delete Account
+                </a>
               </Button>
             </div>
           </CardContent>

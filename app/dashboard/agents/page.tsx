@@ -23,7 +23,11 @@ const AGENT_FALLBACK: Record<string, { sessions: number; workflows: number; rati
   outlook:    { sessions: 9,  workflows: 3,  rating: '4.8' },
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  return res.json()
+}
 
 const AGENT_GRADIENT: Record<string, string> = {
   strategist: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
@@ -35,8 +39,14 @@ const AGENT_GRADIENT: Record<string, string> = {
 }
 
 export default function AgentsPage() {
-  const { data: settingsData } = useSWR<AgentSettingRow[]>('/api/agent-settings/all', fetcher)
-  const configuredAgents = new Set((settingsData ?? []).map((r) => r.agentId))
+  const { data: settingsData, isLoading: settingsLoading, error: settingsError } =
+    useSWR<AgentSettingRow[]>('/api/agent-settings/all', fetcher)
+  // Only build the configured set when SWR has resolved a real array — guards
+  // against the new 500 error response from the route.
+  const configuredAgents = Array.isArray(settingsData)
+    ? new Set(settingsData.map((r) => r.agentId))
+    : new Set<string>()
+  const isCheckingAgents = settingsLoading && !settingsError
 
   return (
     <div className="flex flex-col">
@@ -113,8 +123,18 @@ export default function AgentsPage() {
                       </span>
                     )}
                     <div className="flex items-center gap-1">
-                      <span className={`h-1.5 w-1.5 rounded-full ${isConfigured ? 'bg-green-400' : 'bg-muted-foreground/40'}`} />
-                      <span className="text-[10px] text-muted-foreground">{isConfigured ? 'Configured' : 'Ready'}</span>
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          isCheckingAgents
+                            ? 'bg-amber-400 animate-pulse'
+                            : isConfigured
+                              ? 'bg-green-400'
+                              : 'bg-muted-foreground/40'
+                        }`}
+                      />
+                      <span className="text-[10px] text-muted-foreground">
+                        {isCheckingAgents ? 'Checking' : isConfigured ? 'Configured' : 'Ready'}
+                      </span>
                     </div>
                   </div>
                 </div>

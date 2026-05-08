@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -54,7 +54,8 @@ export default function DraftsPage() {
 
   const handleDeleteDraft = useCallback(async (id: string) => {
     try {
-      await fetch(`/api/drafts?id=${id}&type=draft`, { method: 'DELETE' })
+      const res = await fetch(`/api/drafts?id=${id}&type=draft`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(`Server returned ${res.status}`)
       toast.success('Draft deleted')
       mutate()
     } catch {
@@ -66,7 +67,8 @@ export default function DraftsPage() {
 
   const handleDeleteThread = useCallback(async (id: string) => {
     try {
-      await fetch(`/api/drafts?id=${id}&type=thread`, { method: 'DELETE' })
+      const res = await fetch(`/api/drafts?id=${id}&type=thread`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(`Server returned ${res.status}`)
       toast.success('Thread deleted')
       mutate()
     } catch {
@@ -80,6 +82,14 @@ export default function DraftsPage() {
     setConfirmDeleteId(id)
     setConfirmDeleteType(type)
   }, [])
+
+  // Close confirm modal on Escape
+  useEffect(() => {
+    if (!confirmDeleteId) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setConfirmDeleteId(null) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [confirmDeleteId])
 
   const confirmDelete = useCallback(() => {
     if (!confirmDeleteId) return
@@ -129,17 +139,31 @@ export default function DraftsPage() {
     <div className="flex flex-col">
       {/* ── Confirm Delete Modal ─── */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl border bg-card shadow-2xl p-6 space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={() => setConfirmDeleteId(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-dialog-title"
+            aria-describedby="delete-dialog-description"
+            className="w-full max-w-sm rounded-2xl border bg-card shadow-2xl p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10">
-                <svg className="h-5 w-5 text-destructive" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                <svg className="h-5 w-5 text-destructive" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-bold">Delete {confirmDeleteType === 'draft' ? 'Draft' : 'Thread'}?</p>
-                <p className="text-xs text-muted-foreground mt-0.5">This cannot be undone.</p>
+                <p id="delete-dialog-title" className="text-sm font-bold">
+                  Delete {confirmDeleteType === 'draft' ? 'Draft' : 'Thread'}?
+                </p>
+                <p id="delete-dialog-description" className="text-xs text-muted-foreground mt-0.5">
+                  This cannot be undone.
+                </p>
               </div>
             </div>
             <div className="flex gap-2 pt-1">

@@ -165,10 +165,13 @@ export async function DELETE(req: Request) {
     const deleteAll = searchParams.get('all') === 'true'
 
     if (deleteAll) {
-      await Promise.all([
-        sql`DELETE FROM "Draft"  WHERE "userId" = ${userId}`,
-        sql`DELETE FROM "Thread" WHERE "userId" = ${userId}`,
-      ])
+      // Atomic — both deletes in a single statement so a partial failure
+      // can't leave drafts gone but threads behind (or vice versa).
+      await sql`
+        WITH d AS (DELETE FROM "Draft"  WHERE "userId" = ${userId} RETURNING 1),
+             t AS (DELETE FROM "Thread" WHERE "userId" = ${userId} RETURNING 1)
+        SELECT 1
+      `
       return Response.json({ success: true })
     }
 

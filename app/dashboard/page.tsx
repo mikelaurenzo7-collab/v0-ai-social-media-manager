@@ -238,7 +238,12 @@ export default function DashboardPage() {
                             </span>
                           </div>
                         </div>
-                        <Button asChild variant="outline" size="sm" className="text-xs opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="text-xs opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity shrink-0"
+                        >
                           <Link href="/dashboard/drafts">View</Link>
                         </Button>
                       </div>

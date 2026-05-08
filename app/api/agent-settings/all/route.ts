@@ -14,6 +14,6 @@ export async function GET() {
     return NextResponse.json(rows)
   } catch (err) {
     console.error('GET /api/agent-settings/all', err)
-    return NextResponse.json([], { status: 200 })
+    return NextResponse.json({ error: 'Failed to load agent settings' }, { status: 500 })
   }
 }
