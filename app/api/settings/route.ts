@@ -100,23 +100,31 @@ export async function PATCH(req: Request) {
       ON CONFLICT ("userId") DO NOTHING
     `
 
+    // Key present (even with null) means "user wants to set this value".
+    // Key absent means "leave column unchanged".
     const has = (key: keyof typeof body) =>
-      Object.prototype.hasOwnProperty.call(body, key) && body[key] !== undefined
+      Object.prototype.hasOwnProperty.call(body, key)
 
-    const nameP                  = has('name')                  ? body.name                                       : null
-    const brandVoiceP            = has('brandVoice')            ? body.brandVoice                                 : null
-    const brandKeywordsP         = has('brandKeywords')         ? JSON.stringify(body.brandKeywords)              : null
-    const defaultToneP           = has('defaultTone')           ? body.defaultTone                                : null
-    const hashtagStyleP          = has('hashtagStyle')          ? body.hashtagStyle                               : null
-    const preferredContentTypesP = has('preferredContentTypes') ? JSON.stringify(body.preferredContentTypes)      : null
-    const postingFrequencyP      = has('postingFrequency')      ? body.postingFrequency                           : null
-    const emailNotificationsP    = has('emailNotifications')    ? body.emailNotifications                         : null
-    const weeklyDigestP          = has('weeklyDigest')          ? body.weeklyDigest                               : null
+    // Nullable TEXT columns: use CASE WHEN presence flag so sending null clears
+    // the column instead of being eaten by COALESCE.
+    const namePresent       = has('name')
+    const nameP             = namePresent ? (body.name ?? null)       : null
+    const brandVoicePresent = has('brandVoice')
+    const brandVoiceP       = brandVoicePresent ? (body.brandVoice ?? null) : null
+
+    // Non-nullable columns: COALESCE(null, col) = col when key is absent.
+    const brandKeywordsP         = has('brandKeywords')         ? JSON.stringify(body.brandKeywords)         : null
+    const defaultToneP           = has('defaultTone')           ? body.defaultTone                           : null
+    const hashtagStyleP          = has('hashtagStyle')          ? body.hashtagStyle                          : null
+    const preferredContentTypesP = has('preferredContentTypes') ? JSON.stringify(body.preferredContentTypes) : null
+    const postingFrequencyP      = has('postingFrequency')      ? body.postingFrequency                      : null
+    const emailNotificationsP    = has('emailNotifications')    ? body.emailNotifications                    : null
+    const weeklyDigestP          = has('weeklyDigest')          ? body.weeklyDigest                          : null
 
     await sql`
       UPDATE "UserSettings" SET
-        "name"                  = COALESCE(${nameP},                              "name"),
-        "brandVoice"            = COALESCE(${brandVoiceP},                        "brandVoice"),
+        "name"                  = CASE WHEN ${namePresent}       THEN ${nameP}       ELSE "name"       END,
+        "brandVoice"            = CASE WHEN ${brandVoicePresent} THEN ${brandVoiceP} ELSE "brandVoice" END,
         "brandKeywords"         = COALESCE(${brandKeywordsP}::jsonb,              "brandKeywords"),
         "defaultTone"           = COALESCE(${defaultToneP},                       "defaultTone"),
         "hashtagStyle"          = COALESCE(${hashtagStyleP},                      "hashtagStyle"),

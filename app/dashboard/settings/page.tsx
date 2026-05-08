@@ -24,7 +24,11 @@ const POSTING_FREQUENCIES = [
 const DEFAULT_BRAND_KEYWORDS = ['SaaS', 'Productivity', 'Remote work', 'Startups']
 const DEFAULT_BRAND_VOICE = 'I write for founders and operators who want to grow online without the fluff. Direct, practical, and occasionally witty. Never corporate.'
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`)
+  return res.json()
+}
 
 export default function SettingsPage() {
   const { data: savedSettings, isLoading: settingsLoading } = useSWR('/api/settings', fetcher)
@@ -65,7 +69,7 @@ export default function SettingsPage() {
 
   // Populate name from session
   useEffect(() => {
-    if (sessionData?.user?.name && !savedSettings?.name) {
+    if (sessionData?.user?.name && typeof savedSettings?.name !== 'string') {
       setName(sessionData.user.name)
     }
   }, [sessionData, savedSettings])
