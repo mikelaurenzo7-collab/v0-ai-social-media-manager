@@ -46,18 +46,21 @@ export default function SettingsPage() {
   const [savingPreferences, setSavingPreferences]   = useState(false)
   const [clearingDrafts, setClearingDrafts]         = useState(false)
 
-  // Populate from saved settings once loaded
+  // Populate from saved settings once loaded.
+  // NOTE: Use existence checks (not truthy/length) so persisted empty arrays
+  // and empty strings overwrite the defaults — otherwise clearing all
+  // keywords or content types silently snaps back to seed values on reload.
   useEffect(() => {
     if (!savedSettings || Object.keys(savedSettings).length === 0) return
-    if (savedSettings.name)                   setName(savedSettings.name)
-    if (savedSettings.brandVoice)             setBrandVoice(savedSettings.brandVoice)
-    if (savedSettings.brandKeywords?.length)  setBrandKeywords(savedSettings.brandKeywords)
-    if (savedSettings.defaultTone)            setDefaultTone(savedSettings.defaultTone)
-    if (savedSettings.hashtagStyle)           setHashtagStyle(savedSettings.hashtagStyle)
-    if (savedSettings.preferredContentTypes?.length) setPreferredContentTypes(savedSettings.preferredContentTypes)
-    if (savedSettings.postingFrequency)       setPostingFrequency(savedSettings.postingFrequency)
-    if (typeof savedSettings.emailNotifications === 'boolean') setEmailNotifications(savedSettings.emailNotifications)
-    if (typeof savedSettings.weeklyDigest === 'boolean')       setWeeklyDigest(savedSettings.weeklyDigest)
+    if (typeof savedSettings.name === 'string')                       setName(savedSettings.name)
+    if (typeof savedSettings.brandVoice === 'string')                 setBrandVoice(savedSettings.brandVoice)
+    if (Array.isArray(savedSettings.brandKeywords))                   setBrandKeywords(savedSettings.brandKeywords)
+    if (typeof savedSettings.defaultTone === 'string')                setDefaultTone(savedSettings.defaultTone)
+    if (typeof savedSettings.hashtagStyle === 'string')               setHashtagStyle(savedSettings.hashtagStyle)
+    if (Array.isArray(savedSettings.preferredContentTypes))           setPreferredContentTypes(savedSettings.preferredContentTypes)
+    if (typeof savedSettings.postingFrequency === 'string')           setPostingFrequency(savedSettings.postingFrequency)
+    if (typeof savedSettings.emailNotifications === 'boolean')        setEmailNotifications(savedSettings.emailNotifications)
+    if (typeof savedSettings.weeklyDigest === 'boolean')              setWeeklyDigest(savedSettings.weeklyDigest)
   }, [savedSettings])
 
   // Populate name from session

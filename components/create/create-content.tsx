@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import useSWR from 'swr'
 import { useSearchParams } from 'next/navigation'
 import { experimental_useObject } from '@ai-sdk/react'
 import { Button } from '@/components/ui/button'
@@ -20,9 +21,26 @@ import { threadSchema, type Thread, type ThreadTweet } from '@/lib/schemas/threa
 import { TONES, CONTENT_TYPES, THREAD_TWEET_COUNTS, type PlatformId, type ToneId, type ContentTypeId, type ThreadTweetCount } from '@/lib/constants/platforms'
 import { toast } from 'sonner'
 
+const sessionFetcher = (url: string) => fetch(url).then((r) => r.json())
+
 export function CreateContent() {
   const searchParams = useSearchParams()
   const editId = searchParams.get('edit')
+
+  // Pull user identity for accurate platform previews
+  const { data: sessionData } = useSWR('/api/auth/session', sessionFetcher)
+  const { displayName, userName } = useMemo(() => {
+    const name: string | undefined = sessionData?.user?.name
+    const email: string | undefined = sessionData?.user?.email
+    return {
+      displayName: name || 'Your Brand',
+      userName: name
+        ? name.toLowerCase().replace(/[^a-z0-9]/g, '')
+        : email
+          ? email.split('@')[0]
+          : 'yourbrand',
+    }
+  }, [sessionData])
 
   // Mode: 'post' or 'thread'
   const [mode, setMode] = useState<'post' | 'thread'>('post')
@@ -571,6 +589,8 @@ export function CreateContent() {
                       content={displayContent.content}
                       hashtags={displayContent.hashtags}
                       platforms={platforms}
+                      displayName={displayName}
+                      userName={userName}
                     />
                   </CardContent>
                 </Card>
