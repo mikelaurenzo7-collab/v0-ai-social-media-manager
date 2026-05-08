@@ -1,8 +1,5 @@
 import { generateObject } from 'ai'
-import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
-
-export const runtime = 'edge'
 
 const requestSchema = z.object({
   content: z.string().min(1).max(5000),
@@ -36,7 +33,7 @@ export async function POST(req: Request) {
   const hashtagStr = hashtags.map((h) => `#${h}`).join(' ')
 
   const { object } = await generateObject({
-    model: anthropic('claude-3-5-haiku-20241022'),
+    model: 'anthropic/claude-haiku-4.5',
     schema: improveResponseSchema,
     system: `You are an expert social media copywriter. Improve the given post based on the user's feedback. Tone: ${tone}. Platforms: ${platformNames}.`,
     prompt: `Original post:\n${content}\n\nHashtags: ${hashtagStr}\n\nUser feedback: ${feedback}\n\nRewrite the post incorporating this feedback while keeping it optimized for ${platformNames}. Return the improved content and updated hashtags.`,

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
+import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Header } from '@/components/dashboard/header'
@@ -10,6 +11,7 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { ScheduleDialog } from '@/components/create/schedule-dialog'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface Draft {
   id: string
@@ -24,54 +26,53 @@ interface Draft {
 interface ThreadDraft {
   id: string
   title: string
+  topic: string
+  tone: string
   tweets: { number: number; content: string; type: string }[]
-  engagementTip: string
   createdAt: string
 }
 
 const TABS = ['posts', 'threads'] as const
 type TabId = (typeof TABS)[number]
 
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
 export default function DraftsPage() {
-  const [drafts, setDrafts] = useState<Draft[]>([])
-  const [threads, setThreads] = useState<ThreadDraft[]>([])
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabId>('posts')
 
-  useEffect(() => {
-    const storedDrafts = localStorage.getItem('postpilot_drafts')
-    if (storedDrafts) {
-      try {
-        const parsed = JSON.parse(storedDrafts)
-        if (Array.isArray(parsed)) setDrafts(parsed)
-      } catch { /* ignore */ }
-    }
-    const storedThreads = localStorage.getItem('postpilot_threads')
-    if (storedThreads) {
-      try {
-        const parsed = JSON.parse(storedThreads)
-        if (Array.isArray(parsed)) setThreads(parsed)
-      } catch { /* ignore */ }
-    }
-  }, [])
+  const { data, isLoading, mutate } = useSWR<{ drafts: Draft[]; threads: ThreadDraft[] }>(
+    '/api/drafts',
+    fetcher,
+    { revalidateOnFocus: true }
+  )
 
-  const handleDeleteDraft = useCallback((id: string) => {
-    const updated = drafts.filter((d) => d.id !== id)
-    setDrafts(updated)
-    localStorage.setItem('postpilot_drafts', JSON.stringify(updated))
-    toast.success('Draft deleted')
-  }, [drafts])
+  const drafts = data?.drafts ?? []
+  const threads = data?.threads ?? []
 
-  const handleDeleteThread = useCallback((id: string) => {
-    const updated = threads.filter((t) => t.id !== id)
-    setThreads(updated)
-    localStorage.setItem('postpilot_threads', JSON.stringify(updated))
-    toast.success('Thread deleted')
-  }, [threads])
+  const handleDeleteDraft = useCallback(async (id: string) => {
+    try {
+      await fetch(`/api/drafts?id=${id}&type=draft`, { method: 'DELETE' })
+      toast.success('Draft deleted')
+      mutate()
+    } catch {
+      toast.error('Failed to delete draft')
+    }
+  }, [mutate])
+
+  const handleDeleteThread = useCallback(async (id: string) => {
+    try {
+      await fetch(`/api/drafts?id=${id}&type=thread`, { method: 'DELETE' })
+      toast.success('Thread deleted')
+      mutate()
+    } catch {
+      toast.error('Failed to delete thread')
+    }
+  }, [mutate])
 
   const handleCopyDraft = useCallback(async (draft: Draft) => {
-    const fullContent = draft.hashtags.length > 0
-      ? `${draft.content}\n\n${draft.hashtags.map(t => `#${t}`).join(' ')}`
+    const fullContent = draft.hashtags?.length > 0
+      ? `${draft.content}\n\n${draft.hashtags.map((t) => `#${t}`).join(' ')}`
       : draft.content
     try {
       await navigator.clipboard.writeText(fullContent)
@@ -84,7 +85,8 @@ export default function DraftsPage() {
   }, [])
 
   const handleCopyThread = useCallback(async (thread: ThreadDraft) => {
-    const text = thread.tweets.map((t, i) => `${i + 1}/ ${t.content}`).join('\n\n')
+    const tweets = Array.isArray(thread.tweets) ? thread.tweets : []
+    const text = tweets.map((t, i) => `${i + 1}/ ${t.content}`).join('\n\n')
     try {
       await navigator.clipboard.writeText(text)
       setCopiedId(thread.id)
@@ -114,7 +116,7 @@ export default function DraftsPage() {
         action={
           <Button
             asChild
-            style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }}
+            className="btn-gradient text-white"
           >
             <Link href="/dashboard/create">
               <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -127,13 +129,14 @@ export default function DraftsPage() {
       />
 
       <div className="p-6 space-y-6">
-        {/* Custom tab bar */}
+        {/* Tab bar */}
         <div
           className="inline-flex items-center gap-0.5 rounded-lg p-1"
           style={{ background: 'oklch(0.93 0.008 68)' }}
         >
           {TABS.map((tab) => {
-            const label = tab === 'posts' ? `Posts (${drafts.length})` : `Threads (${threads.length})`
+            const count = tab === 'posts' ? drafts.length : threads.length
+            const label = tab === 'posts' ? `Posts (${count})` : `Threads (${count})`
             return (
               <button
                 key={tab}
@@ -157,16 +160,26 @@ export default function DraftsPage() {
 
         {/* Posts tab */}
         {activeTab === 'posts' && (
-          drafts.length === 0 ? (
-            <EmptyState title="No posts yet" description="Create your first post and save it as a draft to see it here." />
+          isLoading ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-52 w-full rounded-2xl" />)}
+            </div>
+          ) : drafts.length === 0 ? (
+            <EmptyState
+              title="No posts yet"
+              description="Create your first post and save it as a draft to see it here."
+            />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {drafts.map((draft) => (
-                <Card key={draft.id} className="flex flex-col border-border/60 hover:border-orange-200 hover:shadow-md transition-all duration-200">
+                <Card
+                  key={draft.id}
+                  className="flex flex-col border-border/60 hover:border-orange-200 hover:shadow-md transition-all duration-200"
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex flex-wrap gap-1.5">
-                        {draft.platforms.map((p) => (
+                        {draft.platforms?.map((p) => (
                           <div
                             key={p}
                             className="flex h-7 w-7 items-center justify-center rounded-full"
@@ -185,7 +198,7 @@ export default function DraftsPage() {
                   <CardContent className="flex flex-1 flex-col">
                     <p className="flex-1 text-sm leading-relaxed line-clamp-4">{draft.content}</p>
 
-                    {draft.hashtags.length > 0 && (
+                    {draft.hashtags?.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1">
                         {draft.hashtags.slice(0, 3).map((tag) => (
                           <span
@@ -204,10 +217,17 @@ export default function DraftsPage() {
                     <p className="mt-3 text-xs text-muted-foreground">{formatDate(draft.createdAt)}</p>
 
                     <div className="mt-4 flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1" onClick={() => handleCopyDraft(draft)}>
-                        {copiedId === draft.id ? '✓ Copied' : 'Copy'}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleCopyDraft(draft)}
+                      >
+                        {copiedId === draft.id ? 'Copied' : 'Copy'}
                       </Button>
-                      <ScheduleDialog draft={{ id: draft.id, content: draft.content, platforms: draft.platforms }}>
+                      <ScheduleDialog
+                        draft={{ id: draft.id, content: draft.content, platforms: draft.platforms }}
+                      >
                         <Button
                           variant="outline"
                           size="sm"
@@ -239,51 +259,71 @@ export default function DraftsPage() {
 
         {/* Threads tab */}
         {activeTab === 'threads' && (
-          threads.length === 0 ? (
-            <EmptyState title="No threads yet" description="Create your first thread and save it to see it here." />
+          isLoading ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-52 w-full rounded-2xl" />)}
+            </div>
+          ) : threads.length === 0 ? (
+            <EmptyState
+              title="No threads yet"
+              description="Create your first thread and save it to see it here."
+            />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {threads.map((thread) => (
-                <Card key={thread.id} className="flex flex-col border-border/60 hover:border-orange-200 hover:shadow-md transition-all duration-200">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-base line-clamp-1">{thread.title}</h3>
-                      <span className="shrink-0 rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-medium text-orange-600 border border-orange-200/60">
-                        {thread.tweets.length} tweets
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex flex-1 flex-col">
-                    <div
-                      className="flex-1 rounded-xl border border-border/40 p-3"
-                      style={{ background: 'oklch(0.96 0.006 68)' }}
-                    >
-                      <p className="text-xs font-semibold text-muted-foreground mb-1">1/ {thread.tweets[0]?.type}</p>
-                      <p className="text-sm leading-relaxed line-clamp-3 italic">
-                        &ldquo;{thread.tweets[0]?.content}&rdquo;
-                      </p>
-                    </div>
-
-                    <p className="mt-3 text-xs text-muted-foreground">{formatDate(thread.createdAt)}</p>
-
-                    <div className="mt-4 flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1" onClick={() => handleCopyThread(thread)}>
-                        {copiedId === thread.id ? '✓ Copied' : 'Copy Thread'}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:bg-destructive/10"
-                        onClick={() => handleDeleteThread(thread.id)}
+              {threads.map((thread) => {
+                const tweets = Array.isArray(thread.tweets) ? thread.tweets : []
+                return (
+                  <Card
+                    key={thread.id}
+                    className="flex flex-col border-border/60 hover:border-orange-200 hover:shadow-md transition-all duration-200"
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-semibold text-base line-clamp-1">{thread.title}</h3>
+                        <span className="shrink-0 rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-medium text-orange-600 border border-orange-200/60">
+                          {tweets.length} tweets
+                        </span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="flex flex-1 flex-col">
+                      <div
+                        className="flex-1 rounded-xl border border-border/40 p-3"
+                        style={{ background: 'oklch(0.96 0.006 68)' }}
                       >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">
+                          1/ {tweets[0]?.type}
+                        </p>
+                        <p className="text-sm leading-relaxed line-clamp-3 italic">
+                          &ldquo;{tweets[0]?.content}&rdquo;
+                        </p>
+                      </div>
+
+                      <p className="mt-3 text-xs text-muted-foreground">{formatDate(thread.createdAt)}</p>
+
+                      <div className="mt-4 flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => handleCopyThread(thread)}
+                        >
+                          {copiedId === thread.id ? 'Copied' : 'Copy Thread'}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteThread(thread.id)}
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           )
         )}
@@ -313,11 +353,7 @@ function EmptyState({ title, description }: { title: string; description: string
         </div>
         <h3 className="text-lg font-semibold">{title}</h3>
         <p className="mt-2 max-w-sm text-muted-foreground">{description}</p>
-        <Button
-          asChild
-          className="mt-6"
-          style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }}
-        >
+        <Button asChild className="mt-6 btn-gradient text-white">
           <Link href="/dashboard/create">Create New Content</Link>
         </Button>
       </CardContent>

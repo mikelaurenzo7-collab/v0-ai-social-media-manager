@@ -7,10 +7,10 @@ import { Logo } from '@/components/brand/logo'
 import { ArrowRight, Menu, X } from 'lucide-react'
 
 const NAV = [
-  { href: '#features', label: 'Features' },
-  { href: '#agents',   label: 'Agents'   },
-  { href: '#pricing',  label: 'Pricing'  },
-  { href: '#faq',      label: 'FAQ'      },
+  { href: '#features',     label: 'Features'   },
+  { href: '#how-it-works', label: 'How it works' },
+  { href: '#agents',       label: 'Agents'     },
+  { href: '#pricing',      label: 'Pricing'    },
 ]
 
 export function Navbar() {

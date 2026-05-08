@@ -2,6 +2,7 @@ import { Navbar } from '@/components/marketing/navbar'
 import { Hero } from '@/components/marketing/hero'
 import { LogoCloud } from '@/components/marketing/logo-cloud'
 import { Features } from '@/components/marketing/features'
+import { HowItWorks } from '@/components/marketing/how-it-works'
 import { AgentsShowcase } from '@/components/marketing/agents-showcase'
 import { Pricing } from '@/components/marketing/pricing'
 import { FAQ } from '@/components/marketing/faq'
@@ -16,6 +17,7 @@ export default function HomePage() {
         <Hero />
         <LogoCloud />
         <Features />
+        <HowItWorks />
         <AgentsShowcase />
         <Pricing />
         <FAQ />
