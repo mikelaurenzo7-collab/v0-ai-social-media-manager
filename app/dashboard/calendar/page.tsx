@@ -198,7 +198,7 @@ function DayPanel({
                       </span>
                     </div>
                   </div>
-                  {post.status !== 'published' && !post.id.startsWith('s') && (
+                  {post.status !== 'published' && post.id.startsWith('scp_') && (
                     <button
                       onClick={() => onDelete(post.id)}
                       className="opacity-0 group-hover:opacity-100 flex h-6 w-6 items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"

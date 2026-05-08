@@ -23,6 +23,18 @@ async function getDb() {
   return sql
 }
 
+const DEFAULTS = {
+  name: null as string | null,
+  brandVoice: null as string | null,
+  brandKeywords: [] as string[],
+  defaultTone: 'casual',
+  hashtagStyle: 'minimal',
+  preferredContentTypes: [] as string[],
+  postingFrequency: '3x_week',
+  emailNotifications: true,
+  weeklyDigest: true,
+}
+
 export async function GET() {
   try {
     const sql = await getDb()
@@ -36,12 +48,12 @@ export async function GET() {
       name:                   row.name,
       brandVoice:             row.brandVoice,
       brandKeywords:          row.brandKeywords ?? [],
-      defaultTone:            row.defaultTone ?? 'casual',
-      hashtagStyle:           row.hashtagStyle ?? 'minimal',
+      defaultTone:            row.defaultTone ?? DEFAULTS.defaultTone,
+      hashtagStyle:           row.hashtagStyle ?? DEFAULTS.hashtagStyle,
       preferredContentTypes:  row.preferredContentTypes ?? [],
-      postingFrequency:       row.postingFrequency ?? '3x_week',
-      emailNotifications:     row.emailNotifications ?? true,
-      weeklyDigest:           row.weeklyDigest ?? true,
+      postingFrequency:       row.postingFrequency ?? DEFAULTS.postingFrequency,
+      emailNotifications:     row.emailNotifications ?? DEFAULTS.emailNotifications,
+      weeklyDigest:           row.weeklyDigest ?? DEFAULTS.weeklyDigest,
     })
   } catch (err) {
     console.error('GET /api/settings', err)
@@ -55,17 +67,34 @@ export async function PATCH(req: Request) {
     const userId = await getCurrentUserId()
     const body = await req.json()
 
-    const {
-      name,
-      brandVoice,
-      brandKeywords,
-      defaultTone,
-      hashtagStyle,
-      preferredContentTypes,
-      postingFrequency,
-      emailNotifications,
-      weeklyDigest,
-    } = body
+    // Load existing row so partial PATCH preserves omitted fields
+    const existingRows = await sql`
+      SELECT * FROM "UserSettings" WHERE "userId" = ${userId} LIMIT 1
+    `
+    const existing = existingRows[0] ?? {}
+
+    // pick(): use body field when explicitly present, otherwise existing, otherwise default
+    const pick = <K extends keyof typeof DEFAULTS>(key: K): typeof DEFAULTS[K] => {
+      if (Object.prototype.hasOwnProperty.call(body, key) && body[key] !== undefined) {
+        return body[key] as typeof DEFAULTS[K]
+      }
+      if (Object.prototype.hasOwnProperty.call(existing, key) && existing[key] !== null && existing[key] !== undefined) {
+        return existing[key] as typeof DEFAULTS[K]
+      }
+      return DEFAULTS[key]
+    }
+
+    const merged = {
+      name:                   pick('name'),
+      brandVoice:             pick('brandVoice'),
+      brandKeywords:          pick('brandKeywords'),
+      defaultTone:            pick('defaultTone'),
+      hashtagStyle:           pick('hashtagStyle'),
+      preferredContentTypes:  pick('preferredContentTypes'),
+      postingFrequency:       pick('postingFrequency'),
+      emailNotifications:     pick('emailNotifications'),
+      weeklyDigest:           pick('weeklyDigest'),
+    }
 
     await sql`
       INSERT INTO "UserSettings" (
@@ -75,15 +104,15 @@ export async function PATCH(req: Request) {
         "updatedAt"
       ) VALUES (
         ${userId},
-        ${name ?? null},
-        ${brandVoice ?? null},
-        ${JSON.stringify(brandKeywords ?? [])}::jsonb,
-        ${defaultTone ?? 'casual'},
-        ${hashtagStyle ?? 'minimal'},
-        ${JSON.stringify(preferredContentTypes ?? [])}::jsonb,
-        ${postingFrequency ?? '3x_week'},
-        ${emailNotifications ?? true},
-        ${weeklyDigest ?? true},
+        ${merged.name},
+        ${merged.brandVoice},
+        ${JSON.stringify(merged.brandKeywords)}::jsonb,
+        ${merged.defaultTone},
+        ${merged.hashtagStyle},
+        ${JSON.stringify(merged.preferredContentTypes)}::jsonb,
+        ${merged.postingFrequency},
+        ${merged.emailNotifications},
+        ${merged.weeklyDigest},
         now()
       )
       ON CONFLICT ("userId") DO UPDATE SET

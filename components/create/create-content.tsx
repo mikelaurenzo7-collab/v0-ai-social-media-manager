@@ -151,8 +151,10 @@ export function CreateContent() {
       })
       if (res.ok) {
         toast.success('Draft saved!')
-      } else {
-        // Fallback to localStorage for unauthenticated users
+        return
+      }
+      // 401 only: persist locally so unauthenticated users can still draft
+      if (res.status === 401) {
         let existingDrafts: unknown[] = []
         try {
           const parsed = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
@@ -168,10 +170,13 @@ export function CreateContent() {
           createdAt: new Date().toISOString(),
         }
         localStorage.setItem('postpilot_drafts', JSON.stringify([newDraft, ...existingDrafts]))
-        toast.success('Draft saved!')
+        toast.success('Draft saved locally', { description: 'Sign in to sync drafts to your account.' })
+        return
       }
+      // Real server error — surface it
+      toast.error('Failed to save draft', { description: `Server returned ${res.status}` })
     } catch {
-      toast.error('Failed to save draft')
+      toast.error('Failed to save draft', { description: 'Check your network and try again.' })
     }
   }, [displayContent, platforms, tone, contentType])
 
@@ -197,8 +202,9 @@ export function CreateContent() {
       })
       if (res.ok) {
         toast.success('Thread saved!')
-      } else {
-        // Fallback to localStorage
+        return
+      }
+      if (res.status === 401) {
         let existing: unknown[] = []
         try {
           const parsed = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
@@ -208,10 +214,12 @@ export function CreateContent() {
           'postpilot_threads',
           JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing])
         )
-        toast.success('Thread saved!')
+        toast.success('Thread saved locally', { description: 'Sign in to sync threads to your account.' })
+        return
       }
+      toast.error('Failed to save thread', { description: `Server returned ${res.status}` })
     } catch {
-      toast.error('Failed to save thread')
+      toast.error('Failed to save thread', { description: 'Check your network and try again.' })
     }
   }, [prompt, threadTone])
 

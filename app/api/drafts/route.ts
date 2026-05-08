@@ -162,6 +162,15 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get('id')
     const type = searchParams.get('type') ?? 'draft'
+    const deleteAll = searchParams.get('all') === 'true'
+
+    if (deleteAll) {
+      await Promise.all([
+        sql`DELETE FROM "Draft"  WHERE "userId" = ${userId}`,
+        sql`DELETE FROM "Thread" WHERE "userId" = ${userId}`,
+      ])
+      return Response.json({ success: true })
+    }
 
     if (!id) {
       return Response.json({ error: 'Missing id' }, { status: 400 })
