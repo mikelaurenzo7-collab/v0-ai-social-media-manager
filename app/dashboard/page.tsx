@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
@@ -72,7 +72,17 @@ interface Draft {
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
+function useGreeting() {
+  return useMemo(() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Good morning'
+    if (h < 17) return 'Good afternoon'
+    return 'Good evening'
+  }, [])
+}
+
 export default function DashboardPage() {
+  const greeting = useGreeting()
   const [tip] = useState(() => AI_TIPS[Math.floor(Math.random() * AI_TIPS.length)])
 
   const { data: statsData, isLoading: statsLoading } = useSWR<Stats>('/api/stats', fetcher, {
@@ -136,7 +146,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col min-h-full">
       <Header
-        title="Good morning"
+        title={greeting}
         description="Your content studio is ready. What are we creating today?"
       />
 
@@ -228,8 +238,8 @@ export default function DashboardPage() {
                             </span>
                           </div>
                         </div>
-                        <Button asChild variant="outline" size="sm" className="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link href="/dashboard/drafts">Open</Link>
+                        <Button asChild variant="outline" size="sm" className="text-xs opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          <Link href="/dashboard/drafts">View</Link>
                         </Button>
                       </div>
                     ))}

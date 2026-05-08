@@ -192,6 +192,13 @@ function CreateAutomationModal({ onClose, onCreated }: { onClose: () => void; on
   const [time, setTime] = useState('09:00')
   const [isCreating, setIsCreating] = useState(false)
 
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
   const agentOptions = [
     { id: 'viral',      name: 'Viral Agent',      avatar: '⚡', desc: 'Hooks, virality, TikTok',   color: 'linear-gradient(135deg, #EA580C 0%, #EAB308 100%)' },
     { id: 'strategist', name: 'Strategist Agent', avatar: '🎯', desc: 'LinkedIn, thought leadership', color: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' },
@@ -226,8 +233,16 @@ function CreateAutomationModal({ onClose, onCreated }: { onClose: () => void; on
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border bg-card shadow-2xl overflow-hidden">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border bg-card shadow-2xl overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Create Automation"
+      >
         {/* Header */}
         <div
           className="px-5 py-4 flex items-center justify-between"
