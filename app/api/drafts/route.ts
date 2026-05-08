@@ -2,8 +2,6 @@ import { neon } from '@neondatabase/serverless'
 import { z } from 'zod'
 import { getCurrentUserId } from '@/lib/oauth/session'
 
-const sql = neon(process.env.DATABASE_URL!)
-
 const createDraftSchema = z.object({
   content: z.string().min(1).max(10000),
   hashtags: z.array(z.string()).default([]),
@@ -13,6 +11,7 @@ const createDraftSchema = z.object({
 })
 
 export async function GET() {
+  const sql = neon(process.env.DATABASE_URL!)
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -65,6 +64,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const sql = neon(process.env.DATABASE_URL!)
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -128,6 +128,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const sql = neon(process.env.DATABASE_URL!)
   try {
     const userId = await getCurrentUserId()
     if (!userId) {

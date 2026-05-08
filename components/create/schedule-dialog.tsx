@@ -62,19 +62,18 @@ export function ScheduleDialog({ draft, children }: ScheduleDialogProps) {
 
   const handleSchedule = useCallback(async () => {
     setIsLoading(true)
-    await new Promise((r) => setTimeout(r, 700))
     try {
-      const raw = localStorage.getItem('postpilot_scheduled')
-      const existing = raw ? (JSON.parse(raw) as unknown[]) : []
-      const newPost = {
-        id: `u-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        content: draft.content,
-        platform: selectedPlatform,
-        date: selectedDate,
-        time: selectedTime,
-        status: 'scheduled' as const,
-      }
-      localStorage.setItem('postpilot_scheduled', JSON.stringify([...existing, newPost]))
+      const res = await fetch('/api/scheduled', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: draft.content,
+          platform: selectedPlatform,
+          date: selectedDate,
+          time: selectedTime,
+        }),
+      })
+      if (!res.ok) throw new Error('Failed to schedule')
       const d = new Date(selectedDate + 'T12:00:00')
       const dateLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
       toast.success(`Scheduled for ${dateLabel} at ${fmtTime(selectedTime)}`, {

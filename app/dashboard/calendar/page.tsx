@@ -1,11 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import useSWR from 'swr'
 import { Header } from '@/components/dashboard/header'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -116,26 +119,15 @@ function DayPanel({
   date,
   posts,
   onClose,
+  onDelete,
 }: {
   date: string
   posts: CalendarPost[]
   onClose: () => void
+  onDelete: (id: string) => void
 }) {
   const d = new Date(date + 'T12:00:00')
   const label = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-
-  const handleDelete = (id: string) => {
-    try {
-      const stored = localStorage.getItem('postpilot_scheduled')
-      if (!stored) return
-      const parsed: CalendarPost[] = JSON.parse(stored)
-      const updated = parsed.filter((p) => p.id !== id)
-      localStorage.setItem('postpilot_scheduled', JSON.stringify(updated))
-      toast.success('Post removed from calendar')
-    } catch {
-      toast.error('Failed to remove post')
-    }
-  }
 
   return (
     <div className="rounded-2xl border border-border bg-card shadow-lg overflow-hidden">
@@ -206,9 +198,9 @@ function DayPanel({
                       </span>
                     </div>
                   </div>
-                  {post.id.startsWith('u-') && (
+                  {post.id.startsWith('scp_') && (
                     <button
-                      onClick={() => handleDelete(post.id)}
+                      onClick={() => onDelete(post.id)}
                       className="opacity-0 group-hover:opacity-100 flex h-6 w-6 items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                     >
                       <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
@@ -228,26 +220,26 @@ function DayPanel({
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1)) // May 2026
+  const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
-  const [userPosts, setUserPosts] = useState<CalendarPost[]>([])
   const [platformFilter, setPlatformFilter] = useState<Set<PlatformId>>(
     new Set(['twitter', 'instagram', 'linkedin', 'tiktok', 'facebook'])
   )
 
-  const TODAY = '2026-05-07'
+  const { data, mutate } = useSWR<{ posts: CalendarPost[] }>('/api/scheduled', fetcher, { refreshInterval: 30000 })
+  const userPosts: CalendarPost[] = data?.posts ?? []
 
-  useEffect(() => {
+  const TODAY = new Date().toISOString().split('T')[0]
+
+  const handleDelete = async (id: string) => {
     try {
-      const stored = localStorage.getItem('postpilot_scheduled')
-      if (stored) {
-        const parsed: CalendarPost[] = JSON.parse(stored)
-        if (Array.isArray(parsed)) setUserPosts(parsed)
-      }
+      await fetch(`/api/scheduled?id=${id}`, { method: 'DELETE' })
+      await mutate()
+      toast.success('Post removed from calendar')
     } catch {
-      /* ignore */
+      toast.error('Failed to remove post')
     }
-  }, [])
+  }
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -269,7 +261,7 @@ export default function CalendarPage() {
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
-  const goToday   = () => setCurrentDate(new Date(2026, 4, 1))
+  const goToday   = () => setCurrentDate(new Date())
 
   // Upcoming posts (next 14 days from today)
   const upcoming = allPosts
@@ -446,6 +438,7 @@ export default function CalendarPage() {
                 date={selectedDate}
                 posts={selectedPosts}
                 onClose={() => setSelectedDate(null)}
+                onDelete={handleDelete}
               />
             )}
 
