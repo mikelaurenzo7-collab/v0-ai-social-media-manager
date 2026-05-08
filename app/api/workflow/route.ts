@@ -1,8 +1,5 @@
 import { generateText, generateObject } from 'ai'
-import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
-
-export const runtime = 'edge'
 
 const WORKFLOW_STEPS = ['research', 'hooks', 'draft', 'hashtags', 'schedule'] as const
 
@@ -37,7 +34,7 @@ export async function POST(req: Request) {
   for (const stepId of steps) {
     if (stepId === 'research') {
       const { text } = await generateText({
-        model: anthropic('claude-3-5-haiku-20241022'),
+        model: 'anthropic/claude-haiku-4.5',
         prompt: `Research and provide key insights, trends, and audience pain points for the topic: ${topic}. Be concise and actionable.`,
       })
       results.push({ id: 'research', name: 'Topic Research', output: text })
@@ -46,7 +43,7 @@ export async function POST(req: Request) {
 
     if (stepId === 'hooks') {
       const { object } = await generateObject({
-        model: anthropic('claude-3-5-haiku-20241022'),
+        model: 'anthropic/claude-haiku-4.5',
         schema: z.object({
           hooks: z.array(z.string()).length(3),
         }),
@@ -59,7 +56,7 @@ export async function POST(req: Request) {
 
     if (stepId === 'draft') {
       const { text } = await generateText({
-        model: anthropic('claude-3-5-sonnet-20241022'),
+        model: 'anthropic/claude-sonnet-4.6',
         prompt: `Draft a high-quality social media post based on this context:\n${context}\n\nUse a professional yet engaging tone. Make it platform-agnostic and punchy.`,
       })
       results.push({ id: 'draft', name: 'Post Draft', output: text })
@@ -68,7 +65,7 @@ export async function POST(req: Request) {
 
     if (stepId === 'hashtags') {
       const { object } = await generateObject({
-        model: anthropic('claude-3-5-haiku-20241022'),
+        model: 'anthropic/claude-haiku-4.5',
         schema: z.object({
           hashtags: z.array(z.string()).min(5).max(15),
           strategy: z.string(),
@@ -81,7 +78,7 @@ export async function POST(req: Request) {
 
     if (stepId === 'schedule') {
       const { object } = await generateObject({
-        model: anthropic('claude-3-5-haiku-20241022'),
+        model: 'anthropic/claude-haiku-4.5',
         schema: z.object({
           platform: z.string(),
           bestDay: z.string(),

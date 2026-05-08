@@ -1,9 +1,6 @@
 import { streamObject } from 'ai'
-import { anthropic } from '@ai-sdk/anthropic'
 import { threadSchema } from '@/lib/schemas/thread'
 import { z } from 'zod'
-
-export const runtime = 'edge'
 
 const requestSchema = z.object({
   topic: z.string(),
@@ -16,7 +13,7 @@ export async function POST(req: Request) {
   const { topic, tweetCount, tone } = requestSchema.parse(body)
 
   const result = streamObject({
-    model: anthropic('claude-3-5-sonnet-20241022'),
+    model: 'anthropic/claude-sonnet-4.6',
     schema: threadSchema,
     system: `You are a viral Twitter/X thread writer. You write threads that educate, entertain, and grow followings fast.
 

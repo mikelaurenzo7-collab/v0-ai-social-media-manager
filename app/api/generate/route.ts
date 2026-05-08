@@ -1,5 +1,4 @@
 import { streamObject } from 'ai'
-import { anthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
 import { contentVariationSchema } from '@/lib/schemas/content'
 
@@ -11,8 +10,6 @@ const requestSchema = z.object({
   contentType: z.string().trim().min(1).max(80),
   platforms: z.array(z.enum(SUPPORTED_PLATFORMS)).min(1).max(5),
 })
-
-export const runtime = 'edge'
 
 const PLATFORM_DEEP_GUIDES: Record<string, string> = {
   twitter: `X/Twitter — max 280 chars per post.
@@ -95,7 +92,7 @@ Hook types to rotate through:
 Target platforms: ${platformNames}`
 
   const result = streamObject({
-    model: anthropic('claude-3-5-sonnet-20241022'),
+    model: 'anthropic/claude-sonnet-4.6',
     schema: contentVariationSchema,
     system: systemPrompt,
     prompt: `Create 3 unique, high-engagement social media post variations for this idea:\n\n"${prompt}"\n\nEach variation must feel like it was written by a different top creator with a distinct voice, hook style, and angle. Score each one honestly. Include a platformTip for each one.`,

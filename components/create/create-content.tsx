@@ -146,26 +146,44 @@ export function CreateContent() {
     setTimeout(() => setCopied(false), 2000)
   }, [displayContent])
 
-  const handleSaveDraft = useCallback(() => {
+  const handleSaveDraft = useCallback(async () => {
     if (!displayContent) return
-    let existingDrafts: unknown[] = []
     try {
-      const parsed = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
-      existingDrafts = Array.isArray(parsed) ? parsed : []
+      const res = await fetch('/api/drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: displayContent.content,
+          hashtags: displayContent.hashtags,
+          platforms,
+          tone,
+          contentType,
+        }),
+      })
+      if (res.ok) {
+        toast.success('Draft saved!')
+      } else {
+        // Fallback to localStorage for unauthenticated users
+        let existingDrafts: unknown[] = []
+        try {
+          const parsed = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
+          existingDrafts = Array.isArray(parsed) ? parsed : []
+        } catch { existingDrafts = [] }
+        const newDraft = {
+          id: Date.now().toString(),
+          content: displayContent.content,
+          hashtags: displayContent.hashtags,
+          platforms,
+          tone,
+          contentType,
+          createdAt: new Date().toISOString(),
+        }
+        localStorage.setItem('postpilot_drafts', JSON.stringify([newDraft, ...existingDrafts]))
+        toast.success('Draft saved!')
+      }
     } catch {
-      existingDrafts = []
+      toast.error('Failed to save draft')
     }
-    const newDraft = {
-      id: Date.now().toString(),
-      content: displayContent.content,
-      hashtags: displayContent.hashtags,
-      platforms,
-      tone,
-      contentType,
-      createdAt: new Date().toISOString(),
-    }
-    localStorage.setItem('postpilot_drafts', JSON.stringify([newDraft, ...existingDrafts]))
-    toast.success('Draft saved!')
   }, [displayContent, platforms, tone, contentType])
 
   const handleCopyThread = useCallback(async (tweets: ThreadTweet[]) => {
@@ -174,21 +192,39 @@ export function CreateContent() {
     toast.success('Thread copied to clipboard!')
   }, [])
 
-  const handleSaveThread = useCallback((thread: Partial<Thread>) => {
+  const handleSaveThread = useCallback(async (thread: Partial<Thread>) => {
     if (!thread.tweets?.length) return
-    let existing: unknown[] = []
     try {
-      const parsed = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
-      existing = Array.isArray(parsed) ? parsed : []
+      const res = await fetch('/api/drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'thread',
+          title: thread.title ?? prompt,
+          topic: prompt,
+          tone: threadTone,
+          tweets: thread.tweets,
+        }),
+      })
+      if (res.ok) {
+        toast.success('Thread saved!')
+      } else {
+        // Fallback to localStorage
+        let existing: unknown[] = []
+        try {
+          const parsed = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
+          existing = Array.isArray(parsed) ? parsed : []
+        } catch { existing = [] }
+        localStorage.setItem(
+          'postpilot_threads',
+          JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing])
+        )
+        toast.success('Thread saved!')
+      }
     } catch {
-      existing = []
+      toast.error('Failed to save thread')
     }
-    localStorage.setItem(
-      'postpilot_threads',
-      JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing])
-    )
-    toast.success('Thread saved!')
-  }, [])
+  }, [prompt, threadTone])
 
   const handleImproved = useCallback(
     (newContent: string, newHashtags: string[]) => {
@@ -362,7 +398,8 @@ export function CreateContent() {
                   onClick={mode === 'thread' ? handleGenerateThread : handleGenerate}
                   disabled={!prompt.trim() || (mode === 'post' ? isGenerating : isGeneratingThread)}
                   size="lg"
-                  className="sm:w-auto"
+                  className="sm:w-auto text-white font-semibold"
+                  style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)', border: 'none' }}
                 >
                   {(mode === 'post' ? isGenerating : isGeneratingThread) ? (
                     <>

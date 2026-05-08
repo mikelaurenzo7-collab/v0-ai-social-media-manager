@@ -1,21 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
+import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Header } from '@/components/dashboard/header'
 import { PlatformIcon } from '@/components/create/platform-selector'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const AI_TIPS = [
   'Hook your audience in the first 3 words — people scroll fast.',
-  'Posts with a question get 2× more comments on average.',
+  'Posts with a question get 2x more comments on average.',
   'Consistency beats virality. Show up daily before chasing big moments.',
   'Repurpose your top-performing post in 3 different formats this week.',
   'The best time to post is when YOUR audience is active — check your insights.',
   'Start every caption with your hook. Never bury the lead.',
-  'Carousels hold attention 3× longer than single images on Instagram.',
+  'Carousels hold attention 3x longer than single images on Instagram.',
 ]
 
 const QUICK_ACTIONS = [
@@ -54,46 +55,94 @@ const QUICK_ACTIONS = [
   },
 ]
 
+interface Stats {
+  drafts: number
+  threads: number
+  publishedPosts: number
+  connectedAccounts: number
+  scheduledPosts: number
+}
+
+interface Draft {
+  id: string
+  content: string
+  platforms: string[]
+  createdAt: string
+}
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
 export default function DashboardPage() {
-  const [drafts, setDrafts] = useState<{ id: string; content: string; platforms: string[]; createdAt: string }[]>([])
-  const [threads, setThreads] = useState<{ id: string }[]>([])
-  const [mounted, setMounted] = useState(false)
   const [tip] = useState(() => AI_TIPS[Math.floor(Math.random() * AI_TIPS.length)])
 
-  useEffect(() => {
-    setMounted(true)
-    try {
-      const storedDrafts = localStorage.getItem('postpilot_drafts')
-      if (storedDrafts) {
-        const parsed = JSON.parse(storedDrafts)
-        setDrafts(Array.isArray(parsed) ? parsed : [])
-      }
-    } catch {
-      setDrafts([])
-    }
-    try {
-      const storedThreads = localStorage.getItem('postpilot_threads')
-      if (storedThreads) {
-        const parsed = JSON.parse(storedThreads)
-        setThreads(Array.isArray(parsed) ? parsed : [])
-      }
-    } catch {
-      setThreads([])
-    }
-  }, [])
+  const { data: statsData, isLoading: statsLoading } = useSWR<Stats>('/api/stats', fetcher, {
+    revalidateOnFocus: false,
+  })
 
-  if (!mounted) return null
+  const { data: draftsData, isLoading: draftsLoading } = useSWR<{ drafts: Draft[] }>(
+    '/api/drafts',
+    fetcher,
+    { revalidateOnFocus: false }
+  )
+
+  const stats = statsData ?? { drafts: 0, threads: 0, publishedPosts: 0, connectedAccounts: 0, scheduledPosts: 0 }
+  const recentDrafts = draftsData?.drafts?.slice(0, 4) ?? []
+
+  const statCards = [
+    {
+      label: 'Saved Drafts',
+      value: stats.drafts,
+      sub: 'Posts ready to publish',
+      icon: (
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Threads',
+      value: stats.threads,
+      sub: 'X/Twitter threads saved',
+      icon: (
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Published',
+      value: stats.publishedPosts,
+      sub: 'Posts sent via PostPilot',
+      icon: (
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Connected',
+      value: stats.connectedAccounts,
+      sub: stats.connectedAccounts === 0
+        ? <Link href="/dashboard/accounts" className="text-orange-500 hover:underline font-medium">Connect accounts</Link>
+        : 'Accounts ready to publish',
+      icon: (
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+        </svg>
+      ),
+    },
+  ]
 
   return (
     <div className="flex flex-col min-h-full">
       <Header
-        title="Good morning ✦"
+        title="Good morning"
         description="Your content studio is ready. What are we creating today?"
       />
 
       <div className="p-6 space-y-7">
 
-        {/* ── Hero: Quick Actions ─────────────────────────────────────────── */}
+        {/* Quick Actions */}
         <div className="grid gap-4 sm:grid-cols-3">
           {QUICK_ACTIONS.map((action) => (
             <Link key={action.label} href={action.href} className="group block">
@@ -113,28 +162,29 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* ── Stats Row ───────────────────────────────────────────────────── */}
+        {/* Stats Row */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: 'Saved Drafts', value: drafts.length, sub: 'Posts ready to publish', icon: '📝' },
-            { label: 'Saved Threads', value: threads.length, sub: 'X/Twitter threads', icon: '🧵' },
-            { label: 'AI Generations', value: 25, sub: 'Remaining on free plan', icon: '⚡' },
-            { label: 'Connected', value: 0, sub: <Link href="/dashboard/accounts" className="text-orange-500 hover:underline font-medium">Connect accounts →</Link>, icon: '🔗' },
-          ].map((stat) => (
+          {statCards.map((stat) => (
             <Card key={stat.label} className="border-border/60 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="pt-5 pb-4 px-5">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</p>
-                  <span className="text-lg">{stat.icon}</span>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground">
+                    {stat.icon}
+                  </span>
                 </div>
-                <p className="text-3xl font-black text-foreground">{stat.value}</p>
+                {statsLoading ? (
+                  <Skeleton className="h-8 w-12 mb-1" />
+                ) : (
+                  <p className="text-3xl font-black text-foreground tabular">{stat.value}</p>
+                )}
                 <p className="text-xs text-muted-foreground mt-1">{stat.sub}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* ── Main Content Grid ────────────────────────────────────────────── */}
+        {/* Main Content Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
 
           {/* Recent Drafts */}
@@ -146,13 +196,19 @@ export default function DashboardPage() {
                   <CardDescription className="text-xs mt-0.5">Your saved content, ready to publish</CardDescription>
                 </div>
                 <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
-                  <Link href="/dashboard/drafts">View all →</Link>
+                  <Link href="/dashboard/drafts">View all</Link>
                 </Button>
               </CardHeader>
               <CardContent>
-                {drafts.length > 0 ? (
+                {draftsLoading ? (
                   <div className="space-y-2">
-                    {drafts.slice(0, 4).map((draft) => (
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full rounded-xl" />
+                    ))}
+                  </div>
+                ) : recentDrafts.length > 0 ? (
+                  <div className="space-y-2">
+                    {recentDrafts.map((draft) => (
                       <div
                         key={draft.id}
                         className="group flex items-center justify-between gap-4 rounded-xl border border-border/60 bg-muted/30 px-4 py-3 hover:bg-muted/60 transition-colors"
@@ -180,12 +236,14 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-2xl">
-                      📝
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                      <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                      </svg>
                     </div>
                     <p className="text-sm font-medium text-foreground">No drafts yet</p>
                     <p className="mt-1 text-xs text-muted-foreground">Generate your first post and save it here</p>
-                    <Button asChild size="sm" className="mt-4" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}>
+                    <Button asChild size="sm" className="mt-4 btn-gradient">
                       <Link href="/dashboard/create">Create a post</Link>
                     </Button>
                   </div>
@@ -212,7 +270,6 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <span className="text-xs font-bold text-white/90 uppercase tracking-widest">Today&apos;s Tip</span>
-                  <Badge className="text-[9px] ml-auto px-1.5 py-0" style={{ background: 'oklch(0.652 0.214 36 / 0.3)', color: '#FED7AA', border: '1px solid oklch(0.652 0.214 36 / 0.4)' }}>Claude</Badge>
                 </div>
                 <p className="text-sm text-white/85 leading-relaxed">&ldquo;{tip}&rdquo;</p>
                 <Link href="/dashboard/create" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-orange-400 hover:text-orange-300 transition-colors">
@@ -231,12 +288,12 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {[
-                  { name: 'X / Twitter', tip: 'Hook in first 10 words', color: '#000' },
+                  { name: 'X / Twitter', tip: 'Hook in first 10 words', color: '#374151' },
                   { name: 'Instagram', tip: 'First 125 chars are everything', color: '#E1306C' },
                   { name: 'LinkedIn', tip: 'First 3 lines before "see more"', color: '#0A66C2' },
                 ].map((p) => (
                   <div key={p.name} className="flex items-start gap-3 rounded-xl p-3 bg-muted/40 border border-border/50">
-                    <div className="mt-1.5 h-2 w-2 rounded-full shrink-0" style={{ background: p.color === '#000' ? '#374151' : p.color }} />
+                    <div className="mt-1.5 h-2 w-2 rounded-full shrink-0" style={{ background: p.color }} />
                     <div>
                       <p className="text-xs font-semibold text-foreground">{p.name}</p>
                       <p className="text-[11px] text-muted-foreground">{p.tip}</p>
@@ -246,6 +303,28 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
+            {/* Scheduled posts teaser */}
+            {!statsLoading && stats.scheduledPosts > 0 && (
+              <div
+                className="relative overflow-hidden rounded-2xl border border-violet-200/60 p-4"
+                style={{ background: 'linear-gradient(135deg, oklch(0.96 0.01 290) 0%, oklch(0.98 0.006 290) 100%)' }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/10">
+                    <svg className="h-4 w-4 text-violet-600" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-violet-900">{stats.scheduledPosts} post{stats.scheduledPosts !== 1 ? 's' : ''} scheduled</p>
+                    <p className="text-[10px] text-violet-700/70">Coming up soon</p>
+                  </div>
+                  <Link href="/dashboard/calendar" className="ml-auto text-[10px] font-semibold text-violet-700 hover:text-violet-900">
+                    View
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
