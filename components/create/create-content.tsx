@@ -23,6 +23,7 @@ import { toast } from 'sonner'
 export function CreateContent() {
   const searchParams = useSearchParams()
   const editId = searchParams.get('edit')
+  const ideaParam = searchParams.get('idea')
 
   // Mode: 'post' or 'thread'
   const [mode, setMode] = useState<'post' | 'thread'>('post')
@@ -31,8 +32,14 @@ export function CreateContent() {
   const [threadTweetCount, setThreadTweetCount] = useState<ThreadTweetCount>(7)
   const [threadTone, setThreadTone] = useState('educational and engaging')
 
-  // Form state
-  const [prompt, setPrompt] = useState('')
+  // Form state — seed from ?idea= if present (not when editing a draft)
+  const [prompt, setPrompt] = useState(() => (editId ? '' : (ideaParam ?? '')))
+
+  // Keep prompt in sync when the user navigates to a new ?idea= link without unmounting
+  useEffect(() => {
+    if (editId) return
+    setPrompt(ideaParam ?? '')
+  }, [ideaParam, editId])
   const [tone, setTone] = useState<ToneId>('casual')
   const [contentType, setContentType] = useState<ContentTypeId>('promotional')
   const [platforms, setPlatforms] = useState<PlatformId[]>(['twitter', 'instagram'])

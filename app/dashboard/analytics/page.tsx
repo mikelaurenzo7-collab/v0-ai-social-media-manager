@@ -25,6 +25,7 @@ const P: Record<string, string> = {
   instagram: '#E1306C',
   linkedin: '#0A66C2',
   tiktok: '#6366F1',
+  facebook: '#1877F2',
 }
 
 // ── Time-series engagement data ────────────────────────────────────────────────
@@ -174,14 +175,32 @@ function fmt(n: number): string {
   return String(n)
 }
 
+function LiveBadge() {
+  return (
+    <span className="rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[9px] font-bold text-green-700 dark:border-green-800/40 dark:bg-green-950/30 dark:text-green-400">
+      Live
+    </span>
+  )
+}
+
+function SampleBadge() {
+  return (
+    <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-400">
+      Sample
+    </span>
+  )
+}
+
 function EngagementTooltip({
   active,
   payload,
   label,
+  unit = '%',
 }: {
   active?: boolean
   payload?: Array<{ name: string; value: number; color: string }>
   label?: string
+  unit?: string
 }) {
   if (!active || !payload?.length) return null
   return (
@@ -190,12 +209,23 @@ function EngagementTooltip({
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full shrink-0" style={{ background: p.color }} />
-          <span className="capitalize text-muted-foreground flex-1">{p.name === 'twitter' ? 'X/Twitter' : p.name}</span>
-          <span className="font-bold tabular-nums">{p.value}%</span>
+          <span className="capitalize text-muted-foreground flex-1">
+            {p.name === 'twitter' ? 'X/Twitter' : p.name === 'facebook' ? 'Facebook' : p.name}
+          </span>
+          <span className="font-bold tabular-nums">{p.value}{unit}</span>
         </div>
       ))}
     </div>
   )
+}
+
+// ── Real analytics shape ───────────────────────────────────────────────────────
+
+interface AnalyticsData {
+  timeSeries: Array<Record<string, number | string>>
+  platformTotals: Record<string, number>
+  totals: { published: number; drafts: number; connections: number }
+  hasData: boolean
 }
 
 // ── Page ───────────────────────────────────────────────────────────────────────
@@ -203,7 +233,13 @@ function EngagementTooltip({
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>('30D')
   const [activePlatforms, setActivePlatforms] = useState<Set<string>>(
-    new Set(['twitter', 'instagram', 'linkedin', 'tiktok'])
+    new Set(['twitter', 'instagram', 'linkedin', 'tiktok', 'facebook'])
+  )
+
+  const { data: analytics, isLoading: analyticsLoading } = useSWR<AnalyticsData>(
+    `/api/analytics?period=${period}`,
+    fetcher,
+    { revalidateOnFocus: false }
   )
 
   const { data: stats } = useSWR<{
@@ -214,12 +250,15 @@ export default function AnalyticsPage() {
     connectedAccounts: number
   }>('/api/stats', fetcher, { refreshInterval: 60000 })
 
+  const usingRealData = !analyticsLoading && analytics?.hasData === true
+
   const totalContent = (stats?.drafts ?? 0) + (stats?.threads ?? 0)
-  const published = stats?.publishedPosts ?? 0
+  // Use period-scoped total once analytics loads, even when hasData is false (0 posts in period is still correct)
+  const published = (!analyticsLoading && analytics) ? analytics.totals.published : (stats?.publishedPosts ?? 0)
   const scheduled = stats?.scheduledPosts ?? 0
 
   const kpi = KPIS[period]
-  const chartData = CHART_DATA[period]
+  const chartData = usingRealData ? (analytics?.timeSeries ?? CHART_DATA[period]) : CHART_DATA[period]
 
   // Build period label from today
   const today = new Date()
@@ -242,8 +281,11 @@ export default function AnalyticsPage() {
   }
 
   const PLATFORM_LABELS: Record<string, string> = {
-    twitter: 'X', instagram: 'IG', linkedin: 'LI', tiktok: 'TK',
+    twitter: 'X', instagram: 'IG', linkedin: 'LI', tiktok: 'TK', facebook: 'FB',
   }
+
+  // Facebook only appears in the chart when live data is available; sample data has no facebook series
+  const visiblePlatforms = usingRealData ? Object.keys(P) : Object.keys(P).filter((p) => p !== 'facebook')
 
   return (
     <div className="flex flex-col min-h-full">
@@ -271,8 +313,15 @@ export default function AnalyticsPage() {
       />
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Date range label */}
-        <p className="text-xs text-muted-foreground -mt-2">{periodLabel}</p>
+        {/* Date range + data source label */}
+        <div className="flex items-center gap-3 -mt-2">
+          <p className="text-xs text-muted-foreground">{periodLabel}</p>
+          {!analyticsLoading && !usingRealData && (
+            <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-400">
+              Sample data · Publish posts to see real analytics
+            </span>
+          )}
+        </div>
 
         {/* ── KPIs ─────────────────────────────────────────────────────────── */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -308,6 +357,7 @@ export default function AnalyticsPage() {
           <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Avg Engagement</p>
+              {usingRealData && <SampleBadge />}
               <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
               </svg>
@@ -322,6 +372,7 @@ export default function AnalyticsPage() {
           <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Est. Reach</p>
+              {usingRealData && <SampleBadge />}
               <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
               </svg>
@@ -340,7 +391,7 @@ export default function AnalyticsPage() {
             {[
               { label: 'Drafts saved',       value: stats?.drafts ?? 0,           href: '/dashboard/drafts' },
               { label: 'Threads saved',      value: stats?.threads ?? 0,          href: '/dashboard/drafts' },
-              { label: 'Published posts',    value: stats?.publishedPosts ?? 0,   href: '/dashboard/accounts' },
+              { label: 'Published posts',    value: published,                    href: '/dashboard/accounts' },
               { label: 'Scheduled posts',    value: stats?.scheduledPosts ?? 0,   href: '/dashboard/calendar' },
               { label: 'Connected accounts', value: stats?.connectedAccounts ?? 0, href: '/dashboard/accounts' },
             ].map((item) => (
@@ -367,11 +418,18 @@ export default function AnalyticsPage() {
           <div className="lg:col-span-2 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
             <div className="flex items-start justify-between mb-5">
               <div>
-                <h3 className="text-sm font-bold">Engagement Rate Over Time</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">% of reached audience that engaged</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold">
+                    {usingRealData ? 'Posts Published Over Time' : 'Engagement Rate Over Time'}
+                  </h3>
+                  {usingRealData && <LiveBadge />}
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {usingRealData ? 'Number of posts published per platform' : '% of reached audience that engaged'}
+                </p>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                {(Object.keys(P)).map((p) => (
+                {visiblePlatforms.map((p) => (
                   <button
                     key={p}
                     onClick={() => togglePlatform(p)}
@@ -391,7 +449,7 @@ export default function AnalyticsPage() {
             <ResponsiveContainer width="100%" height={230}>
               <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <defs>
-                  {Object.entries(P).map(([key, color]) => (
+                  {Object.entries(P).filter(([key]) => visiblePlatforms.includes(key)).map(([key, color]) => (
                     <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%"  stopColor={color} stopOpacity={0.25} />
                       <stop offset="95%" stopColor={color} stopOpacity={0} />
@@ -400,9 +458,16 @@ export default function AnalyticsPage() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
                 <XAxis dataKey="d" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} unit="%" width={30} />
-                <Tooltip content={<EngagementTooltip />} />
-                {Object.keys(P)
+                <YAxis
+                  tick={{ fontSize: 10 }}
+                  tickLine={false}
+                  axisLine={false}
+                  unit={usingRealData ? '' : '%'}
+                  width={30}
+                  allowDecimals={!usingRealData}
+                />
+                <Tooltip content={<EngagementTooltip unit={usingRealData ? ' posts' : '%'} />} />
+                {visiblePlatforms
                   .filter((p) => activePlatforms.has(p))
                   .map((p) => (
                     <Area
@@ -422,7 +487,10 @@ export default function AnalyticsPage() {
 
           {/* Platform performance */}
           <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
-            <h3 className="text-sm font-bold mb-1">Platform Performance</h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-sm font-bold">Platform Performance</h3>
+              {usingRealData && <SampleBadge />}
+            </div>
             <p className="text-xs text-muted-foreground mb-5">Avg engagement rate per platform</p>
             <div className="space-y-4">
               {PLATFORM_BARS.map((pb) => (
@@ -449,7 +517,10 @@ export default function AnalyticsPage() {
 
           {/* Content type mix */}
           <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
-            <h3 className="text-sm font-bold mb-1">Content Type Performance</h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-sm font-bold">Content Type Performance</h3>
+              {usingRealData && <SampleBadge />}
+            </div>
             <p className="text-xs text-muted-foreground mb-5">What format drives the most engagement</p>
             <div className="space-y-3.5">
               {CONTENT_TYPES.map((ct) => (
@@ -492,6 +563,7 @@ export default function AnalyticsPage() {
                 </svg>
               </div>
               <h3 className="text-sm font-bold">AI Insights</h3>
+              {usingRealData && <SampleBadge />}
               <span
                 className="ml-auto text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
                 style={{ background: 'oklch(0.652 0.214 36 / 0.15)', color: '#EA580C' }}
@@ -530,7 +602,10 @@ export default function AnalyticsPage() {
         <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-sm font-bold">Top Performing Content</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold">Top Performing Content</h3>
+                {usingRealData && <SampleBadge />}
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">Your best posts ranked by engagement rate</p>
             </div>
             <Link href="/dashboard/drafts" className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">

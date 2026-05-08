@@ -11,6 +11,7 @@ const AGENT_STATS: Record<string, { sessions: number; workflows: number; rating:
   viral: { sessions: 31, workflows: 5, rating: '4.8', specialty: 'Viral Reach' },
   voice: { sessions: 18, workflows: 11, rating: '4.9', specialty: 'Tone & Voice' },
   community: { sessions: 42, workflows: 6, rating: '5.0', specialty: 'Engagement' },
+  research: { sessions: 15, workflows: 7, rating: '4.9', specialty: 'Trend Research' },
   gmail: { sessions: 12, workflows: 4, rating: '4.9', specialty: 'Gmail Outreach' },
   outlook: { sessions: 9, workflows: 3, rating: '4.8', specialty: 'Business Email' },
 }
