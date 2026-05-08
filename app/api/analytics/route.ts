@@ -25,6 +25,7 @@ export async function GET(req: Request) {
             COUNT(*)::int AS count
           FROM "PublishedPost"
           WHERE "userId" = ${userId}
+            AND status = 'published'
             AND "publishedAt" >= ${since.toISOString()}
           GROUP BY platform, DATE_TRUNC('day', "publishedAt")
           ORDER BY day ASC
@@ -33,11 +34,12 @@ export async function GET(req: Request) {
           SELECT platform, COUNT(*)::int AS count
           FROM "PublishedPost"
           WHERE "userId" = ${userId}
+            AND status = 'published'
             AND "publishedAt" >= ${since.toISOString()}
           GROUP BY platform
           ORDER BY count DESC
         `,
-        sql`SELECT COUNT(*)::int AS count FROM "PublishedPost" WHERE "userId" = ${userId}`,
+        sql`SELECT COUNT(*)::int AS count FROM "PublishedPost" WHERE "userId" = ${userId} AND status = 'published'`,
         sql`SELECT COUNT(*)::int AS count FROM "Draft" WHERE "userId" = ${userId}`,
         sql`SELECT COUNT(*)::int AS count FROM "SocialConnection" WHERE "userId" = ${userId}`,
       ])

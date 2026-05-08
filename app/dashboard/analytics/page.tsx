@@ -178,10 +178,12 @@ function EngagementTooltip({
   active,
   payload,
   label,
+  unit = '%',
 }: {
   active?: boolean
   payload?: Array<{ name: string; value: number; color: string }>
   label?: string
+  unit?: string
 }) {
   if (!active || !payload?.length) return null
   return (
@@ -191,7 +193,7 @@ function EngagementTooltip({
         <div key={p.name} className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full shrink-0" style={{ background: p.color }} />
           <span className="capitalize text-muted-foreground flex-1">{p.name === 'twitter' ? 'X/Twitter' : p.name}</span>
-          <span className="font-bold tabular-nums">{p.value}%</span>
+          <span className="font-bold tabular-nums">{p.value}{unit}</span>
         </div>
       ))}
     </div>
@@ -396,8 +398,12 @@ export default function AnalyticsPage() {
           <div className="lg:col-span-2 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
             <div className="flex items-start justify-between mb-5">
               <div>
-                <h3 className="text-sm font-bold">Engagement Rate Over Time</h3>
-                <p className="text-xs text-muted-foreground mt-0.5">% of reached audience that engaged</p>
+                <h3 className="text-sm font-bold">
+                  {usingRealData ? 'Posts Published Over Time' : 'Engagement Rate Over Time'}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {usingRealData ? 'Number of posts published per platform' : '% of reached audience that engaged'}
+                </p>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap justify-end">
                 {(Object.keys(P)).map((p) => (
@@ -429,8 +435,15 @@ export default function AnalyticsPage() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
                 <XAxis dataKey="d" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} unit="%" width={30} />
-                <Tooltip content={<EngagementTooltip />} />
+                <YAxis
+                  tick={{ fontSize: 10 }}
+                  tickLine={false}
+                  axisLine={false}
+                  unit={usingRealData ? '' : '%'}
+                  width={30}
+                  allowDecimals={!usingRealData}
+                />
+                <Tooltip content={<EngagementTooltip unit={usingRealData ? ' posts' : '%'} />} />
                 {Object.keys(P)
                   .filter((p) => activePlatforms.has(p))
                   .map((p) => (

@@ -1,7 +1,7 @@
 import { generateObject } from 'ai'
 import { createAnthropic } from '@ai-sdk/anthropic'
 import { z } from 'zod'
-import { getCurrentUserId } from '@/lib/oauth/session'
+import { auth } from '@/lib/next-auth'
 
 const anthropic = createAnthropic()
 
@@ -33,8 +33,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const userId = await getCurrentUserId()
-    if (!userId) {
+    const session = await auth()
+    if (!session?.user?.id) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
