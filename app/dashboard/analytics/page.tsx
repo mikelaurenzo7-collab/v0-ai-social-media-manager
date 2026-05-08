@@ -25,6 +25,7 @@ const P: Record<string, string> = {
   instagram: '#E1306C',
   linkedin: '#0A66C2',
   tiktok: '#6366F1',
+  facebook: '#1877F2',
 }
 
 // ── Time-series engagement data ────────────────────────────────────────────────
@@ -192,7 +193,9 @@ function EngagementTooltip({
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full shrink-0" style={{ background: p.color }} />
-          <span className="capitalize text-muted-foreground flex-1">{p.name === 'twitter' ? 'X/Twitter' : p.name}</span>
+          <span className="capitalize text-muted-foreground flex-1">
+            {p.name === 'twitter' ? 'X/Twitter' : p.name === 'facebook' ? 'Facebook' : p.name}
+          </span>
           <span className="font-bold tabular-nums">{p.value}{unit}</span>
         </div>
       ))}
@@ -214,7 +217,7 @@ interface AnalyticsData {
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>('30D')
   const [activePlatforms, setActivePlatforms] = useState<Set<string>>(
-    new Set(['twitter', 'instagram', 'linkedin', 'tiktok'])
+    new Set(['twitter', 'instagram', 'linkedin', 'tiktok', 'facebook'])
   )
 
   const { data: analytics, isLoading: analyticsLoading } = useSWR<AnalyticsData>(
@@ -261,7 +264,7 @@ export default function AnalyticsPage() {
   }
 
   const PLATFORM_LABELS: Record<string, string> = {
-    twitter: 'X', instagram: 'IG', linkedin: 'LI', tiktok: 'TK',
+    twitter: 'X', instagram: 'IG', linkedin: 'LI', tiktok: 'TK', facebook: 'FB',
   }
 
   return (
