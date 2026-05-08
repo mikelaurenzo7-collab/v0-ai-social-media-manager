@@ -37,32 +37,21 @@ export function CreateContent() {
   const [contentType, setContentType] = useState<ContentTypeId>('promotional')
   const [platforms, setPlatforms] = useState<PlatformId[]>(['twitter', 'instagram'])
 
-  // Pre-fill if editing
+  // Pre-fill if editing a saved draft
   useEffect(() => {
     if (!editId) return
-    try {
-      const stored = localStorage.getItem('postpilot_drafts')
-      if (!stored) return
-      type SavedDraft = {
-        id: string
-        content: string
-        tone: ToneId
-        contentType: ContentTypeId
-        platforms: PlatformId[]
-        createdAt: string
-      }
-      const drafts = JSON.parse(stored) as SavedDraft[]
-      const draft = drafts.find((d) => d.id === editId)
-      if (draft) {
-        setPrompt(draft.content)
-        setTone(draft.tone)
-        setContentType(draft.contentType)
-        setPlatforms(draft.platforms)
+    fetch(`/api/drafts?id=${editId}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (!data?.draft) return
+        const d = data.draft
+        setPrompt(d.content ?? '')
+        if (d.tone) setTone(d.tone as ToneId)
+        if (d.contentType) setContentType(d.contentType as ContentTypeId)
+        if (Array.isArray(d.platforms)) setPlatforms(d.platforms as PlatformId[])
         setMode('post')
-      }
-    } catch {
-      // corrupt localStorage — ignore
-    }
+      })
+      .catch(() => {/* ignore */})
   }, [editId])
 
   // Selection + clipboard state

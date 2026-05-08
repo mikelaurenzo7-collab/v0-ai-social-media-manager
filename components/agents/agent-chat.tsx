@@ -3,11 +3,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, isTextUIPart, isToolUIPart, type UIMessage } from 'ai'
+import useSWR from 'swr'
 import { cn } from '@/lib/utils'
 import { Agent } from '@/lib/agents'
 import { Button } from '@/components/ui/button'
 
-// ── Agent-specific tool renderers ──────────────────────────────────────────────
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+// ── Tool renderers ─────────────────────────────────────────────────────────────
 
 function ViralityScore({ result }: { result: Record<string, unknown> }) {
   return (
@@ -19,7 +22,7 @@ function ViralityScore({ result }: { result: Record<string, unknown> }) {
       <div className="space-y-2">
         <p className="text-sm font-medium">{result.reasoning as string}</p>
         <div className="rounded-lg bg-orange-500/10 p-3">
-          <p className="text-xs font-bold text-orange-700">💡 Pro Tip:</p>
+          <p className="text-xs font-bold text-orange-700">Pro Tip:</p>
           <p className="text-xs text-orange-800">{result.improvement as string}</p>
         </div>
       </div>
@@ -59,24 +62,23 @@ function ToolResult({ toolName, result }: { toolName: string; result: unknown })
 }
 
 function getTextContent(message: UIMessage): string {
-  return message.parts.filter(isTextUIPart).map(p => p.text).join('')
+  return message.parts.filter(isTextUIPart).map((p) => p.text).join('')
 }
 
-// ── Main Agent Chat Component ──────────────────────────────────────────────────
+// ── Main Component ─────────────────────────────────────────────────────────────
 
 export function AgentChat({ agent }: { agent: Agent }) {
   const [input, setInput] = useState('')
 
+  // Fetch settings from DB — used to build the dynamic request body
+  const { data: settings } = useSWR<{ creativity: number; tone: number; memory: unknown[] }>(
+    `/api/agent-settings?agentId=${agent.id}`,
+    fetcher,
+    { fallbackData: { creativity: 50, tone: 75, memory: [] } }
+  )
+
   const { messages, sendMessage, status, stop } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/chat',
-      body: {
-        agentId: agent.id,
-        creativity: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_creativity`) : null,
-        tone: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_tone`) : null,
-        memory: typeof window !== 'undefined' ? localStorage.getItem(`agent_${agent.id}_memory`) : null,
-      },
-    }),
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
   })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -86,18 +88,32 @@ export function AgentChat({ agent }: { agent: Agent }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSend = (e?: React.FormEvent<HTMLFormElement>) => {
-    e?.preventDefault()
-    if (!input.trim() || isLoading) return
-    sendMessage({ text: input })
+  const handleSend = (text: string) => {
+    if (!text.trim() || isLoading) return
+    // Pass current settings at send-time so they're never stale
+    sendMessage(
+      { text },
+      {
+        body: {
+          agentId: agent.id,
+          creativity: settings?.creativity ?? 50,
+          tone: settings?.tone ?? 75,
+          memory: settings?.memory ?? [],
+        },
+      }
+    )
+  }
+
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    handleSend(input)
     setInput('')
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      if (!input.trim() || isLoading) return
-      sendMessage({ text: input })
+      handleSend(input)
       setInput('')
     }
   }
@@ -107,13 +123,15 @@ export function AgentChat({ agent }: { agent: Agent }) {
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center max-w-md mx-auto space-y-6">
-            <div className={cn(
-              "flex h-20 w-20 items-center justify-center rounded-full text-3xl font-bold text-white shadow-2xl animate-in zoom-in duration-500",
-              agent.color === 'blue' ? 'bg-blue-500' :
-              agent.color === 'orange' ? 'bg-orange-500' :
-              agent.color === 'purple' ? 'bg-purple-500' :
-              'bg-green-500'
-            )}>
+            <div
+              className={cn(
+                'flex h-20 w-20 items-center justify-center rounded-full text-3xl font-bold text-white shadow-2xl animate-in zoom-in duration-500',
+                agent.color === 'blue'   ? 'bg-blue-500'   :
+                agent.color === 'orange' ? 'bg-orange-500' :
+                agent.color === 'purple' ? 'bg-purple-500' :
+                'bg-green-500'
+              )}
+            >
               {agent.avatar}
             </div>
             <div className="space-y-2">
@@ -128,7 +146,7 @@ export function AgentChat({ agent }: { agent: Agent }) {
                   key={cap}
                   variant="outline"
                   className="group justify-start text-xs font-semibold h-11 px-4 hover:border-primary/50 hover:bg-primary/5 transition-all"
-                  onClick={() => { sendMessage({ text: `Help me with ${cap}` }) }}
+                  onClick={() => handleSend(`Help me with ${cap}`)}
                 >
                   <div className="mr-3 flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
@@ -156,40 +174,44 @@ export function AgentChat({ agent }: { agent: Agent }) {
             >
               <div className={cn('flex gap-3 max-w-[85%]', message.role === 'user' && 'flex-row-reverse')}>
                 {message.role === 'assistant' && (
-                  <div className={cn(
-                    "mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm",
-                    agent.color === 'blue' ? 'bg-blue-500' :
-                    agent.color === 'orange' ? 'bg-orange-500' :
-                    agent.color === 'purple' ? 'bg-purple-500' :
-                    'bg-green-500'
-                  )}>
+                  <div
+                    className={cn(
+                      'mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm',
+                      agent.color === 'blue'   ? 'bg-blue-500'   :
+                      agent.color === 'orange' ? 'bg-orange-500' :
+                      agent.color === 'purple' ? 'bg-purple-500' :
+                      'bg-green-500'
+                    )}
+                  >
                     {agent.avatar}
                   </div>
                 )}
-
-                <div className={cn(
-                  'rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ring-1 ring-black/5',
-                  message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-background border'
-                )}>
+                <div
+                  className={cn(
+                    'rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ring-1 ring-black/5',
+                    message.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-background border'
+                  )}
+                >
                   {textContent && <p className="whitespace-pre-wrap">{textContent}</p>}
-
                   {toolParts.map((part) => {
-                    const toolName = part.type === 'dynamic-tool'
-                      ? part.toolName
-                      : part.type.replace(/^tool-/, '')
-                    const toolCallId = part.toolCallId
-
+                    const toolName =
+                      part.type === 'dynamic-tool'
+                        ? part.toolName
+                        : part.type.replace(/^tool-/, '')
                     if (part.state === 'output-available') {
                       return (
-                        <div key={toolCallId} className="mt-4">
+                        <div key={part.toolCallId} className="mt-4">
                           <ToolResult toolName={toolName} result={part.output} />
                         </div>
                       )
                     }
                     return (
-                      <div key={toolCallId} className="mt-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <div
+                        key={part.toolCallId}
+                        className="mt-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                      >
                         <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                         Running {toolName.replace(/_/g, ' ')}...
                       </div>
@@ -204,7 +226,7 @@ export function AgentChat({ agent }: { agent: Agent }) {
       </div>
 
       <div className="border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
-        <form onSubmit={handleSend} className="max-w-4xl mx-auto flex items-end gap-3">
+        <form onSubmit={handleFormSubmit} className="max-w-4xl mx-auto flex items-end gap-3">
           <div className="relative flex-1">
             <textarea
               value={input}
@@ -216,11 +238,17 @@ export function AgentChat({ agent }: { agent: Agent }) {
               disabled={isLoading}
             />
             <div className="absolute right-3 bottom-3 flex items-center gap-2">
-               <span className="text-[10px] text-muted-foreground">Enter to send</span>
+              <span className="text-[10px] text-muted-foreground">Enter to send</span>
             </div>
           </div>
           {isLoading ? (
-            <Button type="button" size="icon" onClick={stop} variant="outline" className="h-[52px] w-[52px] rounded-2xl shrink-0 border-primary/20">
+            <Button
+              type="button"
+              size="icon"
+              onClick={stop}
+              variant="outline"
+              className="h-[52px] w-[52px] rounded-2xl shrink-0 border-primary/20"
+            >
               <div className="h-4 w-4 bg-primary animate-pulse rounded-sm" />
             </Button>
           ) : (

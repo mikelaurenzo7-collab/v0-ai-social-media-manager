@@ -10,13 +10,37 @@ const createDraftSchema = z.object({
   contentType: z.string().optional(),
 })
 
-export async function GET() {
+export async function GET(req: Request) {
   const sql = neon(process.env.DATABASE_URL!)
+  const { searchParams } = new URL(req.url)
+  const singleId = searchParams.get('id')
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
-      // Return empty for unauthenticated users (demo mode)
       return Response.json({ drafts: [], threads: [], total: 0 })
+    }
+
+    // Single-draft fetch for "edit" mode in create-content
+    if (singleId) {
+      const rows = await sql`
+        SELECT id, content, platforms, hashtags, tone, metadata, "createdAt"
+        FROM "Draft"
+        WHERE id = ${singleId} AND "userId" = ${userId}
+        LIMIT 1
+      `
+      if (!rows.length) return Response.json({ draft: null }, { status: 404 })
+      const d = rows[0] as Record<string, unknown>
+      return Response.json({
+        draft: {
+          id: d.id,
+          content: d.content,
+          platforms: (d.platforms as string[]) ?? [],
+          hashtags: (d.hashtags as string[]) ?? [],
+          tone: (d.tone as string) ?? 'casual',
+          contentType: ((d.metadata as Record<string, string> | null)?.contentType) ?? 'promotional',
+          createdAt: d.createdAt,
+        },
+      })
     }
 
     const [drafts, threads] = await Promise.all([
