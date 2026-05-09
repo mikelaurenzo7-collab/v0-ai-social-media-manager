@@ -1,5 +1,7 @@
 import { generateObject } from 'ai'
 import { z } from 'zod'
+import { rateLimit, rateLimitResponse } from '@/lib/rate-limit'
+import { getCurrentUserId } from '@/lib/oauth/session'
 
 const requestSchema = z.object({
   content: z.string().min(1).max(5000),
@@ -15,6 +17,11 @@ const improveResponseSchema = z.object({
 })
 
 export async function POST(req: Request) {
+  const userId = await getCurrentUserId()
+  const key = userId ?? (req.headers.get('x-forwarded-for') ?? 'anon')
+  const { allowed, resetAt } = rateLimit(`improve:${key}`, { limit: 30, windowMs: 60_000 })
+  if (!allowed) return rateLimitResponse(resetAt)
+
   let body: unknown
   try {
     body = await req.json()

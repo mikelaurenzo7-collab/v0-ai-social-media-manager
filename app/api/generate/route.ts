@@ -1,6 +1,8 @@
 import { streamObject } from 'ai'
 import { z } from 'zod'
 import { contentVariationSchema } from '@/lib/schemas/content'
+import { rateLimit, rateLimitResponse } from '@/lib/rate-limit'
+import { getCurrentUserId } from '@/lib/oauth/session'
 
 const SUPPORTED_PLATFORMS = ['twitter', 'instagram', 'facebook', 'linkedin', 'tiktok'] as const
 
@@ -52,6 +54,11 @@ const PLATFORM_DEEP_GUIDES: Record<string, string> = {
 }
 
 export async function POST(req: Request) {
+  const userId = await getCurrentUserId()
+  const limitKey = userId ?? (req.headers.get('x-forwarded-for') ?? 'anon')
+  const { allowed, resetAt } = rateLimit(`generate:${limitKey}`, { limit: 30, windowMs: 60_000 })
+  if (!allowed) return rateLimitResponse(resetAt)
+
   const body = await req.json().catch(() => null)
   const validation = requestSchema.safeParse(body)
   if (!validation.success) {

@@ -1,48 +1,34 @@
-import { neon } from '@neondatabase/serverless'
+import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/oauth/session'
 
+const EMPTY = {
+  drafts: 0,
+  threads: 0,
+  publishedPosts: 0,
+  connectedAccounts: 0,
+  scheduledPosts: 0,
+}
+
 export async function GET() {
-  const sql = neon(process.env.DATABASE_URL!)
   try {
     const userId = await getCurrentUserId()
-    if (!userId) {
-      return Response.json({
-        drafts: 0,
-        threads: 0,
-        publishedPosts: 0,
-        connectedAccounts: 0,
-        scheduledPosts: 0,
-      })
-    }
+    if (!userId) return Response.json(EMPTY)
 
-    const [draftCount, threadCount, publishedCount, connectionCount, scheduledCount] =
+    const now = new Date()
+
+    const [drafts, threads, publishedPosts, connectedAccounts, scheduledPosts] =
       await Promise.all([
-        sql`SELECT COUNT(*)::int AS count FROM "Draft" WHERE "userId" = ${userId}`,
-        sql`SELECT COUNT(*)::int AS count FROM "Thread" WHERE "userId" = ${userId}`,
-        sql`SELECT COUNT(*)::int AS count FROM "PublishedPost" WHERE "userId" = ${userId}`,
-        sql`SELECT COUNT(*)::int AS count FROM "SocialConnection" WHERE "userId" = ${userId}`,
-        sql`
-          SELECT COUNT(*)::int AS count FROM "ScheduledPost"
-          WHERE "userId" = ${userId}
-          AND status = 'scheduled'
-          AND "scheduledFor" > NOW()
-        `,
+        prisma.draft.count({ where: { userId } }),
+        prisma.thread.count({ where: { userId } }),
+        prisma.publishedPost.count({ where: { userId } }),
+        prisma.socialConnection.count({ where: { userId } }),
+        prisma.scheduledPost.count({
+          where: { userId, status: 'scheduled', scheduledFor: { gt: now } },
+        }),
       ])
 
-    return Response.json({
-      drafts: draftCount[0]?.count ?? 0,
-      threads: threadCount[0]?.count ?? 0,
-      publishedPosts: publishedCount[0]?.count ?? 0,
-      connectedAccounts: connectionCount[0]?.count ?? 0,
-      scheduledPosts: scheduledCount[0]?.count ?? 0,
-    })
+    return Response.json({ drafts, threads, publishedPosts, connectedAccounts, scheduledPosts })
   } catch {
-    return Response.json({
-      drafts: 0,
-      threads: 0,
-      publishedPosts: 0,
-      connectedAccounts: 0,
-      scheduledPosts: 0,
-    })
+    return Response.json(EMPTY)
   }
 }
