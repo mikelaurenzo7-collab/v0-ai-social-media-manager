@@ -5,7 +5,7 @@ export async function GET() {
   const sql = neon(process.env.DATABASE_URL!)
   try {
     const userId = await getCurrentUserId()
-    if (!userId) return Response.json({ posts: [] })
+    if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
     const rows = await sql`
       SELECT id, content, platforms, "scheduledFor", status, metadata

@@ -35,7 +35,11 @@ interface ThreadDraft {
 const TABS = ['posts', 'threads'] as const
 type TabId = (typeof TABS)[number]
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`)
+  return res.json()
+}
 
 export default function DraftsPage() {
   const [copiedId, setCopiedId]       = useState<string | null>(null)

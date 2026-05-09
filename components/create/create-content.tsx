@@ -21,7 +21,11 @@ import { threadSchema, type Thread, type ThreadTweet } from '@/lib/schemas/threa
 import { TONES, CONTENT_TYPES, THREAD_TWEET_COUNTS, type PlatformId, type ToneId, type ContentTypeId, type ThreadTweetCount } from '@/lib/constants/platforms'
 import { toast } from 'sonner'
 
-const sessionFetcher = (url: string) => fetch(url).then((r) => r.json())
+const sessionFetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`)
+  return res.json()
+}
 
 export function CreateContent() {
   const searchParams = useSearchParams()

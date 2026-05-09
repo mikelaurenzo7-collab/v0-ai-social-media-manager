@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 export async function GET(req: Request) {
   const sql = neon(process.env.DATABASE_URL!)
   const userId = await getCurrentUserId()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { searchParams } = new URL(req.url)
   const agentId = searchParams.get('agentId')
   if (!agentId) return NextResponse.json({ error: 'agentId required' }, { status: 400 })
@@ -28,6 +29,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const sql = neon(process.env.DATABASE_URL!)
   const userId = await getCurrentUserId()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
   const { agentId, creativity, tone, memory } = body
 

@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
-      return Response.json({ drafts: [], threads: [], total: 0 })
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Single-draft fetch for "edit" mode in create-content

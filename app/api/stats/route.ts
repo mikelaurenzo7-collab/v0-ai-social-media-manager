@@ -6,13 +6,7 @@ export async function GET() {
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
-      return Response.json({
-        drafts: 0,
-        threads: 0,
-        publishedPosts: 0,
-        connectedAccounts: 0,
-        scheduledPosts: 0,
-      })
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const [draftCount, threadCount, publishedCount, connectionCount, scheduledCount] =
