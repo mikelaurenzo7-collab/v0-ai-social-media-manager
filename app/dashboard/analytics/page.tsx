@@ -15,7 +15,11 @@ import { Header } from '@/components/dashboard/header'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`)
+  return res.json()
+}
 
 const PERIODS = ['7D', '30D', '90D'] as const
 type Period = (typeof PERIODS)[number]

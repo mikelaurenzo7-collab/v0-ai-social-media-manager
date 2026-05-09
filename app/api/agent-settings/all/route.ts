@@ -1,11 +1,12 @@
 import { neon } from '@neondatabase/serverless'
-import { getCurrentUserId } from '@/lib/oauth/session'
+import { getAuthenticatedUserId } from '@/lib/oauth/session'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
     const sql = neon(process.env.DATABASE_URL!)
-    const userId = await getCurrentUserId()
+    const userId = await getAuthenticatedUserId()
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     const rows = await sql`
       SELECT "agentId", "creativity", "tone", "memory"
       FROM "AgentSetting"

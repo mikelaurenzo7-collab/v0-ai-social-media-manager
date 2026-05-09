@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
@@ -76,24 +76,32 @@ const fetcher = async (url: string) => {
   return res.json()
 }
 
+function computeGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
 function useGreeting() {
-  return useMemo(() => {
-    const h = new Date().getHours()
-    if (h < 12) return 'Good morning'
-    if (h < 17) return 'Good afternoon'
-    return 'Good evening'
+  const [greeting, setGreeting] = useState('Welcome back')
+  useEffect(() => {
+    setGreeting(computeGreeting())
+    const id = window.setInterval(() => setGreeting(computeGreeting()), 60_000)
+    return () => window.clearInterval(id)
   }, [])
+  return greeting
 }
 
 export default function DashboardPage() {
   const greeting = useGreeting()
   const [tip] = useState(() => AI_TIPS[Math.floor(Math.random() * AI_TIPS.length)])
 
-  const { data: statsData, isLoading: statsLoading } = useSWR<Stats>('/api/stats', fetcher, {
+  const { data: statsData, isLoading: statsLoading, error: statsError } = useSWR<Stats>('/api/stats', fetcher, {
     revalidateOnFocus: false,
   })
 
-  const { data: draftsData, isLoading: draftsLoading } = useSWR<{ drafts: Draft[] }>(
+  const { data: draftsData, isLoading: draftsLoading, error: draftsError } = useSWR<{ drafts: Draft[] }>(
     '/api/drafts',
     fetcher,
     { revalidateOnFocus: false }
@@ -189,6 +197,8 @@ export default function DashboardPage() {
                 </div>
                 {statsLoading ? (
                   <Skeleton className="h-8 w-12 mb-1" />
+                ) : statsError ? (
+                  <p className="text-3xl font-black text-muted-foreground">—</p>
                 ) : (
                   <p className="text-3xl font-black text-foreground tabular">{stat.value}</p>
                 )}
@@ -220,6 +230,10 @@ export default function DashboardPage() {
                       <Skeleton key={i} className="h-16 w-full rounded-xl" />
                     ))}
                   </div>
+                ) : draftsError ? (
+                  <p className="text-sm text-muted-foreground py-4 text-center">
+                    Could not load drafts. <Link href="/dashboard/drafts" className="underline">Try the drafts page</Link>.
+                  </p>
                 ) : recentDrafts.length > 0 ? (
                   <div className="space-y-2">
                     {recentDrafts.map((draft) => (

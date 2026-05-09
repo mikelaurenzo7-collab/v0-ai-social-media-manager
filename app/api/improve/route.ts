@@ -1,6 +1,6 @@
 import { generateObject } from 'ai'
 import { z } from 'zod'
-import { getCurrentUserId } from '@/lib/oauth/session'
+import { getAuthenticatedUserId } from '@/lib/oauth/session'
 
 const requestSchema = z.object({
   content: z.string().min(1).max(5000),
@@ -16,7 +16,7 @@ const improveResponseSchema = z.object({
 })
 
 export async function POST(req: Request) {
-  const userId = await getCurrentUserId()
+  const userId = await getAuthenticatedUserId()
   if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
   let body: unknown

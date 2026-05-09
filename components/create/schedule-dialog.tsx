@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,7 @@ function fmtTime(t: string): string {
 }
 
 export function ScheduleDialog({ draft, children }: ScheduleDialogProps) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -78,7 +80,7 @@ export function ScheduleDialog({ draft, children }: ScheduleDialogProps) {
       const dateLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
       toast.success(`Scheduled for ${dateLabel} at ${fmtTime(selectedTime)}`, {
         description: `Shows up in your Calendar under ${PLATFORMS[selectedPlatform]?.shortName ?? selectedPlatform}`,
-        action: { label: 'View Calendar', onClick: () => { window.location.href = '/dashboard/calendar' } },
+        action: { label: 'View Calendar', onClick: () => router.push('/dashboard/calendar') },
       })
       setOpen(false)
     } catch {

@@ -1,10 +1,10 @@
 import { neon } from '@neondatabase/serverless'
-import { getCurrentUserId } from '@/lib/oauth/session'
+import { getAuthenticatedUserId } from '@/lib/oauth/session'
 import { NextResponse } from 'next/server'
 
 export async function GET(req: Request) {
   const sql = neon(process.env.DATABASE_URL!)
-  const userId = await getCurrentUserId()
+  const userId = await getAuthenticatedUserId()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { searchParams } = new URL(req.url)
   const agentId = searchParams.get('agentId')
@@ -28,12 +28,21 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const sql = neon(process.env.DATABASE_URL!)
-  const userId = await getCurrentUserId()
+  const userId = await getAuthenticatedUserId()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
   const { agentId, creativity, tone, memory } = body
 
   if (!agentId) return NextResponse.json({ error: 'agentId required' }, { status: 400 })
+  if (creativity != null && (typeof creativity !== 'number' || creativity < 0 || creativity > 100)) {
+    return NextResponse.json({ error: 'creativity must be a number between 0 and 100' }, { status: 400 })
+  }
+  if (tone != null && (typeof tone !== 'number' || tone < 0 || tone > 100)) {
+    return NextResponse.json({ error: 'tone must be a number between 0 and 100' }, { status: 400 })
+  }
+  if (memory != null && !Array.isArray(memory)) {
+    return NextResponse.json({ error: 'memory must be an array' }, { status: 400 })
+  }
 
   const id = `as_${userId}_${agentId}`
   await sql`

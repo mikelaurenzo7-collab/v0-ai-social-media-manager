@@ -1,10 +1,10 @@
 import { neon } from '@neondatabase/serverless'
-import { getCurrentUserId } from '@/lib/oauth/session'
+import { getAuthenticatedUserId } from '@/lib/oauth/session'
 
 export async function GET() {
   const sql = neon(process.env.DATABASE_URL!)
   try {
-    const userId = await getCurrentUserId()
+    const userId = await getAuthenticatedUserId()
     if (!userId) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -30,13 +30,8 @@ export async function GET() {
       connectedAccounts: connectionCount[0]?.count ?? 0,
       scheduledPosts: scheduledCount[0]?.count ?? 0,
     })
-  } catch {
-    return Response.json({
-      drafts: 0,
-      threads: 0,
-      publishedPosts: 0,
-      connectedAccounts: 0,
-      scheduledPosts: 0,
-    })
+  } catch (err) {
+    console.error('GET /api/stats', err)
+    return Response.json({ error: 'Failed to load stats' }, { status: 500 })
   }
 }

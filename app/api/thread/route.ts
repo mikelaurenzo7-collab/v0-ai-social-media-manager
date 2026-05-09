@@ -1,16 +1,30 @@
 import { streamObject } from 'ai'
 import { threadSchema } from '@/lib/schemas/thread'
 import { z } from 'zod'
+import { getAuthenticatedUserId } from '@/lib/oauth/session'
 
 const requestSchema = z.object({
-  topic: z.string(),
+  topic: z.string().trim().min(1).max(500),
   tweetCount: z.number().min(3).max(15).default(7),
-  tone: z.string().default('educational and engaging'),
+  tone: z.string().trim().min(1).max(80).default('educational and engaging'),
 })
 
 export async function POST(req: Request) {
-  const body = await req.json()
-  const { topic, tweetCount, tone } = requestSchema.parse(body)
+  const userId = await getAuthenticatedUserId()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const parsed = requestSchema.safeParse(body)
+  if (!parsed.success) {
+    return Response.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+  const { topic, tweetCount, tone } = parsed.data
 
   const result = streamObject({
     model: 'anthropic/claude-sonnet-4.6',

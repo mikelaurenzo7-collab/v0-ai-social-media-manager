@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless'
 import { z } from 'zod'
-import { getCurrentUserId } from '@/lib/oauth/session'
+import { getAuthenticatedUserId } from '@/lib/oauth/session'
 import { NextResponse } from 'next/server'
 
 const updateSettingsSchema = z.object({
@@ -44,7 +44,7 @@ const DEFAULT_WEEKLY_DIGEST    = true
 
 export async function GET() {
   try {
-    const userId = await getCurrentUserId()
+    const userId = await getAuthenticatedUserId()
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -73,7 +73,7 @@ export async function GET() {
 
 export async function PATCH(req: Request) {
   try {
-    const userId = await getCurrentUserId()
+    const userId = await getAuthenticatedUserId()
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

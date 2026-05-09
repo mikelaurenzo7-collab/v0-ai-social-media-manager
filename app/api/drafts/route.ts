@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless'
 import { z } from 'zod'
-import { getCurrentUserId } from '@/lib/oauth/session'
+import { getAuthenticatedUserId } from '@/lib/oauth/session'
 
 const createDraftSchema = z.object({
   content: z.string().min(1).max(10000),
@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const singleId = searchParams.get('id')
   try {
-    const userId = await getCurrentUserId()
+    const userId = await getAuthenticatedUserId()
     if (!userId) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -90,7 +90,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const sql = neon(process.env.DATABASE_URL!)
   try {
-    const userId = await getCurrentUserId()
+    const userId = await getAuthenticatedUserId()
     if (!userId) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -154,7 +154,7 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   const sql = neon(process.env.DATABASE_URL!)
   try {
-    const userId = await getCurrentUserId()
+    const userId = await getAuthenticatedUserId()
     if (!userId) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }

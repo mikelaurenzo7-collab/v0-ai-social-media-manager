@@ -1,7 +1,7 @@
 import { streamObject } from 'ai'
 import { z } from 'zod'
 import { contentVariationSchema } from '@/lib/schemas/content'
-import { getCurrentUserId } from '@/lib/oauth/session'
+import { getAuthenticatedUserId } from '@/lib/oauth/session'
 
 const SUPPORTED_PLATFORMS = ['twitter', 'instagram', 'facebook', 'linkedin', 'tiktok'] as const
 
@@ -53,7 +53,7 @@ const PLATFORM_DEEP_GUIDES: Record<string, string> = {
 }
 
 export async function POST(req: Request) {
-  const userId = await getCurrentUserId()
+  const userId = await getAuthenticatedUserId()
   if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json().catch(() => null)

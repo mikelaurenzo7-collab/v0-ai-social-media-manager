@@ -4,7 +4,7 @@ import { getAgentById } from '@/lib/agents'
 import { sendEmailViaGmail, sendEmailViaOutlook } from '@/lib/publishing/email'
 import { publishSocialPost } from '@/lib/publishing/social'
 import { getConnection } from '@/lib/oauth/connections'
-import { getCurrentUserId } from '@/lib/oauth/session'
+import { getCurrentUserId, getAuthenticatedUserId } from '@/lib/oauth/session'
 
 // Node runtime — required by googleapis (Gmail) + Microsoft Graph SDK (Outlook).
 export const runtime = 'nodejs'
@@ -52,6 +52,9 @@ const POSTING_SCHEDULES: Record<string, { bestDays: string[]; bestTimes: string[
 }
 
 export async function POST(req: Request) {
+  const authUserId = await getAuthenticatedUserId()
+  if (!authUserId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { messages, agentId, creativity, tone, memory } = (await req.json()) as {
     messages: UIMessage[],
     agentId?: string,
