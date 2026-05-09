@@ -1,52 +1,63 @@
-import { neon } from '@neondatabase/serverless'
 import { getCurrentUserId } from '@/lib/oauth/session'
+import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const settingsSchema = z.object({
+  agentId: z.string().min(1).max(50),
+  creativity: z.number().int().min(0).max(100).optional(),
+  tone: z.number().int().min(0).max(100).optional(),
+  memory: z.array(z.unknown()).optional(),
+})
 
 export async function GET(req: Request) {
-  const sql = neon(process.env.DATABASE_URL!)
   const userId = await getCurrentUserId()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = new URL(req.url)
   const agentId = searchParams.get('agentId')
   if (!agentId) return NextResponse.json({ error: 'agentId required' }, { status: 400 })
 
-  const rows = await sql`
-    SELECT creativity, tone, memory
-    FROM "AgentSetting"
-    WHERE "userId" = ${userId} AND "agentId" = ${agentId}
-    LIMIT 1
-  `
-  if (!rows.length) {
-    return NextResponse.json({ creativity: 50, tone: 75, memory: [] })
-  }
+  const setting = await prisma.agentSetting.findUnique({
+    where: { userId_agentId: { userId, agentId } },
+  })
+
+  if (!setting) return NextResponse.json({ creativity: 50, tone: 75, memory: [] })
+
   return NextResponse.json({
-    creativity: rows[0].creativity,
-    tone: rows[0].tone,
-    memory: rows[0].memory ?? [],
+    creativity: setting.creativity,
+    tone: setting.tone,
+    memory: Array.isArray(setting.memory) ? setting.memory : [],
   })
 }
 
 export async function POST(req: Request) {
-  const sql = neon(process.env.DATABASE_URL!)
   const userId = await getCurrentUserId()
-  const body = await req.json()
-  const { agentId, creativity, tone, memory } = body
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  if (!agentId) return NextResponse.json({ error: 'agentId required' }, { status: 400 })
+  const body = await req.json().catch(() => null)
+  const parsed = settingsSchema.safeParse(body)
+  if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
 
+  const { agentId, creativity, tone, memory } = parsed.data
   const id = `as_${userId}_${agentId}`
-  await sql`
-    INSERT INTO "AgentSetting" ("id", "userId", "agentId", "creativity", "tone", "memory", "updatedAt")
-    VALUES (
-      ${id}, ${userId}, ${agentId},
-      ${creativity ?? 50}, ${tone ?? 75},
-      ${JSON.stringify(memory ?? [])}::jsonb,
-      now()
-    )
-    ON CONFLICT ("userId", "agentId") DO UPDATE SET
-      "creativity" = EXCLUDED."creativity",
-      "tone"       = EXCLUDED."tone",
-      "memory"     = EXCLUDED."memory",
-      "updatedAt"  = now()
-  `
+
+  await prisma.agentSetting.upsert({
+    where: { userId_agentId: { userId, agentId } },
+    create: {
+      id,
+      userId,
+      agentId,
+      creativity: creativity ?? 50,
+      tone: tone ?? 75,
+      memory: memory ?? [],
+    },
+    update: {
+      ...(creativity !== undefined && { creativity }),
+      ...(tone !== undefined && { tone }),
+      ...(memory !== undefined && { memory }),
+    },
+  })
+
   return NextResponse.json({ ok: true })
 }

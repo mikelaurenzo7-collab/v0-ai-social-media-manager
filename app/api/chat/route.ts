@@ -5,6 +5,7 @@ import { sendEmailViaGmail, sendEmailViaOutlook } from '@/lib/publishing/email'
 import { publishSocialPost } from '@/lib/publishing/social'
 import { getConnection } from '@/lib/oauth/connections'
 import { getCurrentUserId } from '@/lib/oauth/session'
+import { rateLimit, rateLimitResponse } from '@/lib/rate-limit'
 
 // Node runtime — required by googleapis (Gmail) + Microsoft Graph SDK (Outlook).
 export const runtime = 'nodejs'
@@ -52,6 +53,12 @@ const POSTING_SCHEDULES: Record<string, { bestDays: string[]; bestTimes: string[
 }
 
 export async function POST(req: Request) {
+  const userId = await getCurrentUserId()
+  if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { allowed, resetAt } = rateLimit(`chat:${userId}`, { limit: 60, windowMs: 60_000 })
+  if (!allowed) return rateLimitResponse(resetAt)
+
   const { messages, agentId, creativity, tone, memory } = (await req.json()) as {
     messages: UIMessage[],
     agentId?: string,

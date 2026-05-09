@@ -1,6 +1,8 @@
 import { streamObject } from 'ai'
 import { threadSchema } from '@/lib/schemas/thread'
 import { z } from 'zod'
+import { rateLimit, rateLimitResponse } from '@/lib/rate-limit'
+import { getCurrentUserId } from '@/lib/oauth/session'
 
 const requestSchema = z.object({
   topic: z.string(),
@@ -9,8 +11,15 @@ const requestSchema = z.object({
 })
 
 export async function POST(req: Request) {
-  const body = await req.json()
-  const { topic, tweetCount, tone } = requestSchema.parse(body)
+  const userId = await getCurrentUserId()
+  const key = userId ?? (req.headers.get('x-forwarded-for') ?? 'anon')
+  const { allowed, resetAt } = rateLimit(`thread:${key}`, { limit: 20, windowMs: 60_000 })
+  if (!allowed) return rateLimitResponse(resetAt)
+
+  const body = await req.json().catch(() => ({}))
+  const parseResult = requestSchema.safeParse(body)
+  if (!parseResult.success) return Response.json({ error: 'Invalid request' }, { status: 400 })
+  const { topic, tweetCount, tone } = parseResult.data
 
   const result = streamObject({
     model: 'anthropic/claude-sonnet-4.6',

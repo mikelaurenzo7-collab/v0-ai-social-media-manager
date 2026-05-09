@@ -1,28 +1,29 @@
-import { neon } from '@neondatabase/serverless'
+import { prisma } from '@/lib/prisma'
 import { getCurrentUserId } from '@/lib/oauth/session'
 
+function scheduledId() {
+  return `scp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+}
+
 export async function GET() {
-  const sql = neon(process.env.DATABASE_URL!)
   try {
     const userId = await getCurrentUserId()
     if (!userId) return Response.json({ posts: [] })
 
-    const rows = await sql`
-      SELECT id, content, platforms, "scheduledFor", status, metadata
-      FROM "ScheduledPost"
-      WHERE "userId" = ${userId}
-      ORDER BY "scheduledFor" ASC
-    `
+    const rows = await prisma.scheduledPost.findMany({
+      where: { userId },
+      orderBy: { scheduledFor: 'asc' },
+    })
 
-    const posts = rows.map((r: Record<string, unknown>) => {
-      const dt = new Date(r.scheduledFor as string)
+    const posts = rows.map((r) => {
+      const dt = r.scheduledFor
       return {
         id: r.id,
         content: r.content,
-        platform: ((r.platforms as string[]) ?? [])[0] ?? 'twitter',
+        platform: (r.platforms[0]) ?? 'twitter',
         date: dt.toISOString().split('T')[0],
         time: `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`,
-        status: r.status as string,
+        status: r.status,
       }
     })
 
@@ -33,7 +34,6 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const sql = neon(process.env.DATABASE_URL!)
   try {
     const userId = await getCurrentUserId()
     if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
@@ -44,22 +44,21 @@ export async function POST(req: Request) {
     }
 
     const scheduledFor = new Date(`${date}T${time}:00`)
-    const id = `scp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    if (isNaN(scheduledFor.getTime())) {
+      return Response.json({ error: 'Invalid date/time' }, { status: 400 })
+    }
 
-    await sql`
-      INSERT INTO "ScheduledPost" (id, "userId", content, platforms, "scheduledFor", status, attempts, "createdAt", "updatedAt")
-      VALUES (
-        ${id},
-        ${userId},
-        ${content},
-        ${[platform]},
-        ${scheduledFor.toISOString()},
-        'scheduled',
-        0,
-        NOW(),
-        NOW()
-      )
-    `
+    const id = scheduledId()
+    await prisma.scheduledPost.create({
+      data: {
+        id,
+        userId,
+        content,
+        platforms: [platform ?? 'twitter'],
+        scheduledFor,
+        status: 'scheduled',
+      },
+    })
 
     return Response.json({ id, success: true })
   } catch (err) {
@@ -71,7 +70,6 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const sql = neon(process.env.DATABASE_URL!)
   try {
     const userId = await getCurrentUserId()
     if (!userId) return Response.json({ error: 'Unauthorized' }, { status: 401 })
@@ -80,7 +78,7 @@ export async function DELETE(req: Request) {
     const id = searchParams.get('id')
     if (!id) return Response.json({ error: 'Missing id' }, { status: 400 })
 
-    await sql`DELETE FROM "ScheduledPost" WHERE id = ${id} AND "userId" = ${userId}`
+    await prisma.scheduledPost.deleteMany({ where: { id, userId } })
     return Response.json({ success: true })
   } catch (err) {
     return Response.json(
