@@ -458,7 +458,8 @@ export function AIAssistant() {
                   key={s}
                   type="button"
                   onClick={() => handleSuggestion(s)}
-                  className="block w-full rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-left text-xs hover:bg-orange-50 hover:border-orange-200 transition-all duration-150"
+                  disabled={isLoading}
+                  className="block w-full rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-left text-xs hover:bg-orange-50 hover:border-orange-200 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-muted/30 disabled:hover:border-border/60"
                 >
                   {s}
                 </button>

@@ -1,18 +1,32 @@
 'use client'
 
 import Link from 'next/link'
+import useSWR from 'swr'
 import { AGENTS } from '@/lib/agents'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/dashboard/header'
 
-const AGENT_STATS: Record<string, { sessions: number; workflows: number; rating: string; specialty: string }> = {
-  strategist: { sessions: 24, workflows: 8, rating: '4.9', specialty: 'Brand Growth' },
-  viral: { sessions: 31, workflows: 5, rating: '4.8', specialty: 'Viral Reach' },
-  voice: { sessions: 18, workflows: 11, rating: '4.9', specialty: 'Tone & Voice' },
-  community: { sessions: 42, workflows: 6, rating: '5.0', specialty: 'Engagement' },
-  gmail: { sessions: 12, workflows: 4, rating: '4.9', specialty: 'Gmail Outreach' },
-  outlook: { sessions: 9, workflows: 3, rating: '4.8', specialty: 'Business Email' },
+interface AgentSettingRow {
+  agentId: string
+  creativity: number
+  tone: number
+  memory: unknown[]
+}
+
+const AGENT_FALLBACK: Record<string, { sessions: number; workflows: number; rating: string }> = {
+  strategist: { sessions: 24, workflows: 8,  rating: '4.9' },
+  viral:      { sessions: 31, workflows: 5,  rating: '4.8' },
+  voice:      { sessions: 18, workflows: 11, rating: '4.9' },
+  community:  { sessions: 42, workflows: 6,  rating: '5.0' },
+  gmail:      { sessions: 12, workflows: 4,  rating: '4.9' },
+  outlook:    { sessions: 9,  workflows: 3,  rating: '4.8' },
+}
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+  return res.json()
 }
 
 const AGENT_GRADIENT: Record<string, string> = {
@@ -25,6 +39,15 @@ const AGENT_GRADIENT: Record<string, string> = {
 }
 
 export default function AgentsPage() {
+  const { data: settingsData, isLoading: settingsLoading, error: settingsError } =
+    useSWR<AgentSettingRow[]>('/api/agent-settings/all', fetcher)
+  // Only build the configured set when SWR has resolved a real array — guards
+  // against the new 500 error response from the route.
+  const configuredAgents = Array.isArray(settingsData)
+    ? new Set(settingsData.map((r) => r.agentId))
+    : new Set<string>()
+  const isCheckingAgents = settingsLoading && !settingsError
+
   return (
     <div className="flex flex-col">
       <Header
@@ -70,7 +93,8 @@ export default function AgentsPage() {
       {/* Agent cards */}
       <div className="p-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {AGENTS.map((agent) => {
-          const agentStats = AGENT_STATS[agent.id as keyof typeof AGENT_STATS]
+          const agentStats = AGENT_FALLBACK[agent.id] ?? { sessions: 0, workflows: 0, rating: '—' }
+          const isConfigured = configuredAgents.has(agent.id)
           const gradient = AGENT_GRADIENT[agent.id] ?? 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)'
 
           return (
@@ -99,8 +123,18 @@ export default function AgentsPage() {
                       </span>
                     )}
                     <div className="flex items-center gap-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                      <span className="text-[10px] text-muted-foreground">Online</span>
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          isCheckingAgents
+                            ? 'bg-amber-400 animate-pulse'
+                            : isConfigured
+                              ? 'bg-green-400'
+                              : 'bg-muted-foreground/40'
+                        }`}
+                      />
+                      <span className="text-[10px] text-muted-foreground">
+                        {isCheckingAgents ? 'Checking' : isConfigured ? 'Configured' : 'Ready'}
+                      </span>
                     </div>
                   </div>
                 </div>

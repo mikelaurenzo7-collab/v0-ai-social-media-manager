@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import useSWR from 'swr'
 import { useSearchParams } from 'next/navigation'
 import { experimental_useObject } from '@ai-sdk/react'
 import { Button } from '@/components/ui/button'
@@ -20,9 +21,31 @@ import { threadSchema, type Thread, type ThreadTweet } from '@/lib/schemas/threa
 import { TONES, CONTENT_TYPES, THREAD_TWEET_COUNTS, type PlatformId, type ToneId, type ContentTypeId, type ThreadTweetCount } from '@/lib/constants/platforms'
 import { toast } from 'sonner'
 
+const sessionFetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`)
+  return res.json()
+}
+
 export function CreateContent() {
   const searchParams = useSearchParams()
   const editId = searchParams.get('edit')
+
+  // Pull user identity for accurate platform previews
+  const { data: sessionData } = useSWR('/api/auth/session', sessionFetcher)
+  const { displayName, userName } = useMemo(() => {
+    const name: string | undefined = sessionData?.user?.name
+    const email: string | undefined = sessionData?.user?.email
+    // Sanitize name to a handle, but fall through to email-local-part /
+    // placeholder when sanitization produces an empty string (e.g. an
+    // all-emoji or all-symbol display name).
+    const sanitizedName = name?.toLowerCase().replace(/[^a-z0-9]/g, '') ?? ''
+    const emailLocal    = email?.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '') ?? ''
+    return {
+      displayName: name || 'Your Brand',
+      userName: sanitizedName || emailLocal || 'yourbrand',
+    }
+  }, [sessionData])
 
   // Mode: 'post' or 'thread'
   const [mode, setMode] = useState<'post' | 'thread'>('post')
@@ -151,8 +174,10 @@ export function CreateContent() {
       })
       if (res.ok) {
         toast.success('Draft saved!')
-      } else {
-        // Fallback to localStorage for unauthenticated users
+        return
+      }
+      // 401 only: persist locally so unauthenticated users can still draft
+      if (res.status === 401) {
         let existingDrafts: unknown[] = []
         try {
           const parsed = JSON.parse(localStorage.getItem('postpilot_drafts') || '[]')
@@ -168,10 +193,13 @@ export function CreateContent() {
           createdAt: new Date().toISOString(),
         }
         localStorage.setItem('postpilot_drafts', JSON.stringify([newDraft, ...existingDrafts]))
-        toast.success('Draft saved!')
+        toast.success('Draft saved locally', { description: 'Sign in to sync drafts to your account.' })
+        return
       }
+      // Real server error — surface it
+      toast.error('Failed to save draft', { description: `Server returned ${res.status}` })
     } catch {
-      toast.error('Failed to save draft')
+      toast.error('Failed to save draft', { description: 'Check your network and try again.' })
     }
   }, [displayContent, platforms, tone, contentType])
 
@@ -197,8 +225,9 @@ export function CreateContent() {
       })
       if (res.ok) {
         toast.success('Thread saved!')
-      } else {
-        // Fallback to localStorage
+        return
+      }
+      if (res.status === 401) {
         let existing: unknown[] = []
         try {
           const parsed = JSON.parse(localStorage.getItem('postpilot_threads') || '[]')
@@ -208,10 +237,12 @@ export function CreateContent() {
           'postpilot_threads',
           JSON.stringify([{ id: Date.now().toString(), ...thread, createdAt: new Date().toISOString() }, ...existing])
         )
-        toast.success('Thread saved!')
+        toast.success('Thread saved locally', { description: 'Sign in to sync threads to your account.' })
+        return
       }
+      toast.error('Failed to save thread', { description: `Server returned ${res.status}` })
     } catch {
-      toast.error('Failed to save thread')
+      toast.error('Failed to save thread', { description: 'Check your network and try again.' })
     }
   }, [prompt, threadTone])
 
@@ -563,6 +594,8 @@ export function CreateContent() {
                       content={displayContent.content}
                       hashtags={displayContent.hashtags}
                       platforms={platforms}
+                      displayName={displayName}
+                      userName={userName}
                     />
                   </CardContent>
                 </Card>

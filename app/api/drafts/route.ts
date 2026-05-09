@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless'
 import { z } from 'zod'
-import { getCurrentUserId } from '@/lib/oauth/session'
+import { getAuthenticatedUserId } from '@/lib/oauth/session'
 
 const createDraftSchema = z.object({
   content: z.string().min(1).max(10000),
@@ -15,9 +15,9 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const singleId = searchParams.get('id')
   try {
-    const userId = await getCurrentUserId()
+    const userId = await getAuthenticatedUserId()
     if (!userId) {
-      return Response.json({ drafts: [], threads: [], total: 0 })
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Single-draft fetch for "edit" mode in create-content
@@ -90,7 +90,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const sql = neon(process.env.DATABASE_URL!)
   try {
-    const userId = await getCurrentUserId()
+    const userId = await getAuthenticatedUserId()
     if (!userId) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -154,7 +154,7 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   const sql = neon(process.env.DATABASE_URL!)
   try {
-    const userId = await getCurrentUserId()
+    const userId = await getAuthenticatedUserId()
     if (!userId) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -162,6 +162,18 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get('id')
     const type = searchParams.get('type') ?? 'draft'
+    const deleteAll = searchParams.get('all') === 'true'
+
+    if (deleteAll) {
+      // Atomic — both deletes in a single statement so a partial failure
+      // can't leave drafts gone but threads behind (or vice versa).
+      await sql`
+        WITH d AS (DELETE FROM "Draft"  WHERE "userId" = ${userId} RETURNING 1),
+             t AS (DELETE FROM "Thread" WHERE "userId" = ${userId} RETURNING 1)
+        SELECT 1
+      `
+      return Response.json({ success: true })
+    }
 
     if (!id) {
       return Response.json({ error: 'Missing id' }, { status: 400 })

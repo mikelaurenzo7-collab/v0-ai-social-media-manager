@@ -9,13 +9,31 @@ interface PlatformPreviewProps {
   content: string
   hashtags: string[]
   platforms: PlatformId[]
+  /** Real display name for the post author. Defaults to a placeholder. */
+  displayName?: string
+  /** Real handle (no @). Defaults to a placeholder. */
+  userName?: string
 }
 
-export function PlatformPreview({ content, hashtags, platforms }: PlatformPreviewProps) {
+interface PreviewProps {
+  content: string
+  displayName: string
+  userName: string
+}
+
+export function PlatformPreview({
+  content,
+  hashtags,
+  platforms,
+  displayName = 'Your Brand',
+  userName = 'yourbrand',
+}: PlatformPreviewProps) {
   const hashtagString = hashtags.map((t) => `#${t}`).join(' ')
   const fullContent = hashtags.length > 0 ? `${content}\n\n${hashtagString}` : content
 
   if (platforms.length === 0) return null
+
+  const subprops = { displayName, userName }
 
   return (
     <Tabs defaultValue={platforms[0]} className="w-full">
@@ -30,18 +48,27 @@ export function PlatformPreview({ content, hashtags, platforms }: PlatformPrevie
 
       {platforms.map((platformId) => (
         <TabsContent key={platformId} value={platformId} className="mt-4">
-          {platformId === 'twitter'   && <TwitterPreview content={fullContent} />}
-          {platformId === 'instagram' && <InstagramPreview content={fullContent} />}
-          {platformId === 'facebook'  && <FacebookPreview content={fullContent} />}
-          {platformId === 'linkedin'  && <LinkedInPreview content={fullContent} />}
-          {platformId === 'tiktok'    && <TikTokPreview content={content} />}
+          {platformId === 'twitter'   && <TwitterPreview   content={fullContent} {...subprops} />}
+          {platformId === 'instagram' && <InstagramPreview content={fullContent} {...subprops} />}
+          {platformId === 'facebook'  && <FacebookPreview  content={fullContent} {...subprops} />}
+          {platformId === 'linkedin'  && <LinkedInPreview  content={fullContent} {...subprops} />}
+          {platformId === 'tiktok'    && <TikTokPreview    content={content}     {...subprops} />}
+          <PreviewFooter />
         </TabsContent>
       ))}
     </Tabs>
   )
 }
 
-function TwitterPreview({ content }: { content: string }) {
+function PreviewFooter() {
+  return (
+    <p className="mt-2 text-[10px] text-muted-foreground italic text-center">
+      Preview only — engagement counts are illustrative and won&apos;t reflect real metrics.
+    </p>
+  )
+}
+
+function TwitterPreview({ content, displayName, userName }: PreviewProps) {
   const charCount = content.length
   const isOver = charCount > 280
   return (
@@ -53,35 +80,35 @@ function TwitterPreview({ content }: { content: string }) {
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1 text-sm">
-            <span className="font-bold">Your Brand</span>
-            <svg className="h-4 w-4 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+            <span className="font-bold">{displayName}</span>
+            <svg className="h-4 w-4 text-blue-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M8.52 3.59a3.34 3.34 0 0 1 6.96 0c1.2.07 2.29.69 3.06 1.86a3.34 3.34 0 0 1 4.52 4.52 3.34 3.34 0 0 1 0 4.06 3.34 3.34 0 0 1-4.52 4.52 3.34 3.34 0 0 1-4.06 0 3.34 3.34 0 0 1-4.52-4.52c-.07-1.2-.69-2.29-1.86-3.06a3.34 3.34 0 0 1 0-4.92c1.17-.77 1.79-1.86 1.86-3.06Z M10.47 12.97l2.91-4.65a.56.56 0 0 1 .95.59l-3.5 5.6a.56.56 0 0 1-.84.11l-2.1-2.1a.56.56 0 0 1 .79-.79l1.79 1.24Z" />
             </svg>
-            <span className="text-muted-foreground">@yourbrand</span>
+            <span className="text-muted-foreground">@{userName}</span>
             <span className="text-muted-foreground">·</span>
             <span className="text-muted-foreground">now</span>
           </div>
           <p className="mt-1 whitespace-pre-wrap text-sm">{content}</p>
           <div className="mt-2 flex items-center justify-between">
-            <div className="flex gap-4 text-muted-foreground">
-              <button className="flex items-center gap-1 text-xs hover:text-blue-500 transition-colors">
+            <div className="flex gap-4 text-muted-foreground/60">
+              <span className="flex items-center gap-1 text-xs" aria-hidden="true">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
                 </svg>
-                12
-              </button>
-              <button className="flex items-center gap-1 text-xs hover:text-green-500 transition-colors">
+                —
+              </span>
+              <span className="flex items-center gap-1 text-xs" aria-hidden="true">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3" />
                 </svg>
-                8
-              </button>
-              <button className="flex items-center gap-1 text-xs hover:text-red-500 transition-colors">
+                —
+              </span>
+              <span className="flex items-center gap-1 text-xs" aria-hidden="true">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                 </svg>
-                42
-              </button>
+                —
+              </span>
             </div>
             <span className={cn('text-xs tabular-nums font-medium', isOver ? 'text-destructive' : charCount > 240 ? 'text-amber-500' : 'text-muted-foreground')}>
               {charCount}/280
@@ -93,21 +120,21 @@ function TwitterPreview({ content }: { content: string }) {
   )
 }
 
-function InstagramPreview({ content }: { content: string }) {
+function InstagramPreview({ content, displayName, userName }: PreviewProps) {
   return (
     <div className="rounded-xl border border-border/60 bg-card overflow-hidden shadow-sm">
       <div className="flex items-center gap-3 p-3 border-b">
         <div className="h-8 w-8 rounded-full" style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }} />
         <div className="flex-1">
-          <p className="text-sm font-semibold">yourbrand</p>
+          <p className="text-sm font-semibold">{userName}</p>
         </div>
-        <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
         </svg>
       </div>
       <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
         <div className="text-center text-muted-foreground">
-          <svg className="mx-auto h-12 w-12 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
+          <svg className="mx-auto h-12 w-12 mb-2 opacity-40" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
           </svg>
           <p className="text-sm opacity-60">Your image here</p>
@@ -119,67 +146,57 @@ function InstagramPreview({ content }: { content: string }) {
           "M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z",
           "M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5",
         ].map((path, i) => (
-          <svg key={i} className={cn('h-6 w-6', i === 2 && 'ml-auto')} fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+          <svg key={i} className={cn('h-6 w-6', i === 2 && 'ml-auto')} fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d={path} />
           </svg>
         ))}
-        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
         </svg>
       </div>
       <div className="px-3 pb-3">
         <p className="text-sm">
-          <span className="font-semibold">yourbrand</span>{' '}
+          <span className="font-semibold">{userName}</span>{' '}
           <span className="whitespace-pre-wrap">{content}</span>
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">View all 24 comments</p>
-        <p className="mt-1 text-xs text-muted-foreground uppercase">Just now</p>
+        <p className="mt-1 text-xs text-muted-foreground">{displayName} · Just now</p>
       </div>
     </div>
   )
 }
 
-function FacebookPreview({ content }: { content: string }) {
+function FacebookPreview({ content, displayName }: PreviewProps) {
   return (
     <div className="rounded-xl border border-border/60 bg-card shadow-sm">
       <div className="flex items-center gap-3 p-4">
         <div className="h-10 w-10 rounded-full" style={{ background: '#1877F2' }} />
         <div className="flex-1">
-          <p className="text-sm font-semibold">Your Brand</p>
-          <p className="text-xs text-muted-foreground">Just now · 🌐 Public</p>
+          <p className="text-sm font-semibold">{displayName}</p>
+          <p className="text-xs text-muted-foreground">Just now · Public</p>
         </div>
-        <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
         </svg>
       </div>
       <div className="px-4 pb-4">
         <p className="whitespace-pre-wrap text-sm">{content}</p>
       </div>
-      <div className="flex items-center justify-between border-t px-4 py-2 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <div className="flex -space-x-1">
-            <div className="h-4 w-4 rounded-full bg-blue-500 ring-1 ring-white" />
-            <div className="h-4 w-4 rounded-full ring-1 ring-white" style={{ background: '#EA580C' }} />
-          </div>
-          <span>125</span>
-        </div>
-        <div className="flex gap-3">
-          <span>12 comments</span>
-          <span>3 shares</span>
-        </div>
-      </div>
       <div className="flex border-t">
         {(['Like', 'Comment', 'Share'] as const).map((label) => (
-          <button key={label} className="flex flex-1 items-center justify-center gap-2 py-3 text-sm text-muted-foreground hover:bg-muted transition-colors">
+          <span
+            key={label}
+            className="flex flex-1 items-center justify-center gap-2 py-3 text-sm text-muted-foreground/60"
+            aria-hidden="true"
+          >
             {label}
-          </button>
+          </span>
         ))}
       </div>
     </div>
   )
 }
 
-function LinkedInPreview({ content }: { content: string }) {
+function LinkedInPreview({ content, displayName }: PreviewProps) {
   return (
     <div className="rounded-xl border border-border/60 bg-card shadow-sm">
       <div className="flex items-start gap-3 p-4">
@@ -188,43 +205,33 @@ function LinkedInPreview({ content }: { content: string }) {
           style={{ background: 'linear-gradient(135deg, #EA580C 0%, #DB2777 100%)' }}
         />
         <div className="flex-1">
-          <p className="text-sm font-semibold">Your Name</p>
+          <p className="text-sm font-semibold">{displayName}</p>
           <p className="text-xs text-muted-foreground">Your Title · Just now</p>
-          <p className="text-xs text-muted-foreground">🌐 Anyone</p>
+          <p className="text-xs text-muted-foreground">Anyone</p>
         </div>
-        <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
         </svg>
       </div>
       <div className="px-4 pb-3">
         <p className="whitespace-pre-wrap text-sm leading-relaxed">{content}</p>
       </div>
-      <div className="flex items-center justify-between border-t px-4 py-2 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[#0A66C2]">
-            <svg className="h-2.5 w-2.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z" />
-            </svg>
-          </div>
-          <span>247 reactions</span>
-        </div>
-        <div className="flex gap-3">
-          <span>18 comments</span>
-          <span>5 reposts</span>
-        </div>
-      </div>
       <div className="flex border-t">
         {(['Like', 'Comment', 'Repost', 'Send'] as const).map((label) => (
-          <button key={label} className="flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors">
+          <span
+            key={label}
+            className="flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-medium text-muted-foreground/60"
+            aria-hidden="true"
+          >
             {label}
-          </button>
+          </span>
         ))}
       </div>
     </div>
   )
 }
 
-function TikTokPreview({ content }: { content: string }) {
+function TikTokPreview({ content, userName }: PreviewProps) {
   const hookChars = Array.from(content)
   const hook = hookChars.slice(0, 125).join('')
   const charCount = hookChars.length
@@ -235,7 +242,7 @@ function TikTokPreview({ content }: { content: string }) {
       <div className="relative aspect-[9/16] max-h-72 bg-gradient-to-b from-neutral-900 to-black flex items-end">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white/30">
-            <svg className="mx-auto h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor">
+            <svg className="mx-auto h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" strokeWidth="1" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
             </svg>
             <p className="text-xs">Your video here</p>
@@ -248,33 +255,10 @@ function TikTokPreview({ content }: { content: string }) {
             </p>
           </div>
         )}
-        {/* Right-side action buttons */}
-        <div className="absolute right-3 bottom-20 flex flex-col items-center gap-4">
-          {[
-            { icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z", label: '24.5K' },
-            { icon: "M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z", label: '1.2K' },
-            { icon: "M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5", label: 'Share' },
-          ].map((btn) => (
-            <div key={btn.label} className="flex flex-col items-center gap-1">
-              <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center">
-                <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d={btn.icon} />
-                </svg>
-              </div>
-              <span className="text-white text-[10px]">{btn.label}</span>
-            </div>
-          ))}
-        </div>
         {/* Bottom info */}
         <div className="relative z-10 w-full px-3 pb-3">
-          <p className="text-white text-xs font-semibold">@yourbrand</p>
+          <p className="text-white text-xs font-semibold">@{userName}</p>
           <p className="text-white/80 text-xs mt-0.5 line-clamp-2">{content}</p>
-          <div className="mt-1 flex items-center gap-1">
-            <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" stroke="none"/>
-            </svg>
-            <p className="text-white/70 text-[10px]">Trending Sound Name</p>
-          </div>
         </div>
       </div>
       <div className="px-3 py-2 flex items-center justify-between text-xs text-muted-foreground border-t">

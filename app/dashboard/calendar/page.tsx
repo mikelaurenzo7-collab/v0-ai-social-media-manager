@@ -8,7 +8,11 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`)
+  return res.json()
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -198,10 +202,11 @@ function DayPanel({
                       </span>
                     </div>
                   </div>
-                  {post.id.startsWith('scp_') && (
+                  {post.status !== 'published' && post.id.startsWith('scp_') && (
                     <button
                       onClick={() => onDelete(post.id)}
-                      className="opacity-0 group-hover:opacity-100 flex h-6 w-6 items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                      className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 flex h-6 w-6 items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                      aria-label="Remove post"
                     >
                       <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -468,20 +473,32 @@ export default function CalendarPage() {
 
             {/* Month summary */}
             <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">May Summary</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'Scheduled', value: SEED_POSTS.filter(p => p.status === 'scheduled').length, color: '#EA580C' },
-                  { label: 'Published', value: SEED_POSTS.filter(p => p.status === 'published').length, color: '#10B981' },
-                  { label: 'Platforms', value: 5, color: '#6366F1' },
-                  { label: 'Avg / Day',  value: '0.9', color: '#0A66C2' },
-                ].map((s) => (
-                  <div key={s.label} className="rounded-xl bg-muted/40 p-3 text-center">
-                    <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{s.label}</p>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                {MONTH_NAMES[month].slice(0, 3)} {year} Summary
+              </h3>
+              {(() => {
+                const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
+                const monthPosts = allPosts.filter((p) => p.date.startsWith(monthKey))
+                const scheduled = monthPosts.filter((p) => p.status === 'scheduled').length
+                const published = monthPosts.filter((p) => p.status === 'published').length
+                const platforms = new Set(monthPosts.map((p) => p.platform)).size
+                const avgPerDay = monthPosts.length > 0 ? (monthPosts.length / daysInMonth).toFixed(1) : '0'
+                return (
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: 'Scheduled', value: scheduled, color: '#EA580C' },
+                      { label: 'Published', value: published, color: '#10B981' },
+                      { label: 'Platforms', value: platforms, color: '#6366F1' },
+                      { label: 'Avg / Day', value: avgPerDay, color: '#0A66C2' },
+                    ].map((s) => (
+                      <div key={s.label} className="rounded-xl bg-muted/40 p-3 text-center">
+                        <p className="text-xl font-black" style={{ color: s.color }}>{s.value}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{s.label}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )
+              })()}
             </div>
 
             {/* Upcoming */}

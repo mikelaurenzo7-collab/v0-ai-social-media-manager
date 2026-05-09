@@ -15,7 +15,11 @@ import { Header } from '@/components/dashboard/header'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Fetch failed: ${res.status}`)
+  return res.json()
+}
 
 const PERIODS = ['7D', '30D', '90D'] as const
 type Period = (typeof PERIODS)[number]
@@ -272,7 +276,19 @@ export default function AnalyticsPage() {
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Date range label */}
-        <p className="text-xs text-muted-foreground -mt-2">{periodLabel}</p>
+        <div className="flex items-center gap-3 -mt-2 flex-wrap">
+          <p className="text-xs text-muted-foreground">{periodLabel}</p>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/70 bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700">
+            <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+            </svg>
+            Engagement &amp; reach figures are illustrative.{' '}
+            <Link href="/dashboard/accounts" className="underline underline-offset-2 hover:text-amber-900 transition-colors">
+              Connect accounts
+            </Link>
+            {' '}to see your real metrics.
+          </span>
+        </div>
 
         {/* ── KPIs ─────────────────────────────────────────────────────────── */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

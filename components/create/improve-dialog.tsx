@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,13 @@ export function ImproveDialog({
   const [open, setOpen] = useState(false)
   const [feedback, setFeedback] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isMac, setIsMac] = useState(false)
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined') {
+      setIsMac(/Mac|iPhone|iPod|iPad/i.test(navigator.platform || navigator.userAgent || ''))
+    }
+  }, [])
 
   const handleImprove = useCallback(async () => {
     if (!feedback.trim()) return
@@ -107,7 +114,7 @@ export function ImproveDialog({
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Press ⌘+Enter to submit
+              Press {isMac ? '⌘' : 'Ctrl'}+Enter to submit
             </p>
           </div>
         </div>
